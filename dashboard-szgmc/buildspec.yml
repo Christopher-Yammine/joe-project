@@ -1,0 +1,30 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+    - echo Installing dependencies...
+    - npm install
+    - npm install -g pm2
+  build:
+    commands:
+    - echo setting ENV
+    - sh scripts/fetch-secrets.sh
+    - echo Building the project...
+    - npm run build
+    - npm run export
+  post_build:
+    commands:
+    - echo Build completed.
+
+artifacts:
+  files:
+  - '**/*'
+  - '.next/**'
+  - 'node_modules/**'
+  - 'out/**'
+  discard-paths: no
+
+  base-directory: .
+  exclude:
+  - 'node_modules/.cache/**'

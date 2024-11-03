@@ -1,0 +1,19 @@
+version: 0.0
+os: linux
+files:
+- source: /
+  destination: /opt/dashboard-szgmc
+hooks:
+  ApplicationStop:
+  - location: scripts/stop_node.sh
+    timeout: 100
+    runas: root
+  BeforeInstall:
+  - location: scripts/before_install.sh
+    timeout: 100
+    runas: root
+  ApplicationStart:
+  - location: scripts/start_node.sh
+    timeout: 100
+    runas: root
+
