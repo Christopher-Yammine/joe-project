@@ -46,6 +46,20 @@ class StatisticsService
             }
         }
 
+        // $todayCumulativeSeriesData = [];
+        // $yesterdayCumulativeSeriesData = [];
+
+        // $cumulativeTotalToday = 0;
+        // $cumulativeTotalYesterday = 0;
+
+        // for ($i = 0; $i < 24; $i++) {
+        //     $cumulativeTotalToday += $todaySeriesData[$i];
+        //     $cumulativeTotalYesterday += $yesterdaySeriesData[$i];
+        //     $todayCumulativeSeriesData[$i] = $cumulativeTotalToday;
+        //     $yesterdayCumulativeSeriesData[$i] = $cumulativeTotalYesterday;
+        // }
+        $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
+
         $percentChange = $this->calculatePercentChange($totalVisitorsToday, $totalVisitorsYesterday);
         $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
 
@@ -53,6 +67,7 @@ class StatisticsService
             'number' => number_format($totalVisitorsToday),
             'percent' => $percentFormatted,
             'seriesData' => $todaySeriesData,
+            'cumulativeSeriesData' => $todayCumulativeSeriesData,
         ];
     }
     public function getTotalUniqueVisitorsCard($streamId)
@@ -88,6 +103,8 @@ class StatisticsService
             }
         }
 
+        $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
+
         $percentChange = $this->calculatePercentChange($totalVisitorsToday, $totalVisitorsYesterday);
         $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
 
@@ -95,6 +112,7 @@ class StatisticsService
             'number' => number_format($totalVisitorsToday),
             'percent' => $percentFormatted,
             'seriesData' => $todaySeriesData,
+            'cumulativeSeriesData' => $todayCumulativeSeriesData,
         ];
     }
     public function getTotalOccupancyCard($streamId)
@@ -144,7 +162,18 @@ class StatisticsService
         ];
     }
 
+    protected function calculateCumulativeSeries($seriesData)
+    {
+        $cumulativeSeries = [];
+        $cumulativeTotal = 0;
 
+        foreach ($seriesData as $value) {
+            $cumulativeTotal += $value;
+            $cumulativeSeries[] = $cumulativeTotal;
+        }
+
+        return $cumulativeSeries;
+    }
 
     protected function calculatePercentChange($today, $yesterday)
     {
@@ -165,11 +194,14 @@ class StatisticsService
             ->groupBy('genders.gender', 'age_groups.group_name')
             ->get();
 
+            echo "Retrieved Data:\n";
+            foreach ($data as $entry) {
+                echo "Gender: {$entry->gender}, Age Group: {$entry->group_name}, Total: {$entry->total}\n";
+            }
 
         $femaleData = [];
         $totalMales = 0;
         $totalFemales = 0;
-
 
         foreach ($data as $entry) {
             if ($entry->gender === 'Male') {
@@ -181,6 +213,8 @@ class StatisticsService
             }
         }
 
+        echo "Female Data:";
+        print_r($femaleData);
 
         $series = [];
 
@@ -201,6 +235,9 @@ class StatisticsService
                 'data' => array_reverse(array_values($femaleData))
             ];
         }
+
+        echo "\nFinal Series Data:\n";
+        print_r($series);
 
         return $series;
     }
