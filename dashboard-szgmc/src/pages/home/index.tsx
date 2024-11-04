@@ -7,7 +7,7 @@ import { StatisticBlock } from 'src/components/StatisticBlock'
 import VerseCard from 'src/components/VerseCard'
 import VisitorsChart from 'src/components/VisitorsChart/VisitorsChart'
 
-const API_URL = 'http://localhost:8000/api/'
+const API_URL = process.env.NEXT_PUBLIC_BASE_URL
 
 const Home = () => {
   const { t } = useTranslation()
