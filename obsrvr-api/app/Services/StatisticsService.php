@@ -46,18 +46,6 @@ class StatisticsService
             }
         }
 
-        // $todayCumulativeSeriesData = [];
-        // $yesterdayCumulativeSeriesData = [];
-
-        // $cumulativeTotalToday = 0;
-        // $cumulativeTotalYesterday = 0;
-
-        // for ($i = 0; $i < 24; $i++) {
-        //     $cumulativeTotalToday += $todaySeriesData[$i];
-        //     $cumulativeTotalYesterday += $yesterdaySeriesData[$i];
-        //     $todayCumulativeSeriesData[$i] = $cumulativeTotalToday;
-        //     $yesterdayCumulativeSeriesData[$i] = $cumulativeTotalYesterday;
-        // }
         $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
 
         $percentChange = $this->calculatePercentChange($totalVisitorsToday, $totalVisitorsYesterday);
@@ -194,12 +182,8 @@ class StatisticsService
             ->groupBy('genders.gender', 'age_groups.group_name')
             ->get();
 
-            echo "Retrieved Data:\n";
-            foreach ($data as $entry) {
-                echo "Gender: {$entry->gender}, Age Group: {$entry->group_name}, Total: {$entry->total}\n";
-            }
-
         $femaleData = [];
+        $maleData = [];
         $totalMales = 0;
         $totalFemales = 0;
 
@@ -213,31 +197,32 @@ class StatisticsService
             }
         }
 
-        echo "Female Data:";
-        print_r($femaleData);
-
         $series = [];
 
-
         if (!empty($maleData)) {
+            $maxMale = max($maleData);
+            $maxMaleWithIncrease = $maxMale + ($maxMale * 0.10);
+
             $series[] = [
                 'name' => 'Males [total = ' . number_format($totalMales) . ']',
                 'name_ar' => 'الذكور [المجموع = ' . number_format($totalMales) . ']',
-                'data' => array_reverse(array_values($maleData))
+                'data' => array_reverse(array_values($maleData)),
+                'maxMaleWithIncrease' => 'test'
             ];
         }
 
 
         if (!empty($femaleData)) {
+            $maxFemale = max($femaleData);
+            $maxFemaleWithIncrease = $maxFemale + ($maxFemale * 0.10);
+
             $series[] = [
                 'name' => 'Females [total = ' . number_format($totalFemales) . ']',
                 'name_ar' => 'الإناث [المجموع = ' . number_format($totalFemales) . ']',
-                'data' => array_reverse(array_values($femaleData))
+                'data' => array_reverse(array_values($femaleData)),
+                'maxFemaleWithIncrease' => number_format($maxFemaleWithIncrease)
             ];
         }
-
-        echo "\nFinal Series Data:\n";
-        print_r($series);
 
         return $series;
     }
@@ -384,7 +369,7 @@ class StatisticsService
             $demographicSeries[] = [
                 'name' => 'Males [total = ' . number_format($totalMales) . ']',
                 'name_ar' => 'الذكور [المجموع = ' . number_format($totalMales) . ']',
-                'data' => array_reverse(array_values($demographicsData['male']))
+                'data' => array_reverse(array_values($demographicsData['male'])),
             ];
         }
         if (!empty($demographicsData['female'])) {
