@@ -30,6 +30,12 @@ const Home = () => {
   const [happyFacesRangeChartSeries, setHappyFacesRangeChartSeries] = useState([])
   const [visitorsChartSeries1Daily, setVisitorsChartSeries1Daily] = useState([])
   const [visitorsChartSeries1Dailycomparisons, setVisitorsChartSeries1Dailycomparisons] = useState<any[]>([])
+
+  const [ageMinValue, setAgeMinValue] = useState(0)
+  const [ageMaxValue, setAgeMaxValue] = useState(0)
+  const [sentimentMinVaue, setSentimentMinValue] = useState(0)
+  const [sentimentMaxVaue, setSentimentMaxValue] = useState(0)
+
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
@@ -52,6 +58,32 @@ const Home = () => {
         setVisitorsChartSeries1Daily(data.visitorsChartSeries1Daily)
         setHappyFacesRangeChartSeries(data.ageSentimentBarChartSeries)
         setAgeBarChartSeries(data.ageBarChartSeries)
+
+        const ageValues = data.ageBarChartSeries
+          ? data.ageBarChartSeries.map(item => item.maxWithIncrease).filter(value => value !== undefined)
+          : []
+
+        const minAge = ageValues.length > 0 ? Math.min(...ageValues) : 0
+        const maxAge = ageValues.length > 0 ? Math.max(...ageValues) : 0
+        setAgeMinValue(minAge)
+        setAgeMaxValue(maxAge)
+
+        // Handling Happy and Sad Sentiment Data
+        const sentimentValues = data.happyFacesRangeChartSeries
+          ? data.happyFacesRangeChartSeries.map(item => item.maxWithIncrease).filter(value => value !== undefined)
+          : []
+
+        const minSentiment = sentimentValues.length > 0 ? Math.min(...sentimentValues) : 0
+        const maxSentiment = sentimentValues.length > 0 ? Math.max(...sentimentValues) : 0
+
+        if (sentimentValues.length === 0) {
+          setSentimentMinValue(0)
+          setSentimentMaxValue(0)
+        } else {
+          setSentimentMinValue(minSentiment)
+          setSentimentMaxValue(maxSentiment)
+        }
+
         setTotalStatistics({
           number: visitorsData.number,
           percent: visitorsData.percent,
@@ -88,7 +120,9 @@ const Home = () => {
       console.log(error)
     }
   }
-
+  useEffect(() => {
+    console.log(ageBarChartSeries)
+  })
   return (
     <Grid container spacing={4}>
       <VerseCard verseCardTextKey={'verseCardTextKey'} />
@@ -110,8 +144,18 @@ const Home = () => {
         percent={occupancyStatistics.percent}
         title={t('occupancy')}
       />
-      <AgeDemographics series={ageBarChartSeries} title={t('ageGenderDemographic')} />
-      <AgeDemographics series={happyFacesRangeChartSeries} title={t('ageSentimentDemographic')} />
+      <AgeDemographics
+        series={ageBarChartSeries}
+        title={t('ageGenderDemographic')}
+        minValue={ageMinValue}
+        maxValue={ageMaxValue}
+      />
+      <AgeDemographics
+        series={happyFacesRangeChartSeries}
+        title={t('ageSentimentDemographic')}
+        minValue={sentimentMinVaue}
+        maxValue={sentimentMaxVaue}
+      />
       <VisitorsChart
         isDaily={true}
         visitorsChartSeries1Daily={visitorsChartSeries1Daily}

@@ -9,11 +9,15 @@ type AgeDemographicsProps = {
     name: string
     name_ar?: string
     data: number[]
+    minValue?: number
+    maxValue?: number
   }[]
   title: string
+  minValue: number
+  maxValue: number
 }
 
-export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title }) => {
+export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title, maxValue, minValue }) => {
   const theme = useTheme()
 
   const { t } = useTranslation()
@@ -65,8 +69,9 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title }) => 
           colors: theme?.palette?.text?.primary
         }
       },
-      min: -1100,
-      max: 1100,
+      min: minValue ?? 0,
+      max: maxValue ?? 0,
+
       title: {
         text: 'Age Group',
         style: {
