@@ -299,7 +299,7 @@ const VisitorsChart: React.FC<Props> = ({
   return (
     <Grid item xs={12}>
       <Card sx={{ width: '100%' }}>
-        <Box sx={{ p: 6, width: '100%', borderBottom: '1px solid #cacccf', overflow: 'scroll' }}>
+        <Box sx={{ p: 6, width: '100%', borderBottom: '1px solid #cacccf' }}>
           <TabContext value={value}>
             <TabList variant='scrollable' scrollButtons='auto' onChange={handleTabChange} aria-label='tab widget card'>
               <Tab value='FOOTFALL' label={t('FOOTFALL')} />
