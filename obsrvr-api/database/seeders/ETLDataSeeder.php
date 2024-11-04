@@ -25,7 +25,7 @@ class ETLDataSeeder extends Seeder
         $demographics = Demographic::all();
         $streams = Stream::all();
         $startDate = Carbon::yesterday()->setTime(0, 0, 0);
-        $endDateHourly = $startDate->copy()->addHours(32);
+        $endDateHourly = $startDate->copy()->addHours(36);
         $endDateDaily = $startDate->copy()->addDays(30);
         $endDateWeekly = $startDate->copy()->addWeeks(12);
         $endDateMonthly = $startDate->copy()->addMonths(6);
@@ -42,7 +42,7 @@ class ETLDataSeeder extends Seeder
 
     protected function seedHourlyData($footfalls, $demographics, $metrics, $startTime, $endTime, $streams)
     {
-        $demographics = $demographics->take(8);
+        $demographics = $demographics->take(10);
         while ($startTime < $endTime) {
             foreach ($footfalls as $footfall) {
                 foreach ($demographics as $demographic) {

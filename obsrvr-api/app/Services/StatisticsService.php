@@ -17,8 +17,6 @@ class StatisticsService
         $endOfToday = now()->endOfDay();
         $startOfYesterday = now()->subDay()->startOfDay();
 
-
-
         $data = EtlDataHourly::where('stream_id', $streamId)
             ->whereBetween('date', [$startOfYesterday, $endOfToday])
             ->select(
@@ -103,6 +101,7 @@ class StatisticsService
             'cumulativeSeriesData' => $todayCumulativeSeriesData,
         ];
     }
+
     public function getTotalOccupancyCard($streamId)
     {
         $startOfToday = now()->startOfDay();
@@ -167,11 +166,11 @@ class StatisticsService
     {
         return $yesterday == 0 ? ($today > 0 ? 100 : 0) : round((($today - $yesterday) / $yesterday) * 100, 2);
     }
+
     public function getAgeGenderBarChartData($streamId)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
-
 
         $data = EtlDataHourly::where('stream_id', $streamId)
             ->whereBetween('date', [$startOfToday, $endOfToday])
@@ -188,14 +187,14 @@ class StatisticsService
         $totalFemales = 0;
 
         foreach ($data as $entry) {
-            if ($entry->gender === 'Male') {
+        if ($entry->gender === 'Male') {
                 $maleData[$entry->group_name] = -$entry->total;
-                $totalMales += abs($entry->total);
-            } elseif ($entry->gender === 'Female') {
+            $totalMales += abs($entry->total);
+        } elseif ($entry->gender === 'Female') {
                 $femaleData[$entry->group_name] = $entry->total;
                 $totalFemales += $entry->total;
-            }
         }
+    }
 
         $series = [];
 
@@ -226,6 +225,7 @@ class StatisticsService
 
         return $series;
     }
+
     public function getAgeSentimentBarChartData($streamId)
     {
         $startOfToday = now()->startOfDay();
@@ -406,39 +406,57 @@ class StatisticsService
             ->groupBy('genders.gender', 'sentiments.sentiment', 'age_groups.group_name')
             ->get();
 
-        $ageBarChartSeries = [];
-        $ageSentimentBarChartSeries = [];
+            $ageBarChartSeries = [];
+            $ageSentimentBarChartSeries = [];
+            $maleMax = 0;
+            $femaleMax = 0;
+            $happyMax = 0;
+            $sadMax = 0;
 
         foreach ($data as $entry) {
             if ($entry->gender === 'Male') {
-                $ageBarChartSeries['Males'][$entry->group_name] = $entry->total;
+                $totalValue = -abs($entry->total);
+                $ageBarChartSeries['Males'][$entry->group_name] = $totalValue;
+                $maleMax = max($maleMax, abs($entry->total));
             } elseif ($entry->gender === 'Female') {
-                $ageBarChartSeries['Females'][$entry->group_name] = $entry->total;
+                $totalValue = abs($entry->total);
+                $ageBarChartSeries['Females'][$entry->group_name] = $totalValue;
+                $femaleMax = max($femaleMax, $entry->total);
             }
 
             if ($entry->sentiment === 'Happy') {
                 $ageSentimentBarChartSeries['Happy Visitors'][$entry->group_name] = $entry->total;
+                $happyMax = max($happyMax, $entry->total); 
             } elseif ($entry->sentiment === 'Sad') {
-                $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] = $entry->total;
+                $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] = -abs($entry->total);
+                $sadMax = max($sadMax, abs($entry->total));
             }
         }
+        $maleMaxWithIncrease = -abs(round($maleMax * 1.1));
+        $femaleMaxWithIncrease = round($femaleMax * 1.1);
+        $happyMaxWithIncrease = round($happyMax * 1.1); // Increase for Happy
+        $sadMaxWithDecrease = -abs(round($sadMax * 1.1));
+
         $ageBarChartSeriesFormatted = [];
         foreach ($ageBarChartSeries as $gender => $data) {
             $total = array_sum(array_values($data));
             $ageBarChartSeriesFormatted[] = [
                 'name' => "{$gender} [total = " . number_format($total) . "]",
                 'name_ar' => "{$gender} [المجموع = " . number_format($total) . "]",
-                'data' => array_reverse(array_values($data))
+                'data' => array_reverse(array_values($data)),
+                'maxWithIncrease' => $gender === 'Males' ? $maleMaxWithIncrease : $femaleMaxWithIncrease
             ];
         }
 
         $ageSentimentBarChartSeriesFormatted = [];
         foreach ($ageSentimentBarChartSeries as $sentiment => $data) {
             $total = array_sum(array_values($data));
+            $maxWithIncrease = $sentiment === 'Happy Visitors' ? $happyMaxWithIncrease : $sadMaxWithDecrease;
             $ageSentimentBarChartSeriesFormatted[] = [
                 'name' => "{$sentiment} [total = " . number_format($total) . "]",
                 'name_ar' => "{$sentiment} [المجموع = " . number_format($total) . "]",
-                'data' => array_reverse(array_values($data))
+                'data' => array_reverse(array_values($data)),
+                'maxWithIncrease' => $maxWithIncrease
             ];
         }
         return [
