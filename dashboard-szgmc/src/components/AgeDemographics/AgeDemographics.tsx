@@ -31,10 +31,6 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title }) => 
     data: isRTL ? item.data?.reverse() : item?.data
   }))
 
-  useEffect(() => {
-    console.log('🚀 ~ mappedSeries ~ mappedSeries:', mappedSeries)
-  })
-
   const options = {
     chart: {
       type: 'bar',

@@ -33,7 +33,7 @@ const Home = () => {
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const response = await fetch(`${API_URL}statistics/hourly?stream_id=1`)
+        const response = await fetch(`${API_URL}/statistics/hourly?stream_id=1`)
         if (!response.ok) {
           throw new Error('Network response was not ok')
         }
@@ -73,7 +73,21 @@ const Home = () => {
     }
 
     fetchStatistics()
+    getAllStreams()
   }, [])
+
+  const getAllStreams = async () => {
+    try {
+      const response = await fetch(`${API_URL}/streams`)
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const streams = await response.json()
+      console.log('🚀 ~ fetchStatistics ~ data:', streams)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   return (
     <Grid container spacing={4}>
