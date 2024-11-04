@@ -14,12 +14,12 @@ const Home = () => {
   const [totalStatistics, setTotalStatistics] = useState({
     number: '0',
     percent: '0%',
-    seriesData: []
+    cumulativeSeriesData: []
   })
   const [uniqueStatistics, setUniqueStatistics] = useState({
     number: '0',
     percent: '0%',
-    seriesData: []
+    cumulativeSeriesData: []
   })
   const [occupancyStatistics, setOccupancyStatistics] = useState({
     number: '0',
@@ -38,6 +38,7 @@ const Home = () => {
           throw new Error('Network response was not ok')
         }
         const data = await response.json()
+        console.log('🚀 ~ fetchStatistics ~ data:', data)
         const visitorsData = data.totalVisitorsCard
         const uniqueVisitors = data.totalUniqueVisitorsCard
         const occupancy = data.totalOccupancyCard
@@ -54,12 +55,12 @@ const Home = () => {
         setTotalStatistics({
           number: visitorsData.number,
           percent: visitorsData.percent,
-          seriesData: visitorsData.seriesData
+          cumulativeSeriesData: visitorsData.cumulativeSeriesData
         })
         setUniqueStatistics({
           number: uniqueVisitors.number,
           percent: uniqueVisitors.percent,
-          seriesData: uniqueVisitors.seriesData
+          cumulativeSeriesData: uniqueVisitors.cumulativeSeriesData
         })
         setOccupancyStatistics({
           number: occupancy.number,
@@ -81,13 +82,13 @@ const Home = () => {
         number={totalStatistics.number}
         percent={totalStatistics.percent}
         title={t('totalVisitors')}
-        seriesData={totalStatistics.seriesData}
+        seriesData={totalStatistics.cumulativeSeriesData}
       />
       <StatisticBlock
         number={uniqueStatistics.number}
         percent={uniqueStatistics.percent}
         title={t('uniqueVisitors')}
-        seriesData={uniqueStatistics.seriesData}
+        seriesData={uniqueStatistics.cumulativeSeriesData}
       />
       <StatisticBlock
         number={occupancyStatistics.number}

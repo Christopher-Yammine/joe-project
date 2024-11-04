@@ -1,5 +1,5 @@
 import { Card, CardHeader, Grid, Theme, useMediaQuery, useTheme } from '@mui/material'
-import React, { FC } from 'react'
+import React, { FC, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { useSettings } from 'src/@core/hooks/useSettings'
@@ -30,6 +30,10 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title }) => 
     name: isAR ? item?.name_ar : item?.name,
     data: isRTL ? item.data?.reverse() : item?.data
   }))
+
+  useEffect(() => {
+    console.log('🚀 ~ mappedSeries ~ mappedSeries:', mappedSeries)
+  })
 
   const options = {
     chart: {
@@ -65,8 +69,8 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title }) => 
           colors: theme?.palette?.text?.primary
         }
       },
-      min: -50000,
-      max: 50000,
+      min: -1100,
+      max: 1100,
       title: {
         text: 'Age Group',
         style: {
@@ -130,7 +134,7 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title }) => 
         colors: theme?.palette?.text?.primary
       },
       markers: {
-        offsetX: isRTL ?  2 : -2
+        offsetX: isRTL ? 2 : -2
       }
     }
   }
