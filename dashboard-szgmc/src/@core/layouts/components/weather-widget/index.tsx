@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Typography, useTheme } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import { useSettings } from 'src/@core/hooks/useSettings'
 
 const WeatherWidget = () => {
   const { palette } = useTheme()
@@ -8,8 +9,12 @@ const WeatherWidget = () => {
 
   const [weatherData, setWeatherData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const { settings } = useSettings()
 
-  const getWeatherImage = code => {
+  const isRTL = settings.direction === 'rtl'
+
+  const getWeatherImage = (code, isDaytime) => {
+    if (!isDaytime) return '🌙' // Moon icon for night
     switch (code) {
       case 0:
         return '☀️' // Clear sky
@@ -33,7 +38,7 @@ const WeatherWidget = () => {
       case 75:
         return '🌨️' // Snow
       default:
-        return '🌤️' // Default: partly sunny
+        return '🌤️' // Default partly sunny for other cases
     }
   }
 
@@ -62,10 +67,17 @@ const WeatherWidget = () => {
   const todayTempMax = temperature_2m_max[0]
   const todayTempMin = temperature_2m_min[0]
   const todayWeatherCode = weathercode[0]
-  const weatherIcon = getWeatherImage(todayWeatherCode)
+  const averageTemp = ((todayTempMax + todayTempMin) / 2).toFixed(1)
+
+  const currentHour = new Date().getHours()
+  const isDaytime = currentHour >= 6 && currentHour < 18
+
+  const weatherIcon = getWeatherImage(todayWeatherCode, isDaytime)
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', textAlign: 'center' }}>
+    <Box
+      sx={{ display: 'flex', flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', textAlign: 'center' }}
+    >
       <Box>
         <Typography sx={{ fontSize: '.75rem', fontWeight: '700', lineHeight: '1' }}>{t('ABU DHABI')}</Typography>
         <Typography sx={{ fontSize: 'inherit' }}>{t('Weather')}</Typography>
@@ -74,7 +86,7 @@ const WeatherWidget = () => {
         <span style={{ fontSize: '2.5rem' }}>{weatherIcon}</span>
       </Box>
       <Box>
-        <Typography sx={{ fontSize: '2rem', lineHeight: '1' }}>{todayTempMax}&#8451;</Typography>
+        <Typography sx={{ fontSize: '2rem', lineHeight: '1' }}>{averageTemp}&#8451;</Typography>
         <Typography sx={{ fontSize: '.75rem' }}>
           {t(todayWeatherCode === 0 ? 'Sunny' : todayWeatherCode === 1 ? 'Partly Cloudy' : 'Rainy')}
         </Typography>

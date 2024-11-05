@@ -120,7 +120,7 @@ const AppBarContent = (props: Props) => {
                     color: '#ae9e85'
                   }}
                 >
-                  {t(`Time: ${currentTime}`)}
+                  {t(`${currentTime}`)}
                 </Typography>
                 <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
                 <Typography
