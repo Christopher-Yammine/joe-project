@@ -6,11 +6,14 @@ import MultiLineChart from 'src/components/MultiLineChart/MultiLineChart'
 import { StatisticBlock } from 'src/components/StatisticBlock'
 import VerseCard from 'src/components/VerseCard'
 import VisitorsChart from 'src/components/VisitorsChart/VisitorsChart'
+import useStore from 'src/store/store'
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL
 
 const Home = () => {
   const { t } = useTranslation()
+  const setStreams = useStore(state => state.setStreams)
+  const selectedSteams = useStore(state => state.selectedStreams)
   const [totalStatistics, setTotalStatistics] = useState({
     number: '0',
     percent: '0%',
@@ -108,6 +111,10 @@ const Home = () => {
     getAllStreams()
   }, [])
 
+  useEffect(() => {
+    console.log('selectedStreams', selectedSteams)
+  }, [selectedSteams])
+
   const getAllStreams = async () => {
     try {
       const response = await fetch(`${API_URL}/streams`)
@@ -116,13 +123,16 @@ const Home = () => {
       }
       const streams = await response.json()
       console.log('🚀 ~ fetchStatistics ~ data:', streams)
+      setStreams(streams)
     } catch (error) {
       console.log(error)
     }
   }
-  useEffect(() => {
-    console.log(ageBarChartSeries)
-  })
+
+  // useEffect(() => {
+  //   console.log('🚀 ~ fetchStatistics ~ data:', streams)
+  // }, [setStreams, streams])
+
   return (
     <Grid container spacing={4}>
       <VerseCard verseCardTextKey={'verseCardTextKey'} />
