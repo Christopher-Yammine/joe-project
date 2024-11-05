@@ -1,18 +1,18 @@
 import { create } from 'zustand'
 
-interface StreamStore {
+type StreamStore = {
   streams: Stream[]
   selectedStreams: Stream[]
   setStreams: (streams: Stream[]) => void
   setSelectedStream: (selectedStream: Stream[]) => void
 }
 
-export interface Option {
+export type Option = {
   label: string
   value: string
 }
 
-export interface Stream {
+export type Stream = {
   label: string
   value: string
   options: Option[]

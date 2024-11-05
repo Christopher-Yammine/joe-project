@@ -74,7 +74,9 @@ const CameraSelect = () => {
         }
 
         // @ts-ignore
-        setSelectedStreams(prevSelected.concat(uniqueItems))
+        const ids = uniqueItems.flatMap((item: any) => (item.options ? item.option.map(opt => opt.value) : item.value))
+        // @ts-ignore
+        setSelectedStreams(prevSelected.concat(ids))
         // @ts-ignore
         return prevSelected.concat(uniqueItems)
       })
@@ -166,7 +168,8 @@ const CameraSelect = () => {
           // return setSelected(option)
           setSelected(option)
           // @ts-ignore
-          setSelectedStreams(option)
+          const ids = option.flatMap((item: any) => (item.options ? item.option.map(opt => opt.value) : item.value))
+          setSelectedStreams(ids)
         }}
         closeMenuOnSelect={false}
         isMulti
