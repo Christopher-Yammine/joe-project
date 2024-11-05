@@ -185,7 +185,10 @@ class ETLController extends Controller
         // $AgeGenderBarChartData = $this->statisticsService->getAgeGenderBarChartData($streamIds);
         // $AgeSentimentBarChartData = $this->statisticsService->getAgeSentimentBarChartData($streamIds);
         $ageSentimentGenderBarchart = $this->statisticsService->getAgeGenderSentimentBarChartData($streamIdsArray);
-        $totalVisitorsperStream = $this->statisticsService->getVisitorsData();
+        $totalVisitorsperStream = $this->statisticsService->getVisitorsData($streamIdsArray);
+        $totalUniqueVisitorsPerStream = $this->statisticsService->getUniqueVisitorsData($streamIdsArray);
+        $totalRepeatedVisitorsPerStream = $this->statisticsService->getRepeatedVisitorsData($streamIdsArray);
+        $totalOccupancyVisitorsPerStream = $this->statisticsService->getOccupancyVisitorsData($streamIdsArray);
         // $test2=$this->statisticsService->getTotalUniqueVisitorsAndOccupancyCard($streamIds);
         return response()->json([
             'totalVisitorsCard' => $totalVisitorsCard,
@@ -194,7 +197,10 @@ class ETLController extends Controller
             // 'ageBarChartSeries' => $AgeGenderBarChartData,
             // 'ageSentimentBarChartSeries' => $AgeSentimentBarChartData,
             ...$ageSentimentGenderBarchart,
-            ...$totalVisitorsperStream
+            ...$totalVisitorsperStream,
+            ...$totalUniqueVisitorsPerStream,
+            ...$totalRepeatedVisitorsPerStream,
+            ...$totalOccupancyVisitorsPerStream
         ], 200);
     }
 }

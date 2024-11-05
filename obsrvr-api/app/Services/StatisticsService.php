@@ -618,12 +618,12 @@ class StatisticsService
             ],
         ];
     }
-    public function getVisitorsData()
+
+    public function getVisitorsData(array $streamIds)
     {
         $today = now()->format('Y-m-d');
         $yesterday = now()->subDay()->format('Y-m-d');
 
-        // Query for today's data
         $todayResults = DB::table('etl_data_hourly as etl')
             ->select(
                 'streams.name',
@@ -631,12 +631,12 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->whereIn('etl.stream_id', $streamIds)
             ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderBy('hour')
             ->get();
 
-        // Query for yesterday's data
         $yesterdayResults = DB::table('etl_data_hourly as etl')
             ->select(
                 'streams.name',
@@ -644,15 +644,14 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->whereIn('etl.stream_id', $streamIds)
             ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderBy('hour')
             ->get();
 
-        // Initialize data arrays
         $visitorsChartSeries = [];
 
-        // Process today's results
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
@@ -663,7 +662,6 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        // Process yesterday's results
         foreach ($yesterdayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
@@ -674,8 +672,7 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        // Calculate metrics comparison between today and yesterday
-        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday);
+        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false);
 
         return [
             'visitorsChartSeries1Daily' => array_values($visitorsChartSeries),
@@ -683,9 +680,27 @@ class StatisticsService
         ];
     }
 
-    private function calculateMetricsComparison($today, $yesterday)
+
+    private function calculateMetricsComparison($today, $yesterday, array $streamIds, $isUniqueMetric=false, $isOccupancyMetric=false, $personType = null)
     {
-        $results = DB::table('etl_data_hourly as etl')
+        // $results = DB::table('etl_data_hourly as etl')
+        //     ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+        //     ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
+        //     ->whereIn('etl.stream_id', $streamIds)
+        //     ->selectRaw("
+        //         SUM(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_total_value,
+        //         COUNT(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN 1 END) AS today_total_entries,
+        //         SUM(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_total_value,
+        //         COUNT(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN 1 END) AS yesterday_total_entries,
+        //         SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_new_visitors,
+        //         SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
+        //         SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_souq_visitors,
+        //         SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
+        //     ")
+        //     ->first();
+
+        // Base query
+            $query = DB::table('etl_data_hourly as etl')
             ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
             ->selectRaw("
@@ -697,9 +712,38 @@ class StatisticsService
                 SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
                 SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_souq_visitors,
                 SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
-            ")
-            ->first();
+            ");
 
+        if ($isUniqueMetric) {
+            $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
+                ->where('metrics.name', 'Unique')
+                ->whereIn('etl.stream_id', $streamIds)
+                ->first();
+        } else if ($isOccupancyMetric){
+            $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->where('metrics.name', 'Occupancy')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->first();
+        } else {
+            $results = $query->whereIn('etl.stream_id', $streamIds)
+                ->first();
+        }
+
+        if ($personType) {
+            $results->today_new_visitors = DB::table('etl_data_hourly as etl')
+                ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+                ->where('person_types.name', $personType)
+                ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+                ->whereIn('etl.stream_id', $streamIds)
+                ->sum('etl.value');
+    
+            $results->yesterday_new_visitors = DB::table('etl_data_hourly as etl')
+                ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+                ->where('person_types.name', $personType)
+                ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
+                ->whereIn('etl.stream_id', $streamIds)
+                ->sum('etl.value');
+        }
 
         $todayAverageFootfall = $results->today_total_value / 24;
         $yesterdayAverageFootfall = $results->yesterday_total_value / 24;
@@ -745,6 +789,200 @@ class StatisticsService
                 'trend' => $totalEntriesPercentageDifference < 0 ? 'negative' : 'positive',
                 'trendNumber' => round(abs($totalEntriesPercentageDifference), 2),
             ],
+        ];
+    }
+
+    public function getUniqueVisitorsData(array $streamIds) {
+        $today = now()->format('Y-m-d');
+        $yesterday = now()->subDay()->format('Y-m-d');
+
+        $todayResults = DB::table('etl_data_hourly as etl')
+            ->select(
+                'streams.name',
+                DB::raw('HOUR(etl.date) as hour'),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->where('metrics.name', 'Unique')
+            ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+            ->groupBy('streams.id', 'hour', 'streams.name')
+            ->orderBy('hour')
+            ->get();
+
+            $yesterdayResults = DB::table('etl_data_hourly as etl')
+            ->select(
+                'streams.name',
+                DB::raw('HOUR(etl.date) as hour'),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->where('metrics.name', 'Unique')
+            ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
+            ->groupBy('streams.id', 'hour', 'streams.name')
+            ->orderBy('hour')
+            ->get();
+
+            $visitorsChartSeries = [];
+
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'data' => array_fill(0, 24, 0),
+                ];
+            }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+
+        foreach ($yesterdayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'data' => array_fill(0, 24, 0),
+                ];
+            }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+
+        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, true);
+
+        return [
+            'visitorsChartSeries2Daily' => array_values($visitorsChartSeries),
+            'visitorsChartSeries2Dailycomparisons' => array_values($calculateMetricsComparison),
+        ];
+    }
+
+    public function getRepeatedVisitorsData(array $streamIds) {
+        $today = now()->format('Y-m-d');
+        $yesterday = now()->subDay()->format('Y-m-d');
+
+        $todayResults = DB::table('etl_data_hourly as etl')
+        ->select(
+            'streams.name',
+            DB::raw('HOUR(etl.date) as hour'),
+            DB::raw('SUM(etl.value) as total_value')
+        )
+        ->join('streams', 'etl.stream_id', '=', 'streams.id')
+        ->join('person_types', 'etl.person_type_id', '=', 'person_types.id') 
+        ->whereIn('etl.stream_id', $streamIds)
+        ->where('person_types.name', 'Returning')
+        ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+        ->groupBy('streams.id', 'hour', 'streams.name')
+        ->orderBy('hour')
+        ->get();
+
+        $yesterdayResults = DB::table('etl_data_hourly as etl')
+        ->select(
+            'streams.name',
+            DB::raw('HOUR(etl.date) as hour'),
+            DB::raw('SUM(etl.value) as total_value')
+        )
+        ->join('streams', 'etl.stream_id', '=', 'streams.id')
+        ->join('person_types', 'etl.person_type_id', '=', 'person_types.id') 
+        ->whereIn('etl.stream_id', $streamIds)
+        ->where('person_types.name', 'Returning')
+        ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
+        ->groupBy('streams.id', 'hour', 'streams.name')
+        ->orderBy('hour')
+        ->get();
+
+
+            $visitorsChartSeries = [];
+
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'data' => array_fill(0, 24, 0),
+                ];
+            }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+
+        foreach ($yesterdayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'data' => array_fill(0, 24, 0),
+                ];
+            }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+        $personType = 'returning';
+        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, false, $personType);
+
+        return [
+            'visitorsChartSeries3Daily' => array_values($visitorsChartSeries),
+            'visitorsChartSeries3Dailycomparisons' => array_values($calculateMetricsComparison),
+        ];
+    }
+
+    public function getOccupancyVisitorsData(array $streamIds) {
+        $today = now()->format('Y-m-d');
+        $yesterday = now()->subDay()->format('Y-m-d');
+
+        $todayResults = DB::table('etl_data_hourly as etl')
+        ->select(
+            'streams.name',
+            DB::raw('HOUR(etl.date) as hour'),
+            DB::raw('SUM(etl.value) as total_value')
+        )
+        ->join('streams', 'etl.stream_id', '=', 'streams.id')
+        ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
+        ->whereIn('etl.stream_id', $streamIds)
+        ->where('metrics.name', 'Occupancy')
+        ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+        ->groupBy('streams.id', 'hour', 'streams.name')
+        ->orderBy('hour')
+        ->get();
+
+        $yesterdayResults = DB::table('etl_data_hourly as etl')
+        ->select(
+            'streams.name',
+            DB::raw('HOUR(etl.date) as hour'),
+            DB::raw('SUM(etl.value) as total_value')
+        )
+        ->join('streams', 'etl.stream_id', '=', 'streams.id')
+        ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
+        ->whereIn('etl.stream_id', $streamIds)
+        ->where('metrics.name', 'Occupancy')
+        ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
+        ->groupBy('streams.id', 'hour', 'streams.name')
+        ->orderBy('hour')
+        ->get();
+
+
+            $visitorsChartSeries = [];
+
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'data' => array_fill(0, 24, 0),
+                ];
+            }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+
+        foreach ($yesterdayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'data' => array_fill(0, 24, 0),
+                ];
+            }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+
+        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, true);
+
+        return [
+            'visitorsChartSeries4Daily' => array_values($visitorsChartSeries),
+            'visitorsChartSeries4Dailycomparisons' => array_values($calculateMetricsComparison),
         ];
     }
 }

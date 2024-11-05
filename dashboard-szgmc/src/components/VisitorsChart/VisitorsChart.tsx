@@ -40,12 +40,24 @@ interface Props {
   isDaily?: boolean
   visitorsChartSeries1Daily: any
   visitorsChartSeries1Dailycomparisons: any
+  visitorsChartSeries2Daily: any
+  visitorsChartSeries2Dailycomparisons: any
+  visitorsChartSeries3Daily: any
+  visitorsChartSeries3Dailycomparisons: any
+  visitorsChartSeries4Daily: any
+  visitorsChartSeries4Dailycomparisons: any
 }
 
 const VisitorsChart: React.FC<Props> = ({
   isDaily,
   visitorsChartSeries1Daily,
-  visitorsChartSeries1Dailycomparisons
+  visitorsChartSeries1Dailycomparisons,
+  visitorsChartSeries2Daily,
+  visitorsChartSeries2Dailycomparisons,
+  visitorsChartSeries3Daily,
+  visitorsChartSeries3Dailycomparisons,
+  visitorsChartSeries4Daily,
+  visitorsChartSeries4Dailycomparisons
 }) => {
   const theme = useTheme()
   const { settings } = useSettings()
@@ -152,17 +164,20 @@ const VisitorsChart: React.FC<Props> = ({
     name: isAR ? t(item?.name) : item?.name
   }))
 
-  const visitorsChartSeries2Data = dataJSON[`visitorsChartSeries2${isDaily ? 'Daily' : ''}`]?.map(item => ({
+  const uniqueVisitorsData = isDaily ? visitorsChartSeries2Daily : dataJSON[`visitorsChartSeries2Daily`]
+  const visitorsChartSeries2Data = uniqueVisitorsData.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
 
-  const visitorsChartSeries3Data = dataJSON[`visitorsChartSeries3${isDaily ? 'Daily' : ''}`]?.map(item => ({
+  const repeatedVisitorsData = isDaily ? visitorsChartSeries3Daily : dataJSON[`visitorsChartSeries3Daily`]
+  const visitorsChartSeries3Data = repeatedVisitorsData?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
 
-  const visitorsChartSeries4Data = dataJSON[`visitorsChartSeries4${isDaily ? 'Daily' : ''}`]?.map(item => ({
+  const occupancyVisitorsData = isDaily ? visitorsChartSeries4Daily : dataJSON[`visitorsChartSeries4Daily`]
+  const visitorsChartSeries4Data = occupancyVisitorsData?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
@@ -274,9 +289,9 @@ const VisitorsChart: React.FC<Props> = ({
 
   const statsValues = {
     ['FOOTFALL']: visitorsChartSeries1Dailycomparisons,
-    ['UNIQUE VISITORS']: data2,
-    ['REPEATED VISITORS']: data3,
-    ['OCCUPANCY']: data4
+    ['UNIQUE VISITORS']: visitorsChartSeries2Dailycomparisons,
+    ['REPEATED VISITORS']: visitorsChartSeries3Dailycomparisons,
+    ['OCCUPANCY']: visitorsChartSeries4Dailycomparisons
   }
 
   useEffect(() => {

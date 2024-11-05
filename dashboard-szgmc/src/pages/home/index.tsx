@@ -35,6 +35,12 @@ const Home = () => {
   const [happyFacesRangeChartSeries, setHappyFacesRangeChartSeries] = useState([])
   const [visitorsChartSeries1Daily, setVisitorsChartSeries1Daily] = useState([])
   const [visitorsChartSeries1Dailycomparisons, setVisitorsChartSeries1Dailycomparisons] = useState<any[]>([])
+  const [visitorsChartSeries2Daily, setVisitorsChartSeries2Daily] = useState([])
+  const [visitorsChartSeries2Dailycomparisons, setVisitorsChartSeries2Dailycomparisons] = useState<any[]>([])
+  const [visitorsChartSeries3Daily, setVisitorsChartSeries3Daily] = useState([])
+  const [visitorsChartSeries3Dailycomparisons, setVisitorsChartSeries3Dailycomparisons] = useState<any[]>([])
+  const [visitorsChartSeries4Daily, setVisitorsChartSeries4Daily] = useState([])
+  const [visitorsChartSeries4Dailycomparisons, setVisitorsChartSeries4Dailycomparisons] = useState<any[]>([])
 
   const [ageMinValue, setAgeMinValue] = useState(0)
   const [ageMaxValue, setAgeMaxValue] = useState(0)
@@ -112,6 +118,30 @@ const Home = () => {
         percent: occupancy.percent,
         seriesData: occupancy.seriesData
       })
+      setVisitorsChartSeries2Dailycomparisons(
+        (data?.visitorsChartSeries2Dailycomparisons || []).map(item => ({
+          ...item,
+          title: t(item.title)
+        }))
+      )
+
+      setVisitorsChartSeries2Daily(data.visitorsChartSeries2Daily)
+      setVisitorsChartSeries3Dailycomparisons(
+        (data?.visitorsChartSeries3Dailycomparisons || []).map(item => ({
+          ...item,
+          title: t(item.title)
+        }))
+      )
+
+      setVisitorsChartSeries3Daily(data.visitorsChartSeries3Daily)
+      setVisitorsChartSeries4Dailycomparisons(
+        (data?.visitorsChartSeries4Dailycomparisons || []).map(item => ({
+          ...item,
+          title: t(item.title)
+        }))
+      )
+
+      setVisitorsChartSeries4Daily(data.visitorsChartSeries4Daily)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
     }
@@ -182,6 +212,12 @@ const Home = () => {
         isDaily={true}
         visitorsChartSeries1Daily={visitorsChartSeries1Daily}
         visitorsChartSeries1Dailycomparisons={visitorsChartSeries1Dailycomparisons}
+        visitorsChartSeries2Daily={visitorsChartSeries2Daily}
+        visitorsChartSeries2Dailycomparisons={visitorsChartSeries2Dailycomparisons}
+        visitorsChartSeries3Daily={visitorsChartSeries3Daily}
+        visitorsChartSeries3Dailycomparisons={visitorsChartSeries3Dailycomparisons}
+        visitorsChartSeries4Daily={visitorsChartSeries4Daily}
+        visitorsChartSeries4Dailycomparisons={visitorsChartSeries4Dailycomparisons}
       />
       <MultiLineChart title={t('staffToday')} isDaily={true} />
     </Grid>
