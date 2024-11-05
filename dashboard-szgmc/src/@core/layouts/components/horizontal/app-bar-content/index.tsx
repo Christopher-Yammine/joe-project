@@ -12,6 +12,7 @@ import { LayoutProps } from 'src/@core/layouts/types'
 // @ts-ignore
 import logo from 'public/images/logo.png'
 import { useTranslation } from 'react-i18next'
+import { useEffect, useState } from 'react'
 
 interface Props {
   hidden: LayoutProps['hidden']
@@ -35,6 +36,31 @@ const AppBarContent = (props: Props) => {
 
   // ** Props
   const { appBarContent: userAppBarContent, appBarBranding: userAppBarBranding } = props
+
+  const date = new Date()
+  const options = {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }
+  const formattedDate = date.toLocaleDateString('en-US', options)
+
+  const [currentTime, setCurrentTime] = useState('')
+
+  // Update the time every minute
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) // Exclude seconds
+      setCurrentTime(timeString)
+    }
+
+    updateTime()
+    const interval = setInterval(updateTime, 60000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -69,7 +95,7 @@ const AppBarContent = (props: Props) => {
                     color: '#ae9e85'
                   }}
                 >
-                  {t('Wed, 10, Apr 2024')}
+                  {t(formattedDate)}
                 </Typography>
                 <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
                 <Typography
@@ -93,7 +119,7 @@ const AppBarContent = (props: Props) => {
                     color: '#ae9e85'
                   }}
                 >
-                  {t('Time: 02:23 AM')}
+                  {t(`Time: ${currentTime}`)}
                 </Typography>
                 <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
                 <Typography
