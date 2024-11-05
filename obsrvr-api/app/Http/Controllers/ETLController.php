@@ -175,17 +175,18 @@ class ETLController extends Controller
 
     public function getHourlyStatistics(Request $request)
     {
-        $streamId = $request->input('stream_id');
+        // $streamId = $request->input('stream_id');
+        $streamIds = $request->input('stream_id');
 
 
-        $totalVisitorsCard = $this->statisticsService->getTotalVisitorsCard($streamId);
-        $totalUniqueVisitorsCard = $this->statisticsService->getTotalUniqueVisitorsCard($streamId);
-        $totalOccupancyCard = $this->statisticsService->getTotalOccupancyCard($streamId);
-        // $AgeGenderBarChartData = $this->statisticsService->getAgeGenderBarChartData($streamId);
-        // $AgeSentimentBarChartData = $this->statisticsService->getAgeSentimentBarChartData($streamId);
-        $ageSentimentGenderBarchart = $this->statisticsService->getAgeGenderSentimentBarChartData($streamId);
+        $totalVisitorsCard = $this->statisticsService->getTotalVisitorsCard($streamIds);
+        $totalUniqueVisitorsCard = $this->statisticsService->getTotalUniqueVisitorsCard($streamIds);
+        $totalOccupancyCard = $this->statisticsService->getTotalOccupancyCard($streamIds);
+        // $AgeGenderBarChartData = $this->statisticsService->getAgeGenderBarChartData($streamIds);
+        // $AgeSentimentBarChartData = $this->statisticsService->getAgeSentimentBarChartData($streamIds);
+        $ageSentimentGenderBarchart = $this->statisticsService->getAgeGenderSentimentBarChartData($streamIds);
         $totalVisitorsperStream = $this->statisticsService->getVisitorsData();
-        // $test2=$this->statisticsService->getTotalUniqueVisitorsAndOccupancyCard($streamId);
+        // $test2=$this->statisticsService->getTotalUniqueVisitorsAndOccupancyCard($streamIds);
         return response()->json([
             'totalVisitorsCard' => $totalVisitorsCard,
             'totalUniqueVisitorsCard' => $totalUniqueVisitorsCard,

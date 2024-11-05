@@ -11,28 +11,143 @@ use Illuminate\Support\Facades\DB;
 
 class StatisticsService
 {
-    public function getTotalVisitorsCard($streamId)
+    // public function getTotalVisitorsCard($streamId)
+    // {
+    //     $startOfToday = now()->startOfDay();
+    //     $endOfToday = now()->endOfDay();
+    //     $startOfYesterday = now()->subDay()->startOfDay();
+
+    //     $data = EtlDataHourly::where('stream_id', $streamId)
+    //         ->whereBetween('date', [$startOfYesterday, $endOfToday])
+    //         ->select(
+    //             DB::raw('DATE(date) as day'),
+    //             DB::raw('HOUR(date) as hour'),
+    //             DB::raw('SUM(value) as total')
+    //         )
+    //         ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
+    //         ->get();
+
+
+    //     $todaySeriesData = array_fill(0, 24, 0);
+    //     $yesterdaySeriesData = array_fill(0, 24, 0);
+    //     $totalVisitorsToday = 0;
+    //     $totalVisitorsYesterday = 0;
+
+
+    //     foreach ($data as $entry) {
+    //         if ($entry->day == $startOfToday->toDateString()) {
+    //             $todaySeriesData[$entry->hour] = $entry->total;
+    //             $totalVisitorsToday += $entry->total;
+    //         } elseif ($entry->day == $startOfYesterday->toDateString()) {
+    //             $yesterdaySeriesData[$entry->hour] = $entry->total;
+    //             $totalVisitorsYesterday += $entry->total;
+    //         }
+    //     }
+
+    //     $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
+
+    //     $percentChange = $this->calculatePercentChange($totalVisitorsToday, $totalVisitorsYesterday);
+    //     $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
+
+    //     return [
+    //         'number' => number_format($totalVisitorsToday),
+    //         'percent' => $percentFormatted,
+    //         'seriesData' => $todaySeriesData,
+    //         'cumulativeSeriesData' => $todayCumulativeSeriesData,
+    //     ];
+    // }
+
+    public function getTotalVisitorsCard(array $streamIds)
+{
+    $startOfToday = now()->startOfDay();
+    $endOfToday = now()->endOfDay();
+    $startOfYesterday = now()->subDay()->startOfDay();
+    $endOfYesterday = now()->subDay()->endOfDay();
+
+    $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
+    ->whereBetween('date', [$startOfToday, $endOfToday])
+    ->select(
+        DB::raw('DATE(date) as day'),
+        DB::raw('HOUR(date) as hour'),
+        DB::raw('SUM(value) as total')
+    )
+    ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
+    ->get();
+
+    $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
+    ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
+    ->select(
+        DB::raw('DATE(date) as day'),
+        DB::raw('HOUR(date) as hour'),
+        DB::raw('SUM(value) as total')
+    )
+    ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
+    ->get();
+
+    $todaySeriesData = array_fill(0, 24, 0);
+    $yesterdaySeriesData = array_fill(0, 24, 0);
+    $totalVisitorsToday = 0;
+    $totalVisitorsYesterday = 0;
+
+    foreach ($todayData as $entry) {
+        $todaySeriesData[$entry->hour] = $entry->total;
+        $totalVisitorsToday += $entry->total;
+    }
+
+    foreach ($yesterdayData as $entry) {
+        $yesterdaySeriesData[$entry->hour] = $entry->total;
+        $totalVisitorsYesterday += $entry->total;
+    }
+
+    $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
+
+    $percentChange = $this->calculatePercentChange($totalVisitorsToday, $totalVisitorsYesterday);
+    $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
+
+    return [
+        'number' => number_format($totalVisitorsToday),
+        'percent' => $percentFormatted,
+        'seriesData' => $todaySeriesData,
+        'cumulativeSeriesData' => $todayCumulativeSeriesData,
+    ];
+}
+
+    public function getTotalUniqueVisitorsCard(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
         $startOfYesterday = now()->subDay()->startOfDay();
+        $endOfYesterday = now()->subDay()->endOfDay();
 
-        $data = EtlDataHourly::where('stream_id', $streamId)
-            ->whereBetween('date', [$startOfYesterday, $endOfToday])
-            ->select(
-                DB::raw('DATE(date) as day'),
-                DB::raw('HOUR(date) as hour'),
-                DB::raw('SUM(value) as total')
-            )
-            ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-            ->get();
+        $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
+        ->whereBetween('date', [$startOfToday, $endOfToday])
+        ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+        ->where('metrics.name', 'Unique')
+        ->select(
+            DB::raw('DATE(date) as day'),
+            DB::raw('HOUR(date) as hour'),
+            DB::raw('SUM(value) as total')
+        )
+        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
+        ->get();
+
+        $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
+        ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
+        ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+        ->where('metrics.name', 'Unique')
+        ->select(
+            DB::raw('DATE(date) as day'),
+            DB::raw('HOUR(date) as hour'),
+            DB::raw('SUM(value) as total')
+        )
+        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
+        ->get();
 
 
         $todaySeriesData = array_fill(0, 24, 0);
         $yesterdaySeriesData = array_fill(0, 24, 0);
         $totalVisitorsToday = 0;
         $totalVisitorsYesterday = 0;
-
 
         foreach ($data as $entry) {
             if ($entry->day == $startOfToday->toDateString()) {
@@ -56,61 +171,28 @@ class StatisticsService
             'cumulativeSeriesData' => $todayCumulativeSeriesData,
         ];
     }
-    public function getTotalUniqueVisitorsCard($streamId)
+
+    public function getTotalOccupancyCard(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
         $startOfYesterday = now()->subDay()->startOfDay();
+        $endOfYesterday = now()->subDay()->endOfDay();
 
-        $data = EtlDataHourly::where('stream_id', $streamId)
-            ->whereBetween('date', [$startOfYesterday, $endOfToday])
-            ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-            ->where('metrics.name', 'Unique')
-            ->select(
-                DB::raw('DATE(date) as day'),
-                DB::raw('HOUR(date) as hour'),
-                DB::raw('SUM(value) as total')
-            )
-            ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-            ->get();
+        $todayOccupancyData = EtlDataHourly::whereIn('stream_id', $streamIds)
+        ->whereBetween('date', [$startOfToday, $endOfToday])
+        ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+        ->where('metrics.name', 'Occupancy')
+        ->select(
+            DB::raw('DATE(date) as day'),
+            DB::raw('HOUR(date) as hour'),
+            DB::raw('SUM(value) as total')
+        )
+        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
+        ->get();
 
-        $todaySeriesData = array_fill(0, 24, 0);
-        $yesterdaySeriesData = array_fill(0, 24, 0);
-        $totalVisitorsToday = 0;
-        $totalVisitorsYesterday = 0;
-
-        foreach ($data as $entry) {
-            if ($entry->day == $startOfToday->toDateString()) {
-                $todaySeriesData[$entry->hour] = $entry->total;
-                $totalVisitorsToday += $entry->total;
-            } elseif ($entry->day == $startOfYesterday->toDateString()) {
-                $yesterdaySeriesData[$entry->hour] = $entry->total;
-                $totalVisitorsYesterday += $entry->total;
-            }
-        }
-
-        $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
-
-        $percentChange = $this->calculatePercentChange($totalVisitorsToday, $totalVisitorsYesterday);
-        $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
-
-        return [
-            'number' => number_format($totalVisitorsToday),
-            'percent' => $percentFormatted,
-            'seriesData' => $todaySeriesData,
-            'cumulativeSeriesData' => $todayCumulativeSeriesData,
-        ];
-    }
-
-    public function getTotalOccupancyCard($streamId)
-    {
-        $startOfToday = now()->startOfDay();
-        $endOfToday = now()->endOfDay();
-        $startOfYesterday = now()->subDay()->startOfDay();
-
-
-        $data = EtlDataHourly::where('stream_id', $streamId)
-            ->whereBetween('date', [$startOfYesterday, $endOfToday])
+        $yesterdayOccupancyData = EtlDataHourly::whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
             ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
             ->where('metrics.name', 'Occupancy')
             ->select(
@@ -118,8 +200,8 @@ class StatisticsService
                 DB::raw('HOUR(date) as hour'),
                 DB::raw('SUM(value) as total')
             )
-            ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-            ->get();
+        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
+        ->get();
 
 
         $todaySeriesData = array_fill(0, 24, 0);
@@ -167,12 +249,12 @@ class StatisticsService
         return $yesterday == 0 ? ($today > 0 ? 100 : 0) : round((($today - $yesterday) / $yesterday) * 100, 2);
     }
 
-    public function getAgeGenderBarChartData($streamId)
+    public function getAgeGenderBarChartData(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
 
-        $data = EtlDataHourly::where('stream_id', $streamId)
+        $data = EtlDataHourly::whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$startOfToday, $endOfToday])
             ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
             ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
@@ -180,6 +262,7 @@ class StatisticsService
             ->select('genders.gender', 'age_groups.group_name', DB::raw('SUM(etl_data_hourly.value) as total'))
             ->groupBy('genders.gender', 'age_groups.group_name')
             ->get();
+
 
         $femaleData = [];
         $maleData = [];
@@ -194,7 +277,7 @@ class StatisticsService
                 $femaleData[$entry->group_name] = $entry->total;
                 $totalFemales += $entry->total;
         }
-    }
+        }
 
         $series = [];
 
@@ -226,12 +309,12 @@ class StatisticsService
         return $series;
     }
 
-    public function getAgeSentimentBarChartData($streamId)
+    public function getAgeSentimentBarChartData(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
 
-        $data = EtlDataHourly::where('stream_id', $streamId)
+        $data = EtlDataHourly::whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$startOfToday, $endOfToday])
             ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
             ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
@@ -239,6 +322,7 @@ class StatisticsService
             ->select('sentiments.sentiment', 'age_groups.group_name', DB::raw('SUM(etl_data_hourly.value) as total'))
             ->groupBy('sentiments.sentiment', 'age_groups.group_name')
             ->get();
+
 
         $happyData = [];
         $unhappyData = [];
@@ -276,33 +360,50 @@ class StatisticsService
         return $series;
     }
 
-    public function getCombinedMetricsCardWithDemographics($streamId)
+    public function getCombinedMetricsCardWithDemographics(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
         $startOfYesterday = now()->subDay()->startOfDay();
+        $endOfYesterday = now()->subDay()->endOfDay();
 
+        $todayData = EtlDataHourly::whereIn('stream_id', $streamIds) 
+        ->whereBetween('date', [$startOfToday, $endOfToday])
+        ->leftJoin('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+        ->leftJoin('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
+        ->leftJoin('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
+        ->leftJoin('genders', 'demographics.gender_id', '=', 'genders.id')
+        ->select(
+            DB::raw('DATE(date) as day'),
+            DB::raw('HOUR(date) as hour'),
+            DB::raw("SUM(CASE WHEN metrics.name = 'Unique' THEN value ELSE 0 END) as unique_visitors"),
+            DB::raw("SUM(CASE WHEN metrics.name = 'Occupancy' THEN value ELSE 0 END) as occupancy"),
+            DB::raw("SUM(value) as total_visitors"),
+            'genders.gender',
+            'age_groups.group_name',
+            DB::raw('SUM(etl_data_hourly.value) as demographic_total')
+        )
+        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'), 'genders.gender', 'age_groups.group_name')
+        ->get();
 
-
-        $data = EtlDataHourly::where('stream_id', $streamId)
-            ->whereBetween('date', [$startOfYesterday, $endOfToday])
-            ->leftJoin('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-            ->leftJoin('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
-            ->leftJoin('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
-            ->leftJoin('genders', 'demographics.gender_id', '=', 'genders.id')
-            ->select(
-                DB::raw('DATE(date) as day'),
-                DB::raw('HOUR(date) as hour'),
-                DB::raw("SUM(CASE WHEN metrics.name = 'Unique' THEN value ELSE 0 END) as unique_visitors"),
-                DB::raw("SUM(CASE WHEN metrics.name = 'Occupancy' THEN value ELSE 0 END) as occupancy"),
-                DB::raw("SUM(value) as total_visitors"),
-                'genders.gender',
-                'age_groups.group_name',
-                DB::raw('SUM(etl_data_hourly.value) as demographic_total')
-            )
-            ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'), 'genders.gender', 'age_groups.group_name')
-            ->get();
-
+        $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
+        ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
+        ->leftJoin('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+        ->leftJoin('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
+        ->leftJoin('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
+        ->leftJoin('genders', 'demographics.gender_id', '=', 'genders.id')
+        ->select(
+            DB::raw('DATE(date) as day'),
+            DB::raw('HOUR(date) as hour'),
+            DB::raw("SUM(CASE WHEN metrics.name = 'Unique' THEN value ELSE 0 END) as unique_visitors"),
+            DB::raw("SUM(CASE WHEN metrics.name = 'Occupancy' THEN value ELSE 0 END) as occupancy"),
+            DB::raw("SUM(value) as total_visitors"),
+            'genders.gender',
+            'age_groups.group_name',
+            DB::raw('SUM(etl_data_hourly.value) as demographic_total')
+        )
+        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'), 'genders.gender', 'age_groups.group_name')
+        ->get();
 
         $todayData = [
             'unique_visitors' => array_fill(0, 24, 0),
@@ -386,13 +487,29 @@ class StatisticsService
 
         return $formattedResponse;
     }
-    public function getAgeGenderSentimentBarChartData($streamId)
+
+    public function getAgeGenderSentimentBarChartData(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
 
-        $data = EtlDataHourly::where('stream_id', $streamId)
+        $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$startOfToday, $endOfToday])
+            ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
+            ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
+            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+            ->select(
+                'genders.gender',
+                'sentiments.sentiment',
+                'age_groups.group_name',
+                DB::raw('SUM(etl_data_hourly.value) as total')
+            )
+            ->groupBy('genders.gender', 'sentiments.sentiment', 'age_groups.group_name')
+            ->get();
+
+        $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
             ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
             ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
             ->join('genders', 'demographics.gender_id', '=', 'genders.id')
@@ -434,7 +551,7 @@ class StatisticsService
         }
         $maleMaxWithIncrease = -abs(round($maleMax * 1.1));
         $femaleMaxWithIncrease = round($femaleMax * 1.1);
-        $happyMaxWithIncrease = round($happyMax * 1.1); // Increase for Happy
+        $happyMaxWithIncrease = round($happyMax * 1.1);
         $sadMaxWithDecrease = -abs(round($sadMax * 1.1));
 
         $ageBarChartSeriesFormatted = [];
@@ -464,23 +581,38 @@ class StatisticsService
             'ageSentimentBarChartSeries' => $ageSentimentBarChartSeriesFormatted,
         ];
     }
-    public function getTotalUniqueVisitorsAndOccupancyCard($streamId)
+    public function getTotalUniqueVisitorsAndOccupancyCard(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
         $startOfYesterday = now()->subDay()->startOfDay();
+        $endOfYesterday = now()->subDay()->endOfDay();
+        
+        $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
+        ->whereBetween('date', [$startOfToday, $endOfToday])
+        ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+        ->select(
+            DB::raw('DATE(date) as day'),
+            DB::raw('HOUR(date) as hour'),
+            DB::raw('SUM(CASE WHEN metrics.name = "Unique" THEN value ELSE 0 END) as totalUniqueVisitors'),
+            DB::raw('SUM(CASE WHEN metrics.name = "Occupancy" THEN value ELSE 0 END) as totalOccupancy')
+        )
+        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
+        ->get();
 
-        $data = EtlDataHourly::where('stream_id', $streamId)
-            ->whereBetween('date', [$startOfYesterday, $endOfToday])
-            ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-            ->select(
-                DB::raw('DATE(date) as day'),
-                DB::raw('HOUR(date) as hour'),
-                DB::raw('SUM(CASE WHEN metrics.name = "Unique" THEN value ELSE 0 END) as totalUniqueVisitors'),
-                DB::raw('SUM(CASE WHEN metrics.name = "Occupancy" THEN value ELSE 0 END) as totalOccupancy')
-            )
-            ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-            ->get();
+        $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
+        ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
+        ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+        ->select(
+            DB::raw('DATE(date) as day'),
+            DB::raw('HOUR(date) as hour'),
+            DB::raw('SUM(CASE WHEN metrics.name = "Unique" THEN value ELSE 0 END) as totalUniqueVisitors'),
+            DB::raw('SUM(CASE WHEN metrics.name = "Occupancy" THEN value ELSE 0 END) as totalOccupancy')
+        )
+        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
+        ->get();
+
+
 
         $todaySeriesDataUniqueVisitors = array_fill(0, 24, 0);
         $todaySeriesDataOccupancy = array_fill(0, 24, 0);
