@@ -11,52 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class StatisticsService
 {
-    // public function getTotalVisitorsCard($streamId)
-    // {
-    //     $startOfToday = now()->startOfDay();
-    //     $endOfToday = now()->endOfDay();
-    //     $startOfYesterday = now()->subDay()->startOfDay();
-
-    //     $data = EtlDataHourly::where('stream_id', $streamId)
-    //         ->whereBetween('date', [$startOfYesterday, $endOfToday])
-    //         ->select(
-    //             DB::raw('DATE(date) as day'),
-    //             DB::raw('HOUR(date) as hour'),
-    //             DB::raw('SUM(value) as total')
-    //         )
-    //         ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-    //         ->get();
-
-
-    //     $todaySeriesData = array_fill(0, 24, 0);
-    //     $yesterdaySeriesData = array_fill(0, 24, 0);
-    //     $totalVisitorsToday = 0;
-    //     $totalVisitorsYesterday = 0;
-
-
-    //     foreach ($data as $entry) {
-    //         if ($entry->day == $startOfToday->toDateString()) {
-    //             $todaySeriesData[$entry->hour] = $entry->total;
-    //             $totalVisitorsToday += $entry->total;
-    //         } elseif ($entry->day == $startOfYesterday->toDateString()) {
-    //             $yesterdaySeriesData[$entry->hour] = $entry->total;
-    //             $totalVisitorsYesterday += $entry->total;
-    //         }
-    //     }
-
-    //     $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
-
-    //     $percentChange = $this->calculatePercentChange($totalVisitorsToday, $totalVisitorsYesterday);
-    //     $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
-
-    //     return [
-    //         'number' => number_format($totalVisitorsToday),
-    //         'percent' => $percentFormatted,
-    //         'seriesData' => $todaySeriesData,
-    //         'cumulativeSeriesData' => $todayCumulativeSeriesData,
-    //     ];
-    // }
-
+   
     public function getTotalVisitorsCard(array $streamIds)
 {
     $startOfToday = now()->startOfDay();
@@ -149,11 +104,15 @@ class StatisticsService
         $totalVisitorsToday = 0;
         $totalVisitorsYesterday = 0;
 
-        foreach ($data as $entry) {
+        foreach ($todayData as $entry) {
             if ($entry->day == $startOfToday->toDateString()) {
                 $todaySeriesData[$entry->hour] = $entry->total;
                 $totalVisitorsToday += $entry->total;
-            } elseif ($entry->day == $startOfYesterday->toDateString()) {
+            }
+        }
+
+        foreach ($yesterdayData as $entry) {
+            if ($entry->day == $startOfYesterday->toDateString()) {
                 $yesterdaySeriesData[$entry->hour] = $entry->total;
                 $totalVisitorsYesterday += $entry->total;
             }
@@ -209,17 +168,19 @@ class StatisticsService
         $totalOccupancyToday = 0;
         $totalOccupancyYesterday = 0;
 
-
-        foreach ($data as $entry) {
+        foreach ($todayOccupancyData as $entry) {
             if ($entry->day == $startOfToday->toDateString()) {
                 $todaySeriesData[$entry->hour] = $entry->total;
                 $totalOccupancyToday += $entry->total;
-            } elseif ($entry->day == $startOfYesterday->toDateString()) {
+            }
+        }
+
+        foreach ($yesterdayOccupancyData as $entry) {
+            if ($entry->day == $startOfYesterday->toDateString()) {
                 $yesterdaySeriesData[$entry->hour] = $entry->total;
                 $totalOccupancyYesterday += $entry->total;
             }
         }
-
 
         $percentChange = $this->calculatePercentChange($totalOccupancyToday, $totalOccupancyYesterday);
         $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
@@ -492,6 +453,8 @@ class StatisticsService
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
+        $startOfYesterday = now()->subDay()->startOfDay();
+        $endOfYesterday = now()->subDay()->endOfDay();
 
         $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$startOfToday, $endOfToday])
@@ -530,25 +493,29 @@ class StatisticsService
             $happyMax = 0;
             $sadMax = 0;
 
-        foreach ($data as $entry) {
-            if ($entry->gender === 'Male') {
-                $totalValue = -abs($entry->total);
-                $ageBarChartSeries['Males'][$entry->group_name] = $totalValue;
-                $maleMax = max($maleMax, abs($entry->total));
-            } elseif ($entry->gender === 'Female') {
-                $totalValue = abs($entry->total);
-                $ageBarChartSeries['Females'][$entry->group_name] = $totalValue;
-                $femaleMax = max($femaleMax, $entry->total);
+            foreach ($todayData as $entry) {
+                if ($entry->gender === 'Male') {
+                    $totalValue = -abs($entry->total);
+                    $ageBarChartSeries['Males'][$entry->group_name] = $totalValue;
+                    $maleMax = max($maleMax, abs($entry->total));
+                } elseif ($entry->gender === 'Female') {
+                    $totalValue = abs($entry->total);
+                    $ageBarChartSeries['Females'][$entry->group_name] = $totalValue;
+                    $femaleMax = max($femaleMax, $entry->total);
+                }
+
+                if ($entry->sentiment === 'Happy') {
+                    $ageSentimentBarChartSeries['Happy Visitors'][$entry->group_name] = $entry->total;
+                    $happyMax = max($happyMax, $entry->total);
+                } elseif ($entry->sentiment === 'Sad' || $entry->sentiment === 'Neutral') {
+                    if (!isset($ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name])) {
+                        $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] = 0;
+                    }
+                    $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] -= abs($entry->total);
+                    $sadMax = max($sadMax, abs($entry->total));
+                }
             }
 
-            if ($entry->sentiment === 'Happy') {
-                $ageSentimentBarChartSeries['Happy Visitors'][$entry->group_name] = $entry->total;
-                $happyMax = max($happyMax, $entry->total); 
-            } elseif ($entry->sentiment === 'Sad') {
-                $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] = -abs($entry->total);
-                $sadMax = max($sadMax, abs($entry->total));
-            }
-        }
         $maleMaxWithIncrease = -abs(round($maleMax * 1.1));
         $femaleMaxWithIncrease = round($femaleMax * 1.1);
         $happyMaxWithIncrease = round($happyMax * 1.1);
@@ -581,6 +548,7 @@ class StatisticsService
             'ageSentimentBarChartSeries' => $ageSentimentBarChartSeriesFormatted,
         ];
     }
+
     public function getTotalUniqueVisitorsAndOccupancyCard(array $streamIds)
     {
         $startOfToday = now()->startOfDay();

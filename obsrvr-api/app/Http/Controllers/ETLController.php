@@ -177,14 +177,14 @@ class ETLController extends Controller
     {
         // $streamId = $request->input('stream_id');
         $streamIds = $request->input('stream_id');
+        $streamIdsArray = explode(',', $streamIds);
 
-
-        $totalVisitorsCard = $this->statisticsService->getTotalVisitorsCard($streamIds);
-        $totalUniqueVisitorsCard = $this->statisticsService->getTotalUniqueVisitorsCard($streamIds);
-        $totalOccupancyCard = $this->statisticsService->getTotalOccupancyCard($streamIds);
+        $totalVisitorsCard = $this->statisticsService->getTotalVisitorsCard($streamIdsArray);
+        $totalUniqueVisitorsCard = $this->statisticsService->getTotalUniqueVisitorsCard($streamIdsArray);
+        $totalOccupancyCard = $this->statisticsService->getTotalOccupancyCard($streamIdsArray);
         // $AgeGenderBarChartData = $this->statisticsService->getAgeGenderBarChartData($streamIds);
         // $AgeSentimentBarChartData = $this->statisticsService->getAgeSentimentBarChartData($streamIds);
-        $ageSentimentGenderBarchart = $this->statisticsService->getAgeGenderSentimentBarChartData($streamIds);
+        $ageSentimentGenderBarchart = $this->statisticsService->getAgeGenderSentimentBarChartData($streamIdsArray);
         $totalVisitorsperStream = $this->statisticsService->getVisitorsData();
         // $test2=$this->statisticsService->getTotalUniqueVisitorsAndOccupancyCard($streamIds);
         return response()->json([
