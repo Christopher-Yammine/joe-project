@@ -189,6 +189,7 @@ class ETLController extends Controller
         $totalUniqueVisitorsPerStream = $this->statisticsService->getUniqueVisitorsData($streamIdsArray);
         $totalRepeatedVisitorsPerStream = $this->statisticsService->getRepeatedVisitorsData($streamIdsArray);
         $totalOccupancyVisitorsPerStream = $this->statisticsService->getOccupancyVisitorsData($streamIdsArray);
+        $staffChartSeries = $this->statisticsService->getTotalStaffDaily($streamIdsArray);
         // $test2=$this->statisticsService->getTotalUniqueVisitorsAndOccupancyCard($streamIds);
         return response()->json([
             'totalVisitorsCard' => $totalVisitorsCard,
@@ -200,7 +201,8 @@ class ETLController extends Controller
             ...$totalVisitorsperStream,
             ...$totalUniqueVisitorsPerStream,
             ...$totalRepeatedVisitorsPerStream,
-            ...$totalOccupancyVisitorsPerStream
+            ...$totalOccupancyVisitorsPerStream,
+            ...$staffChartSeries
         ], 200);
     }
 }

@@ -19,9 +19,10 @@ import { useEffect, useState } from 'react'
 interface Props {
   title: string
   isDaily?: boolean
+  staffChartSeries: any
 }
 
-const MultiLineChart: React.FC<Props> = ({ title, isDaily = false }) => {
+const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSeries }) => {
   const theme = useTheme()
 
   const { settings } = useSettings()
@@ -32,7 +33,7 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false }) => {
 
   const [isChartLoaded, setIsChartLoaded] = useState(false)
 
-  const series = dataJSON[`staffChartSeries${isDaily ? 'Daily' : 'Total'}`]?.map(item => ({
+  const series = staffChartSeries?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))

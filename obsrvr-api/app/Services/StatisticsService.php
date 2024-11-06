@@ -985,4 +985,54 @@ class StatisticsService
             'visitorsChartSeries4Dailycomparisons' => array_values($calculateMetricsComparison),
         ];
     }
+
+    public function getTotalStaffDaily(array $streamIds) {
+        $today = now()->format('Y-m-d');
+    
+        $todayResults = DB::table('etl_data_hourly as etl')
+            ->select(
+                'streams.name',
+                DB::raw('HOUR(etl.date) as hour'),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id') 
+            ->whereIn('etl.stream_id', $streamIds)
+            ->where('person_types.name', 'staff')
+            ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+            ->groupBy('streams.id', 'hour', 'streams.name')
+            ->orderBy('hour')
+            ->get();
+    
+        $visitorsChartSeries = [];
+    
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
+                    'data' => array_fill(0, 24, 0),
+                ];
+            }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+    
+        $visitorsChartSeries = array_values($visitorsChartSeries);
+    
+        return [
+            'staffChartSeries' => $visitorsChartSeries
+        ];
+    }
+    
+    private function getArabicName($name) {
+        $arabicNames = [
+            'Souq' => 'سوق',
+            'Mosque Entry 1' => 'دخول المسجد 1',
+            'Mosque Entry 2' => 'دخول المسجد 2',
+            'Mosque Entry 3' => 'دخول المسجد 3',
+        ];
+    
+        return $arabicNames[$name] ?? $name; 
+    }
+
 }

@@ -41,7 +41,7 @@ const Home = () => {
   const [visitorsChartSeries3Dailycomparisons, setVisitorsChartSeries3Dailycomparisons] = useState<any[]>([])
   const [visitorsChartSeries4Daily, setVisitorsChartSeries4Daily] = useState([])
   const [visitorsChartSeries4Dailycomparisons, setVisitorsChartSeries4Dailycomparisons] = useState<any[]>([])
-
+  const [staffChartSeries, setStaffChartSeries] = useState([])
   const [ageMinValue, setAgeMinValue] = useState(0)
   const [ageMaxValue, setAgeMaxValue] = useState(0)
   const [sentimentMinValue, setSentimentMinValue] = useState(0)
@@ -142,6 +142,7 @@ const Home = () => {
       )
 
       setVisitorsChartSeries4Daily(data.visitorsChartSeries4Daily)
+      setStaffChartSeries(data.staffChartSeries)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
     }
@@ -171,9 +172,8 @@ const Home = () => {
   }
 
   useEffect(() => {
-    console.log('sentimentMinValue', sentimentMinValue)
-    console.log('sentimentMaxValue', sentimentMaxValue)
-  })
+    console.log('staffChartSeries', staffChartSeries)
+  }, [staffChartSeries])
 
   return (
     <Grid container spacing={4}>
@@ -219,7 +219,7 @@ const Home = () => {
         visitorsChartSeries4Daily={visitorsChartSeries4Daily}
         visitorsChartSeries4Dailycomparisons={visitorsChartSeries4Dailycomparisons}
       />
-      <MultiLineChart title={t('staffToday')} isDaily={true} />
+      <MultiLineChart title={t('staffToday')} isDaily={true} staffChartSeries={staffChartSeries} />
     </Grid>
   )
 }
