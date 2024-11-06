@@ -662,15 +662,15 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        foreach ($yesterdayResults as $row) {
-            if (!isset($visitorsChartSeries[$row->name])) {
-                $visitorsChartSeries[$row->name] = [
-                    'name' => $row->name,
-                    'data' => array_fill(0, 24, 0),
-                ];
-            }
-            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
-        }
+        // foreach ($yesterdayResults as $row) {
+        //     if (!isset($visitorsChartSeries[$row->name])) {
+        //         $visitorsChartSeries[$row->name] = [
+        //             'name' => $row->name,
+        //             'data' => array_fill(0, 24, 0),
+        //         ];
+        //     }
+        //     $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        // }
 
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false);
 
@@ -838,15 +838,15 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        foreach ($yesterdayResults as $row) {
-            if (!isset($visitorsChartSeries[$row->name])) {
-                $visitorsChartSeries[$row->name] = [
-                    'name' => $row->name,
-                    'data' => array_fill(0, 24, 0),
-                ];
-            }
-            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
-        }
+        // foreach ($yesterdayResults as $row) {
+        //     if (!isset($visitorsChartSeries[$row->name])) {
+        //         $visitorsChartSeries[$row->name] = [
+        //             'name' => $row->name,
+        //             'data' => array_fill(0, 24, 0),
+        //         ];
+        //     }
+        //     $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        // }
 
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, true);
 
@@ -903,15 +903,16 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        foreach ($yesterdayResults as $row) {
-            if (!isset($visitorsChartSeries[$row->name])) {
-                $visitorsChartSeries[$row->name] = [
-                    'name' => $row->name,
-                    'data' => array_fill(0, 24, 0),
-                ];
-            }
-            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
-        }
+        // foreach ($yesterdayResults as $row) {
+        //     if (!isset($visitorsChartSeries[$row->name])) {
+        //         $visitorsChartSeries[$row->name] = [
+        //             'name' => $row->name,
+        //             'data' => array_fill(0, 24, 0),
+        //         ];
+        //     }
+        //     $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        // }
+
         $personType = 'returning';
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, false, $personType);
 
@@ -968,15 +969,15 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        foreach ($yesterdayResults as $row) {
-            if (!isset($visitorsChartSeries[$row->name])) {
-                $visitorsChartSeries[$row->name] = [
-                    'name' => $row->name,
-                    'data' => array_fill(0, 24, 0),
-                ];
-            }
-            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
-        }
+        // foreach ($yesterdayResults as $row) {
+        //     if (!isset($visitorsChartSeries[$row->name])) {
+        //         $visitorsChartSeries[$row->name] = [
+        //             'name' => $row->name,
+        //             'data' => array_fill(0, 24, 0),
+        //         ];
+        //     }
+        //     $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        // }
 
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, true);
 
