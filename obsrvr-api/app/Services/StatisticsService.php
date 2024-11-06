@@ -210,117 +210,6 @@ class StatisticsService
         return $yesterday == 0 ? ($today > 0 ? 100 : 0) : round((($today - $yesterday) / $yesterday) * 100, 2);
     }
 
-    public function getAgeGenderBarChartData(array $streamIds)
-    {
-        $startOfToday = now()->startOfDay();
-        $endOfToday = now()->endOfDay();
-
-        $data = EtlDataHourly::whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$startOfToday, $endOfToday])
-            ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
-            ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
-            ->select('genders.gender', 'age_groups.group_name', DB::raw('SUM(etl_data_hourly.value) as total'))
-            ->groupBy('genders.gender', 'age_groups.group_name')
-            ->get();
-
-
-        $femaleData = [];
-        $maleData = [];
-        $totalMales = 0;
-        $totalFemales = 0;
-
-        foreach ($data as $entry) {
-        if ($entry->gender === 'Male') {
-                $maleData[$entry->group_name] = -$entry->total;
-            $totalMales += abs($entry->total);
-        } elseif ($entry->gender === 'Female') {
-                $femaleData[$entry->group_name] = $entry->total;
-                $totalFemales += $entry->total;
-        }
-        }
-
-        $series = [];
-
-        if (!empty($maleData)) {
-            $maxMale = max($maleData);
-            $maxMaleWithIncrease = $maxMale + ($maxMale * 0.10);
-
-            $series[] = [
-                'name' => 'Males [total = ' . number_format($totalMales) . ']',
-                'name_ar' => 'الذكور [المجموع = ' . number_format($totalMales) . ']',
-                'data' => array_reverse(array_values($maleData)),
-                'maxMaleWithIncrease' => 'test'
-            ];
-        }
-
-
-        if (!empty($femaleData)) {
-            $maxFemale = max($femaleData);
-            $maxFemaleWithIncrease = $maxFemale + ($maxFemale * 0.10);
-
-            $series[] = [
-                'name' => 'Females [total = ' . number_format($totalFemales) . ']',
-                'name_ar' => 'الإناث [المجموع = ' . number_format($totalFemales) . ']',
-                'data' => array_reverse(array_values($femaleData)),
-                'maxFemaleWithIncrease' => number_format($maxFemaleWithIncrease)
-            ];
-        }
-
-        return $series;
-    }
-
-    public function getAgeSentimentBarChartData(array $streamIds)
-    {
-        $startOfToday = now()->startOfDay();
-        $endOfToday = now()->endOfDay();
-
-        $data = EtlDataHourly::whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$startOfToday, $endOfToday])
-            ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
-            ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
-            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
-            ->select('sentiments.sentiment', 'age_groups.group_name', DB::raw('SUM(etl_data_hourly.value) as total'))
-            ->groupBy('sentiments.sentiment', 'age_groups.group_name')
-            ->get();
-
-
-        $happyData = [];
-        $unhappyData = [];
-        $totalHappy = 0;
-        $totalUnhappy = 0;
-
-        foreach ($data as $entry) {
-            if ($entry->sentiment === 'Happy') {
-                $happyData[$entry->group_name] = -$entry->total;
-                $totalHappy += abs($entry->total);
-            } elseif ($entry->sentiment === 'Unhappy') {
-                $unhappyData[$entry->group_name] = $entry->total;
-                $totalUnhappy += $entry->total;
-            }
-        }
-
-        $series = [];
-
-        if (!empty($happyData)) {
-            $series[] = [
-                'name' => 'Happy Visitors [total = ' . number_format($totalHappy) . ']',
-                'name_ar' => 'زوار سعداء [المجموع = ' . number_format($totalHappy) . ']',
-                'data' => array_reverse(array_values($happyData))
-            ];
-        }
-
-        if (!empty($unhappyData)) {
-            $series[] = [
-                'name' => 'Unhappy Visitors [total = ' . number_format($totalUnhappy) . ']',
-                'name_ar' => 'الزوار غير الراضين [المجموع = ' . number_format($totalUnhappy) . ']',
-                'data' => array_reverse(array_values($unhappyData))
-            ];
-        }
-
-        return $series;
-    }
-
     public function getCombinedMetricsCardWithDemographics(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
@@ -429,16 +318,16 @@ class StatisticsService
         if (!empty($demographicsData['male'])) {
             $totalMales = array_sum(array_map('abs', $demographicsData['male']));
             $demographicSeries[] = [
-                'name' => 'Males [total = ' . number_format($totalMales) . ']',
-                'name_ar' => 'الذكور [المجموع = ' . number_format($totalMales) . ']',
+                'name' => 'Males [total = ' . abs(number_format($totalMales)) . ']',
+                'name_ar' => 'الذكور [المجموع = ' . abs(number_format($totalMales)) . ']',
                 'data' => array_reverse(array_values($demographicsData['male'])),
             ];
         }
         if (!empty($demographicsData['female'])) {
             $totalFemales = array_sum($demographicsData['female']);
             $demographicSeries[] = [
-                'name' => 'Females [total = ' . number_format($totalFemales) . ']',
-                'name_ar' => 'الإناث [المجموع = ' . number_format($totalFemales) . ']',
+                'name' => 'Females [total = ' . abs(number_format($totalFemales)) . ']',
+                'name_ar' => 'الإناث [المجموع = ' . abs(number_format($totalFemales)) . ']',
                 'data' => array_reverse(array_values($demographicsData['female']))
             ];
         }
@@ -449,8 +338,7 @@ class StatisticsService
         return $formattedResponse;
     }
 
-    public function getAgeGenderSentimentBarChartData(array $streamIds)
-    {
+    public function getAgeGenderSentimentBarChartData(array $streamIds) {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
         $startOfYesterday = now()->subDay()->startOfDay();
@@ -525,8 +413,8 @@ class StatisticsService
         foreach ($ageBarChartSeries as $gender => $data) {
             $total = array_sum(array_values($data));
             $ageBarChartSeriesFormatted[] = [
-                'name' => "{$gender} [total = " . number_format($total) . "]",
-                'name_ar' => "{$gender} [المجموع = " . number_format($total) . "]",
+                'name' => "{$gender} [total = " . abs($total) . "]",
+                'name_ar' => "{$gender} [المجموع = " . abs($total) . "]",
                 'data' => array_reverse(array_values($data)),
                 'maxWithIncrease' => $gender === 'Males' ? $maleMaxWithIncrease : $femaleMaxWithIncrease
             ];
@@ -537,8 +425,8 @@ class StatisticsService
             $total = array_sum(array_values($data));
             $maxWithIncrease = $sentiment === 'Happy Visitors' ? $happyMaxWithIncrease : $sadMaxWithDecrease;
             $ageSentimentBarChartSeriesFormatted[] = [
-                'name' => "{$sentiment} [total = " . number_format($total) . "]",
-                'name_ar' => "{$sentiment} [المجموع = " . number_format($total) . "]",
+                'name' => "{$sentiment} [total = " . abs($total) . "]",
+                'name_ar' => "{$sentiment} [المجموع = " . abs($total) . "]",
                 'data' => array_reverse(array_values($data)),
                 'maxWithIncrease' => $maxWithIncrease
             ];
@@ -549,8 +437,7 @@ class StatisticsService
         ];
     }
 
-    public function getTotalUniqueVisitorsAndOccupancyCard(array $streamIds)
-    {
+    public function getTotalUniqueVisitorsAndOccupancyCard(array $streamIds) {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
         $startOfYesterday = now()->subDay()->startOfDay();
@@ -619,8 +506,126 @@ class StatisticsService
         ];
     }
 
-    public function getVisitorsData(array $streamIds)
-    {
+    private function calculateMetricsComparison(
+        $today,
+        $yesterday,
+        array $streamIds,
+        $isUniqueMetric = false,
+        $isOccupancyMetric = false,
+        $personType = null,
+        $firstReturnTitle,
+        $fourthReturnTitle
+    ) {
+        // $results = DB::table('etl_data_hourly as etl')
+        //     ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+        //     ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
+        //     ->whereIn('etl.stream_id', $streamIds)
+        //     ->selectRaw("
+        //         SUM(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_total_value,
+        //         COUNT(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN 1 END) AS today_total_entries,
+        //         SUM(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_total_value,
+        //         COUNT(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN 1 END) AS yesterday_total_entries,
+        //         SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_new_visitors,
+        //         SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
+        //         SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_souq_visitors,
+        //         SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
+        //     ")
+        //     ->first();
+        
+        // Base query
+        $query = DB::table('etl_data_hourly as etl')
+        ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+        ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
+        ->selectRaw("
+        SUM(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_total_value,
+        COUNT(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN 1 END) AS today_total_entries,
+        SUM(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_total_value,
+        COUNT(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN 1 END) AS yesterday_total_entries,
+        SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_new_visitors,
+        SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
+        SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_souq_visitors,
+        SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
+        ");
+        
+        if ($isUniqueMetric) {
+            $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->where('metrics.name', 'Unique')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->first();
+        } else if ($isOccupancyMetric){
+            $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->where('metrics.name', 'Occupancy')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->first();
+        } else {
+            $results = $query->whereIn('etl.stream_id', $streamIds)
+            ->first();
+        }
+        
+        if ($personType) {
+            $results->today_new_visitors = DB::table('etl_data_hourly as etl')
+            ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', $personType)
+            ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+            ->whereIn('etl.stream_id', $streamIds)
+            ->sum('etl.value');
+            
+            $results->yesterday_new_visitors = DB::table('etl_data_hourly as etl')
+            ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', $personType)
+            ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
+            ->whereIn('etl.stream_id', $streamIds)
+            ->sum('etl.value');
+        }
+        
+        $todayAverageFootfall = $results->today_total_value / 24;
+        $yesterdayAverageFootfall = $results->yesterday_total_value / 24;
+        
+        $footfallPercentageDifference = $yesterdayAverageFootfall > 0
+        ? (($todayAverageFootfall - $yesterdayAverageFootfall) / $yesterdayAverageFootfall) * 100
+        : 0;
+        
+        $newVisitorsPercentageDifference = $results->yesterday_new_visitors > 0
+        ? (($results->today_new_visitors - $results->yesterday_new_visitors) / $results->yesterday_new_visitors) * 100
+        : 0;
+        
+        $souqVisitorsPercentageDifference = $results->yesterday_souq_visitors > 0
+        ? (($results->today_souq_visitors - $results->yesterday_souq_visitors) / $results->yesterday_souq_visitors) * 100
+        : 0;
+        
+        $totalEntriesPercentageDifference = $results->yesterday_total_value > 0
+        ? (($results->today_total_value - $results->yesterday_total_value) / $results->yesterday_total_value) * 100
+        : 0;
+        
+        return [
+            'averageFootfall' => [
+                'title' => $firstReturnTitle,
+                'stats' => round($todayAverageFootfall),
+                'trend' => $footfallPercentageDifference < 0 ? 'negative' : 'positive',
+                'trendNumber' => round(abs($footfallPercentageDifference), 2),
+            ],
+            'newVisitors' => [
+                'title' => 'newVisitors',
+                'stats' => $results->today_new_visitors,
+                'trend' => $newVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
+                'trendNumber' => round(abs($newVisitorsPercentageDifference), 2),
+            ],
+            'souqVisitors' => [
+                'title' => 'visitorsToSouq',
+                'stats' => $results->today_souq_visitors,
+                'trend' => $souqVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
+                'trendNumber' => round(abs($souqVisitorsPercentageDifference), 2),
+            ],
+            'totalEntries' => [
+                'title' =>  $fourthReturnTitle,
+                'stats' => $results->today_total_value,
+                'trend' => $totalEntriesPercentageDifference < 0 ? 'negative' : 'positive',
+                'trendNumber' => round(abs($totalEntriesPercentageDifference), 2),
+            ],
+        ];
+    }
+    
+    public function getVisitorsData(array $streamIds) {
         $today = now()->format('Y-m-d');
         $yesterday = now()->subDay()->format('Y-m-d');
 
@@ -662,133 +667,13 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        // foreach ($yesterdayResults as $row) {
-        //     if (!isset($visitorsChartSeries[$row->name])) {
-        //         $visitorsChartSeries[$row->name] = [
-        //             'name' => $row->name,
-        //             'data' => array_fill(0, 24, 0),
-        //         ];
-        //     }
-        //     $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
-        // }
-
-        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false);
+        $firstReturnTitle = 'avgFootfall';
+        $fourthReturnTitle = 'totalFootfall';
+        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, false, null, $firstReturnTitle, $fourthReturnTitle);
 
         return [
             'visitorsChartSeries1Daily' => array_values($visitorsChartSeries),
             'visitorsChartSeries1Dailycomparisons' => array_values($calculateMetricsComparison),
-        ];
-    }
-
-
-    private function calculateMetricsComparison($today, $yesterday, array $streamIds, $isUniqueMetric=false, $isOccupancyMetric=false, $personType = null)
-    {
-        // $results = DB::table('etl_data_hourly as etl')
-        //     ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-        //     ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
-        //     ->whereIn('etl.stream_id', $streamIds)
-        //     ->selectRaw("
-        //         SUM(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_total_value,
-        //         COUNT(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN 1 END) AS today_total_entries,
-        //         SUM(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_total_value,
-        //         COUNT(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN 1 END) AS yesterday_total_entries,
-        //         SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_new_visitors,
-        //         SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
-        //         SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_souq_visitors,
-        //         SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
-        //     ")
-        //     ->first();
-
-        // Base query
-            $query = DB::table('etl_data_hourly as etl')
-            ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
-            ->selectRaw("
-                SUM(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_total_value,
-                COUNT(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN 1 END) AS today_total_entries,
-                SUM(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_total_value,
-                COUNT(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN 1 END) AS yesterday_total_entries,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_new_visitors,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_souq_visitors,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
-            ");
-
-        if ($isUniqueMetric) {
-            $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
-                ->where('metrics.name', 'Unique')
-                ->whereIn('etl.stream_id', $streamIds)
-                ->first();
-        } else if ($isOccupancyMetric){
-            $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
-            ->where('metrics.name', 'Occupancy')
-            ->whereIn('etl.stream_id', $streamIds)
-            ->first();
-        } else {
-            $results = $query->whereIn('etl.stream_id', $streamIds)
-                ->first();
-        }
-
-        if ($personType) {
-            $results->today_new_visitors = DB::table('etl_data_hourly as etl')
-                ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-                ->where('person_types.name', $personType)
-                ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
-                ->whereIn('etl.stream_id', $streamIds)
-                ->sum('etl.value');
-    
-            $results->yesterday_new_visitors = DB::table('etl_data_hourly as etl')
-                ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-                ->where('person_types.name', $personType)
-                ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
-                ->whereIn('etl.stream_id', $streamIds)
-                ->sum('etl.value');
-        }
-
-        $todayAverageFootfall = $results->today_total_value / 24;
-        $yesterdayAverageFootfall = $results->yesterday_total_value / 24;
-
-        $footfallPercentageDifference = $yesterdayAverageFootfall > 0
-            ? (($todayAverageFootfall - $yesterdayAverageFootfall) / $yesterdayAverageFootfall) * 100
-            : 0;
-
-        $newVisitorsPercentageDifference = $results->yesterday_new_visitors > 0
-            ? (($results->today_new_visitors - $results->yesterday_new_visitors) / $results->yesterday_new_visitors) * 100
-            : 0;
-
-        $souqVisitorsPercentageDifference = $results->yesterday_souq_visitors > 0
-            ? (($results->today_souq_visitors - $results->yesterday_souq_visitors) / $results->yesterday_souq_visitors) * 100
-            : 0;
-
-        $totalEntriesPercentageDifference = $results->yesterday_total_value > 0
-            ? (($results->today_total_value - $results->yesterday_total_value) / $results->yesterday_total_value) * 100
-            : 0;
-
-        return [
-            'averageFootfall' => [
-                'title' => 'avgFootfall',
-                'stats' => round($todayAverageFootfall),
-                'trend' => $footfallPercentageDifference < 0 ? 'negative' : 'positive',
-                'trendNumber' => round(abs($footfallPercentageDifference), 2),
-            ],
-            'newVisitors' => [
-                'title' => 'newVisitors',
-                'stats' => $results->today_new_visitors,
-                'trend' => $newVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
-                'trendNumber' => round(abs($newVisitorsPercentageDifference), 2),
-            ],
-            'souqVisitors' => [
-                'title' => 'visitorsToSouq',
-                'stats' => $results->today_souq_visitors,
-                'trend' => $souqVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
-                'trendNumber' => round(abs($souqVisitorsPercentageDifference), 2),
-            ],
-            'totalEntries' => [
-                'title' => 'totalFootfall',
-                'stats' => $results->today_total_value,
-                'trend' => $totalEntriesPercentageDifference < 0 ? 'negative' : 'positive',
-                'trendNumber' => round(abs($totalEntriesPercentageDifference), 2),
-            ],
         ];
     }
 
@@ -838,17 +723,9 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        // foreach ($yesterdayResults as $row) {
-        //     if (!isset($visitorsChartSeries[$row->name])) {
-        //         $visitorsChartSeries[$row->name] = [
-        //             'name' => $row->name,
-        //             'data' => array_fill(0, 24, 0),
-        //         ];
-        //     }
-        //     $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
-        // }
-
-        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, true);
+        $firstReturnTitle = 'avgUniqueVisitors';
+        $fourthReturnTitle = 'totalUniqueVisitors';
+        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, true, false, null, $firstReturnTitle, $fourthReturnTitle);
 
         return [
             'visitorsChartSeries2Daily' => array_values($visitorsChartSeries),
@@ -903,18 +780,10 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        // foreach ($yesterdayResults as $row) {
-        //     if (!isset($visitorsChartSeries[$row->name])) {
-        //         $visitorsChartSeries[$row->name] = [
-        //             'name' => $row->name,
-        //             'data' => array_fill(0, 24, 0),
-        //         ];
-        //     }
-        //     $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
-        // }
-
         $personType = 'returning';
-        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, false, $personType);
+        $firstReturnTitle = 'avgRepeatedVisitors';
+        $fourthReturnTitle = 'totalRepeatedVisitors';
+        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, false, $personType, $firstReturnTitle, $fourthReturnTitle);
 
         return [
             'visitorsChartSeries3Daily' => array_values($visitorsChartSeries),
@@ -969,17 +838,9 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        // foreach ($yesterdayResults as $row) {
-        //     if (!isset($visitorsChartSeries[$row->name])) {
-        //         $visitorsChartSeries[$row->name] = [
-        //             'name' => $row->name,
-        //             'data' => array_fill(0, 24, 0),
-        //         ];
-        //     }
-        //     $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
-        // }
-
-        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, true);
+        $firstReturnTitle = 'avgOccupancyVisitors';
+        $fourthReturnTitle = 'totalOccupancy';
+        $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, true, null, $firstReturnTitle, $fourthReturnTitle);
 
         return [
             'visitorsChartSeries4Daily' => array_values($visitorsChartSeries),
