@@ -14,7 +14,6 @@ const Home = () => {
   const { t } = useTranslation()
   const streams = useStore(state => state.streams)
   const setStreams = useStore(state => state.setStreams)
-  const setSelectedStreams = useStore(state => state.setSelectedStream)
   const selectedStreams = useStore(state => state.selectedStreams)
   const [totalStatistics, setTotalStatistics] = useState({
     number: '0',

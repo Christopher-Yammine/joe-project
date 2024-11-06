@@ -7,10 +7,13 @@ import 'bootstrap-daterangepicker/daterangepicker.css'
 import moment from 'moment'
 import { useTheme } from '@mui/material/styles'
 import { useSettings } from 'src/@core/hooks/useSettings'
+import useStore from 'src/store/store'
 
 export default function DatePickerRange() {
   const [fromDate, setFromDate] = useState(new Date())
   const [toDate, setToDate] = useState(new Date())
+  const setFromDateStore = useStore(state => state.setFromDate)
+  const setToDateStore = useStore(state => state.setToDate)
 
   const { settings } = useSettings()
 
@@ -50,8 +53,10 @@ export default function DatePickerRange() {
 
   // @ts-ignore
   const handleEvent = (event, picker: any) => {
-    setFromDate(picker.startDate?._d?.toISOString())
-    setToDate(picker.endDate?._d?.toISOString())
+    setFromDate(picker.startDate?._d)
+    setToDate(picker.endDate?._d)
+    setFromDateStore(picker.endDate?._d)
+    setToDateStore(picker.endDate?._d)
   }
 
   if (window.location.pathname.includes('/home')) return null

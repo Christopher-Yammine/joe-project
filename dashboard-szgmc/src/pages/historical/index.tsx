@@ -9,9 +9,82 @@ import MultiLineChart from 'src/components/MultiLineChart/MultiLineChart'
 
 import dataJSON from '../../db/data.json'
 import { useTranslation } from 'react-i18next'
+import { useEffect } from 'react'
+import useStore from 'src/store/store'
+
+const API_URL = process.env.NEXT_PUBLIC_BASE_URL
 
 const HistoricalPage = () => {
   const { t } = useTranslation()
+  const streams = useStore(state => state.streams)
+  const setStreams = useStore(state => state.setStreams)
+  const selectedStreams = useStore(state => state.selectedStreams)
+  const fromDate = useStore(state => state.fromDate)
+  const toDate = useStore(state => state.toDate)
+  const durationSelect = useStore(state => state.durationSelect)
+
+  const formatDate = (date: Date): string => {
+    return date instanceof Date ? date.toISOString().split('T')[0] : ''
+  }
+
+  const getAllStreams = async () => {
+    try {
+      const response = await fetch(`${API_URL}/streams`)
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const streams = await response.json()
+      setStreams(streams)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const fetchStatistics = async () => {
+    try {
+      let formattedFromDate
+      let formattedToDate
+      let response
+      if (fromDate) {
+        formattedFromDate = formatDate(fromDate)
+      }
+      if (toDate) {
+        formattedToDate = formatDate(toDate)
+      }
+
+      if (streams.length > 0 && selectedStreams.length === 0) {
+        const firstStream = streams[0]
+        const id =
+          firstStream.options && firstStream.options.length > 0 ? firstStream.options[0].value : firstStream.value
+
+        response = await fetch(
+          `${API_URL}/statistics/historical?stream_id=${id}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`
+        )
+      } else {
+        const selectedStreamIds = selectedStreams.join(',')
+        response = await fetch(
+          `${API_URL}/statistics/historical?stream_id=${selectedStreamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`
+        )
+      }
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const data = await response.json()
+      console.log('🚀 ~ fetchStatistics ~ data:', data)
+    } catch (error) {
+      console.error('There was a problem with the fetch operation:', error)
+    }
+  }
+
+  useEffect(() => {
+    getAllStreams()
+  }, [])
+
+  useEffect(() => {
+    if (streams.length > 0) {
+      fetchStatistics()
+    }
+  }, [fromDate, toDate, durationSelect, streams, selectedStreams])
 
   return (
     <Grid container spacing={4}>
@@ -50,8 +123,17 @@ const HistoricalPage = () => {
 
       <HeatmapChart series={dataJSON?.heatMapSeries} />
 
-      <VisitorsChart />
-      <MultiLineChart title={t('staff')} />
+      <VisitorsChart
+        visitorsChartSeries1Daily={[]}
+        visitorsChartSeries1Dailycomparisons={[]}
+        visitorsChartSeries2Daily={[]}
+        visitorsChartSeries2Dailycomparisons={[]}
+        visitorsChartSeries3Daily={[]}
+        visitorsChartSeries3Dailycomparisons={[]}
+        visitorsChartSeries4Daily={[]}
+        visitorsChartSeries4Dailycomparisons={[]}
+      />
+      <MultiLineChart title={t('staff')} staffChartSeries={[]} />
     </Grid>
   )
 }
