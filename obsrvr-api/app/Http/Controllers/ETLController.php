@@ -199,4 +199,20 @@ class ETLController extends Controller
             ...$staffChartSeries
         ], 200);
     }
+
+    public function getHistoricalStatistics(Request $request) {
+        $streamIds = $request->input('stream_id');
+        $streamIdsArray = explode(',', $streamIds);
+
+        $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
+        $duration = $request->input('duration');
+
+        return response()->json([
+            'streamIds' => $streamIdsArray,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'duration' => $duration
+        ], 200);
+    }
 }
