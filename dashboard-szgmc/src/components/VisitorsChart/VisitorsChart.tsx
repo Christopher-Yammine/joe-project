@@ -161,7 +161,7 @@ const VisitorsChart: React.FC<Props> = ({
   const visitorsData = isDaily ? visitorsChartSeries1Daily : dataJSON[`visitorsChartSeries1Daily`]
   const visitorsChartSeries1Data = visitorsData?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
-    name: isAR ? t(item?.name) : item?.name
+    name: isAR ? t(item?.name_ar) : item?.name
   }))
 
   const uniqueVisitorsData = isDaily ? visitorsChartSeries2Daily : dataJSON[`visitorsChartSeries2Daily`]
