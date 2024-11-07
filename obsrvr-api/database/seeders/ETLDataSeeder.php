@@ -32,6 +32,24 @@ class ETLDataSeeder extends Seeder
         $endDateQuarterly = $startDate->copy()->addQuarters(4);
         $endDateYearly = $startDate->copy()->addYears(2);
 
+        // $startDateHourly = Carbon::yesterday()->setTime(0, 0, 0);
+        // $endDateHourly = Carbon::now();
+
+        // $startDateDaily = $startDateHourly;
+        // $endDateDaily = Carbon::now()->endOfDay();
+
+        // $startDateWeekly = Carbon::now()->startOfWeek()->subWeeks(12);
+        // $endDateWeekly = Carbon::now()->endOfWeek();
+
+        // $startDateMonthly = Carbon::now()->startOfMonth()->subMonths(6);
+        // $endDateMonthly = Carbon::now()->endOfMonth();
+
+        // $startDateQuarterly = Carbon::now()->startOfQuarter()->subQuarters(4);
+        // $endDateQuarterly = Carbon::now()->endOfQuarter();
+
+        // $startDateYearly = Carbon::now()->startOfYear()->subYears(2);
+        // $endDateYearly = Carbon::now()->endOfYear();
+
         $this->seedHourlyData($footfalls, $demographics, $metrics, $startDate, $endDateHourly, $streams);
         $this->seedDailyData($footfalls, $demographics, $metrics, $startDate, $endDateDaily, $streams);
         $this->seedWeeklyData($footfalls, $demographics, $metrics, $startDate, $endDateWeekly, $streams);
