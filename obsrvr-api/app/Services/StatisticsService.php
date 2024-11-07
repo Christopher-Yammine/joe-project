@@ -483,12 +483,12 @@ class StatisticsService
                 'trend' => $footfallPercentageDifference < 0 ? 'negative' : 'positive',
                 'trendNumber' => round(abs($footfallPercentageDifference), 2),
             ],
-            'newVisitors' => [
-                'title' => 'newVisitors',
-                'stats' => $results->today_new_visitors,
-                'trend' => $newVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
-                'trendNumber' => round(abs($newVisitorsPercentageDifference), 2),
-            ],
+            // 'newVisitors' => [
+            //     'title' => 'newVisitors',
+            //     'stats' => $results->today_new_visitors,
+            //     'trend' => $newVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
+            //     'trendNumber' => round(abs($newVisitorsPercentageDifference), 2),
+            // ],
             'souqVisitors' => [
                 'title' => 'visitorsToSouq',
                 'stats' => $results->today_souq_visitors,

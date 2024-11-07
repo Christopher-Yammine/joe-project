@@ -349,7 +349,7 @@ const VisitorsChart: React.FC<Props> = ({
               width: { xs: '100%', md: '50%' }
             }}
           >
-            <CardContent sx={{ minWidth: { md: '400px', xs: 'none' }, width: { xs: '100%', md: 'none' } }}>
+            {/* <CardContent sx={{ minWidth: { md: '400px', xs: 'none' }, width: { xs: '100%', md: 'none' } }}>
               {data.map((item: any, index: number) => (
                 <Box
                   key={index}
@@ -403,6 +403,73 @@ const VisitorsChart: React.FC<Props> = ({
                   </Box>
                 </Box>
               ))}
+            </CardContent> */}
+            <CardContent
+              sx={{ minWidth: { md: '400px', xs: 'none' }, width: { xs: '100%', md: 'none' }, minHeight: '350px' }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: 4,
+                  width: '100%'
+                }}
+              >
+                {data.map((item: any, index: number) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      py: 2,
+                      px: 3,
+                      display: 'flex',
+                      borderRadius: 1,
+                      alignItems: 'center',
+                      backgroundColor: 'background.default',
+                      mb: index !== data.length - 1 ? 4 : undefined,
+                      width: '100%'
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: '100%',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'flex-end',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                        <Typography sx={{ color: 'text.secondary' }}>{item.title}</Typography>
+                        <Typography sx={{ fontWeight: 500, fontSize: '1.125rem' }}>{item.stats}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            mb: 0.5,
+                            fontWeight: 500,
+                            color: item.trend === 'negative' ? 'red' : 'green'
+                          }}
+                        >
+                          {`${item.trendNumber}%`}
+                        </Typography>
+
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          width={'10px'}
+                          height={'10px'}
+                          fill={item.trend === 'negative' ? 'red' : 'green'}
+                          viewBox='0 0 384 512'
+                          style={item.trend !== 'negative' ? { transform: 'scale(1, -1)' } : {}}
+                        >
+                          <path d='M32 64C14.3 64 0 49.7 0 32S14.3 0 32 0l96 0c53 0 96 43 96 96l0 306.7 73.4-73.4c12.5-12.5 32.8-12.5 45.3 0s12.5 32.8 0 45.3l-128 128c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 402.7 160 96c0-17.7-14.3-32-32-32L32 64z' />
+                        </svg>
+                      </Box>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
             </CardContent>
           </Box>
         </Box>
