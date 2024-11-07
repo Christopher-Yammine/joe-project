@@ -405,7 +405,15 @@ const VisitorsChart: React.FC<Props> = ({
               ))}
             </CardContent> */}
             <CardContent
-              sx={{ minWidth: { md: '400px', xs: 'none' }, width: { xs: '100%', md: 'none' }, minHeight: '350px' }}
+              sx={{
+                minWidth: { md: '400px', xs: 'none' },
+                width: { xs: '100%', md: 'none' },
+                minHeight: '350px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
             >
               <Box
                 sx={{
