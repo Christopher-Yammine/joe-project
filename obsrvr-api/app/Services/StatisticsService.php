@@ -2,11 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\DemographicView;
 use App\Models\EtlDataHourly;
-use App\Models\HourlyDemographicView;
-use App\Models\PersonType;
-use Carbon\Carbon;
+use App\Models\Stream;
+
 use Illuminate\Support\Facades\DB;
 
 class StatisticsService
@@ -18,6 +16,7 @@ class StatisticsService
     $endOfToday = now()->endOfDay();
     $startOfYesterday = now()->subDay()->startOfDay();
     $endOfYesterday = now()->subDay()->endOfDay();
+
 
     $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
     ->whereBetween('date', [$startOfToday, $endOfToday])
@@ -382,22 +381,6 @@ class StatisticsService
         $firstReturnTitle,
         $fourthReturnTitle
     ) {
-        // $query = DB::table('etl_data_hourly as etl')
-        // ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-        // ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
-        // ->selectRaw("
-        // SUM(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_total_value,
-        // COUNT(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN 1 END) AS today_total_entries,
-        // SUM(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_total_value,
-        // COUNT(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN 1 END) AS yesterday_total_entries,
-        // SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_new_visitors,
-        // SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
-        // SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_souq_visitors,
-        // SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
-        // ");
-
-        // $currentHour = (int) date('H');
-
         $lastHourWithData = DB::table('etl_data_hourly')
             ->where('date', '>=', "$today 00:00:00")
             ->where('date', '<=', "$today 23:59:59")
@@ -464,9 +447,9 @@ class StatisticsService
         ? (($todayAverageFootfall - $yesterdayAverageFootfall) / $yesterdayAverageFootfall) * 100
         : 0;
 
-        $newVisitorsPercentageDifference = $results->yesterday_new_visitors > 0
-        ? (($results->today_new_visitors - $results->yesterday_new_visitors) / $results->yesterday_new_visitors) * 100
-        : 0;
+        // $newVisitorsPercentageDifference = $results->yesterday_new_visitors > 0
+        // ? (($results->today_new_visitors - $results->yesterday_new_visitors) / $results->yesterday_new_visitors) * 100
+        // : 0;
 
         $souqVisitorsPercentageDifference = $results->yesterday_souq_visitors > 0
         ? (($results->today_souq_visitors - $results->yesterday_souq_visitors) / $results->yesterday_souq_visitors) * 100
@@ -476,32 +459,62 @@ class StatisticsService
         ? (($results->today_total_value - $results->yesterday_total_value) / $results->yesterday_total_value) * 100
         : 0;
 
-        return [
-            'averageFootfall' => [
-                'title' => $firstReturnTitle,
-                'stats' => round($todayAverageFootfall),
-                'trend' => $footfallPercentageDifference < 0 ? 'negative' : 'positive',
-                'trendNumber' => round(abs($footfallPercentageDifference), 2),
-            ],
-            // 'newVisitors' => [
-            //     'title' => 'newVisitors',
-            //     'stats' => $results->today_new_visitors,
-            //     'trend' => $newVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
-            //     'trendNumber' => round(abs($newVisitorsPercentageDifference), 2),
-            // ],
-            'souqVisitors' => [
-                'title' => 'visitorsToSouq',
-                'stats' => $results->today_souq_visitors,
-                'trend' => $souqVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
-                'trendNumber' => round(abs($souqVisitorsPercentageDifference), 2),
-            ],
-            'totalEntries' => [
-                'title' =>  $fourthReturnTitle,
-                'stats' => $results->today_total_value,
-                'trend' => $totalEntriesPercentageDifference < 0 ? 'negative' : 'positive',
-                'trendNumber' => round(abs($totalEntriesPercentageDifference), 2),
-            ],
+        $isSouqStreamPresent = Stream::whereIn('id', $streamIds)
+            ->where('name', 'like', 'Souq%')
+            ->exists();
+
+        $metrics = [
+        'averageFootfall' => [
+            'title' => $firstReturnTitle,
+            'stats' => round($todayAverageFootfall),
+            'trend' => $footfallPercentageDifference < 0 ? 'negative' : 'positive',
+            'trendNumber' => round(abs($footfallPercentageDifference), 2),
+        ],
+        'totalEntries' => [
+            'title' => $fourthReturnTitle,
+            'stats' => $results->today_total_value,
+            'trend' => $totalEntriesPercentageDifference < 0 ? 'negative' : 'positive',
+            'trendNumber' => round(abs($totalEntriesPercentageDifference), 2),
+        ],
+    ];
+
+    if ($isSouqStreamPresent) {
+        $metrics['souqVisitors'] = [
+            'title' => 'visitorsToSouq',
+            'stats' => $results->today_souq_visitors,
+            'trend' => $souqVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
+            'trendNumber' => round(abs($souqVisitorsPercentageDifference), 2),
         ];
+    }
+
+    return $metrics;
+
+        // return [
+        //     'averageFootfall' => [
+        //         'title' => $firstReturnTitle,
+        //         'stats' => round($todayAverageFootfall),
+        //         'trend' => $footfallPercentageDifference < 0 ? 'negative' : 'positive',
+        //         'trendNumber' => round(abs($footfallPercentageDifference), 2),
+        //     ],
+        //     // 'newVisitors' => [
+        //     //     'title' => 'newVisitors',
+        //     //     'stats' => $results->today_new_visitors,
+        //     //     'trend' => $newVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
+        //     //     'trendNumber' => round(abs($newVisitorsPercentageDifference), 2),
+        //     // ],
+        //     'souqVisitors' => [
+        //         'title' => 'visitorsToSouq',
+        //         'stats' => $results->today_souq_visitors,
+        //         'trend' => $souqVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
+        //         'trendNumber' => round(abs($souqVisitorsPercentageDifference), 2),
+        //     ],
+        //     'totalEntries' => [
+        //         'title' =>  $fourthReturnTitle,
+        //         'stats' => $results->today_total_value,
+        //         'trend' => $totalEntriesPercentageDifference < 0 ? 'negative' : 'positive',
+        //         'trendNumber' => round(abs($totalEntriesPercentageDifference), 2),
+        //     ],
+        // ];
     }
 
     public function getVisitorsData(array $streamIds) {
@@ -517,19 +530,6 @@ class StatisticsService
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->whereIn('etl.stream_id', $streamIds)
             ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
-            ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
-            ->get();
-
-        $yesterdayResults = DB::table('etl_data_hourly as etl')
-            ->select(
-                'streams.name',
-                DB::raw('HOUR(etl.date) as hour'),
-                DB::raw('SUM(etl.value) as total_value')
-            )
-            ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->whereIn('etl.stream_id', $streamIds)
-            ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderBy('hour')
             ->get();
@@ -575,22 +575,7 @@ class StatisticsService
             ->orderBy('hour')
             ->get();
 
-            $yesterdayResults = DB::table('etl_data_hourly as etl')
-            ->select(
-                'streams.name',
-                DB::raw('HOUR(etl.date) as hour'),
-                DB::raw('SUM(etl.value) as total_value')
-            )
-            ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
-            ->whereIn('etl.stream_id', $streamIds)
-            ->where('metrics.name', 'Unique')
-            ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
-            ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
-            ->get();
-
-            $visitorsChartSeries = [];
+        $visitorsChartSeries = [];
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
@@ -631,23 +616,7 @@ class StatisticsService
         ->orderBy('hour')
         ->get();
 
-        $yesterdayResults = DB::table('etl_data_hourly as etl')
-        ->select(
-            'streams.name',
-            DB::raw('HOUR(etl.date) as hour'),
-            DB::raw('SUM(etl.value) as total_value')
-        )
-        ->join('streams', 'etl.stream_id', '=', 'streams.id')
-        ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
-        ->whereIn('etl.stream_id', $streamIds)
-        ->where('person_types.name', 'Returning')
-        ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
-        ->groupBy('streams.id', 'hour', 'streams.name')
-        ->orderBy('hour')
-        ->get();
-
-
-            $visitorsChartSeries = [];
+        $visitorsChartSeries = [];
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
@@ -689,23 +658,7 @@ class StatisticsService
         ->orderBy('hour')
         ->get();
 
-        $yesterdayResults = DB::table('etl_data_hourly as etl')
-        ->select(
-            'streams.name',
-            DB::raw('HOUR(etl.date) as hour'),
-            DB::raw('SUM(etl.value) as total_value')
-        )
-        ->join('streams', 'etl.stream_id', '=', 'streams.id')
-        ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
-        ->whereIn('etl.stream_id', $streamIds)
-        ->where('metrics.name', 'Occupancy')
-        ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
-        ->groupBy('streams.id', 'hour', 'streams.name')
-        ->orderBy('hour')
-        ->get();
-
-
-            $visitorsChartSeries = [];
+        $visitorsChartSeries = [];
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
