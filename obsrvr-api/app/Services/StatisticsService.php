@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class StatisticsService
 {
-   
+
     public function getTotalVisitorsCard(array $streamIds)
 {
     $startOfToday = now()->startOfDay();
@@ -44,15 +44,35 @@ class StatisticsService
     $totalVisitorsToday = 0;
     $totalVisitorsYesterday = 0;
 
+    $latestHourWithData = 0;
     foreach ($todayData as $entry) {
-        $todaySeriesData[$entry->hour] = $entry->total;
-        $totalVisitorsToday += $entry->total;
+        if ($entry->hour > $latestHourWithData) {
+            $latestHourWithData = $entry->hour;
+        }
+    }
+
+    foreach ($todayData as $entry) {
+        if ($entry->hour <= $latestHourWithData) {
+            $todaySeriesData[$entry->hour] = $entry->total;
+            $totalVisitorsToday += $entry->total;
+        }
     }
 
     foreach ($yesterdayData as $entry) {
-        $yesterdaySeriesData[$entry->hour] = $entry->total;
-        $totalVisitorsYesterday += $entry->total;
+        if ($entry->hour <= $latestHourWithData) {
+            $yesterdaySeriesData[$entry->hour] = $entry->total;
+            $totalVisitorsYesterday += $entry->total;
+        }
     }
+    // foreach ($todayData as $entry) {
+    //     $todaySeriesData[$entry->hour] = $entry->total;
+    //     $totalVisitorsToday += $entry->total;
+    // }
+
+    // foreach ($yesterdayData as $entry) {
+    //     $yesterdaySeriesData[$entry->hour] = $entry->total;
+    //     $totalVisitorsYesterday += $entry->total;
+    // }
 
     $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
 
@@ -104,19 +124,40 @@ class StatisticsService
         $totalVisitorsToday = 0;
         $totalVisitorsYesterday = 0;
 
+        $latestHourWithData = 0;
         foreach ($todayData as $entry) {
-            if ($entry->day == $startOfToday->toDateString()) {
+            if ($entry->hour > $latestHourWithData) {
+                $latestHourWithData = $entry->hour;
+            }
+        }
+
+        foreach ($todayData as $entry) {
+            if ($entry->day == $startOfToday->toDateString() && $entry->hour <= $latestHourWithData) {
                 $todaySeriesData[$entry->hour] = $entry->total;
                 $totalVisitorsToday += $entry->total;
             }
         }
 
         foreach ($yesterdayData as $entry) {
-            if ($entry->day == $startOfYesterday->toDateString()) {
+            if ($entry->day == $startOfYesterday->toDateString() && $entry->hour <= $latestHourWithData) {
                 $yesterdaySeriesData[$entry->hour] = $entry->total;
                 $totalVisitorsYesterday += $entry->total;
             }
         }
+
+        // foreach ($todayData as $entry) {
+        //     if ($entry->day == $startOfToday->toDateString()) {
+        //         $todaySeriesData[$entry->hour] = $entry->total;
+        //         $totalVisitorsToday += $entry->total;
+        //     }
+        // }
+
+        // foreach ($yesterdayData as $entry) {
+        //     if ($entry->day == $startOfYesterday->toDateString()) {
+        //         $yesterdaySeriesData[$entry->hour] = $entry->total;
+        //         $totalVisitorsYesterday += $entry->total;
+        //     }
+        // }
 
         $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
 
@@ -168,19 +209,40 @@ class StatisticsService
         $totalOccupancyToday = 0;
         $totalOccupancyYesterday = 0;
 
+        $latestHourWithData = 0;
         foreach ($todayOccupancyData as $entry) {
-            if ($entry->day == $startOfToday->toDateString()) {
+            if ($entry->hour > $latestHourWithData) {
+                $latestHourWithData = $entry->hour;
+            }
+        }
+
+        foreach ($todayOccupancyData as $entry) {
+            if ($entry->hour <= $latestHourWithData) {
                 $todaySeriesData[$entry->hour] = $entry->total;
                 $totalOccupancyToday += $entry->total;
             }
         }
 
         foreach ($yesterdayOccupancyData as $entry) {
-            if ($entry->day == $startOfYesterday->toDateString()) {
+            if ($entry->hour <= $latestHourWithData) {
                 $yesterdaySeriesData[$entry->hour] = $entry->total;
                 $totalOccupancyYesterday += $entry->total;
             }
         }
+
+        // foreach ($todayOccupancyData as $entry) {
+        //     if ($entry->day == $startOfToday->toDateString()) {
+        //         $todaySeriesData[$entry->hour] = $entry->total;
+        //         $totalOccupancyToday += $entry->total;
+        //     }
+        // }
+
+        // foreach ($yesterdayOccupancyData as $entry) {
+        //     if ($entry->day == $startOfYesterday->toDateString()) {
+        //         $yesterdaySeriesData[$entry->hour] = $entry->total;
+        //         $totalOccupancyYesterday += $entry->total;
+        //     }
+        // }
 
         $percentChange = $this->calculatePercentChange($totalOccupancyToday, $totalOccupancyYesterday);
         $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
@@ -320,20 +382,50 @@ class StatisticsService
         $firstReturnTitle,
         $fourthReturnTitle
     ) {
+        // $query = DB::table('etl_data_hourly as etl')
+        // ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+        // ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
+        // ->selectRaw("
+        // SUM(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_total_value,
+        // COUNT(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN 1 END) AS today_total_entries,
+        // SUM(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_total_value,
+        // COUNT(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN 1 END) AS yesterday_total_entries,
+        // SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_new_visitors,
+        // SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
+        // SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_souq_visitors,
+        // SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
+        // ");
+
+        // $currentHour = (int) date('H');
+
+        $lastHourWithData = DB::table('etl_data_hourly')
+            ->where('date', '>=', "$today 00:00:00")
+            ->where('date', '<=', "$today 23:59:59")
+            ->max(DB::raw('HOUR(date)'));
+
+        $currentHour = $lastHourWithData !== null ? $lastHourWithData : date('G');
+
+        $todayStart = "$today 00:00:00";
+        $todayEnd = "$today " . str_pad($currentHour, 2, '0', STR_PAD_LEFT) . ":59:59";
+        $yesterdayStart = "$yesterday 00:00:00";
+        $yesterdayEnd = "$yesterday " . str_pad($currentHour, 2, '0', STR_PAD_LEFT) . ":59:59";
+
+
         $query = DB::table('etl_data_hourly as etl')
-        ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-        ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
-        ->selectRaw("
-        SUM(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_total_value,
-        COUNT(CASE WHEN etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN 1 END) AS today_total_entries,
-        SUM(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_total_value,
-        COUNT(CASE WHEN etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN 1 END) AS yesterday_total_entries,
-        SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_new_visitors,
-        SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
-        SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$today 00:00:00' AND etl.date <= '$today 23:59:59' THEN etl.value ELSE 0 END) AS today_souq_visitors,
-        SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterday 00:00:00' AND etl.date <= '$yesterday 23:59:59' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
-        ");
-        
+            ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
+            ->selectRaw("
+                SUM(CASE WHEN etl.date >= '$todayStart' AND etl.date <= '$todayEnd' THEN etl.value ELSE 0 END) AS today_total_value,
+                COUNT(CASE WHEN etl.date >= '$todayStart' AND etl.date <= '$todayEnd' THEN 1 END) AS today_total_entries,
+                SUM(CASE WHEN etl.date >= '$yesterdayStart' AND etl.date <= '$yesterdayEnd' THEN etl.value ELSE 0 END) AS yesterday_total_value,
+                COUNT(CASE WHEN etl.date >= '$yesterdayStart' AND etl.date <= '$yesterdayEnd' THEN 1 END) AS yesterday_total_entries,
+                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$todayStart' AND etl.date <= '$todayEnd' THEN etl.value ELSE 0 END) AS today_new_visitors,
+                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterdayStart' AND etl.date <= '$yesterdayEnd' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
+                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$todayStart' AND etl.date <= '$todayEnd' THEN etl.value ELSE 0 END) AS today_souq_visitors,
+                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterdayStart' AND etl.date <= '$yesterdayEnd' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
+            ");
+
+
         if ($isUniqueMetric) {
             $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
             ->where('metrics.name', 'Unique')
@@ -348,7 +440,7 @@ class StatisticsService
             $results = $query->whereIn('etl.stream_id', $streamIds)
             ->first();
         }
-        
+
         if ($personType) {
             $results->today_new_visitors = DB::table('etl_data_hourly as etl')
             ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
@@ -356,7 +448,7 @@ class StatisticsService
             ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
             ->whereIn('etl.stream_id', $streamIds)
             ->sum('etl.value');
-            
+
             $results->yesterday_new_visitors = DB::table('etl_data_hourly as etl')
             ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->where('person_types.name', $personType)
@@ -364,26 +456,26 @@ class StatisticsService
             ->whereIn('etl.stream_id', $streamIds)
             ->sum('etl.value');
         }
-        
+
         $todayAverageFootfall = $results->today_total_value / 24;
         $yesterdayAverageFootfall = $results->yesterday_total_value / 24;
-        
+
         $footfallPercentageDifference = $yesterdayAverageFootfall > 0
         ? (($todayAverageFootfall - $yesterdayAverageFootfall) / $yesterdayAverageFootfall) * 100
         : 0;
-        
+
         $newVisitorsPercentageDifference = $results->yesterday_new_visitors > 0
         ? (($results->today_new_visitors - $results->yesterday_new_visitors) / $results->yesterday_new_visitors) * 100
         : 0;
-        
+
         $souqVisitorsPercentageDifference = $results->yesterday_souq_visitors > 0
         ? (($results->today_souq_visitors - $results->yesterday_souq_visitors) / $results->yesterday_souq_visitors) * 100
         : 0;
-        
+
         $totalEntriesPercentageDifference = $results->yesterday_total_value > 0
         ? (($results->today_total_value - $results->yesterday_total_value) / $results->yesterday_total_value) * 100
         : 0;
-        
+
         return [
             'averageFootfall' => [
                 'title' => $firstReturnTitle,
@@ -411,7 +503,7 @@ class StatisticsService
             ],
         ];
     }
-    
+
     public function getVisitorsData(array $streamIds) {
         $today = now()->format('Y-m-d');
         $yesterday = now()->subDay()->format('Y-m-d');
@@ -531,7 +623,7 @@ class StatisticsService
             DB::raw('SUM(etl.value) as total_value')
         )
         ->join('streams', 'etl.stream_id', '=', 'streams.id')
-        ->join('person_types', 'etl.person_type_id', '=', 'person_types.id') 
+        ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
         ->whereIn('etl.stream_id', $streamIds)
         ->where('person_types.name', 'Returning')
         ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
@@ -546,7 +638,7 @@ class StatisticsService
             DB::raw('SUM(etl.value) as total_value')
         )
         ->join('streams', 'etl.stream_id', '=', 'streams.id')
-        ->join('person_types', 'etl.person_type_id', '=', 'person_types.id') 
+        ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
         ->whereIn('etl.stream_id', $streamIds)
         ->where('person_types.name', 'Returning')
         ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
@@ -637,7 +729,7 @@ class StatisticsService
 
     public function getTotalStaffDaily(array $streamIds) {
         $today = now()->format('Y-m-d');
-    
+
         $todayResults = DB::table('etl_data_hourly as etl')
             ->select(
                 'streams.name',
@@ -645,16 +737,16 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id') 
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->whereIn('etl.stream_id', $streamIds)
             ->where('person_types.name', 'staff')
             ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderBy('hour')
             ->get();
-    
+
         $visitorsChartSeries = [];
-    
+
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
@@ -665,14 +757,14 @@ class StatisticsService
             }
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
-    
+
         $visitorsChartSeries = array_values($visitorsChartSeries);
-    
+
         return [
             'staffChartSeries' => $visitorsChartSeries
         ];
     }
-    
+
     private function getArabicName($name) {
         $arabicNames = [
             'Souq' => 'سوق',
@@ -680,8 +772,8 @@ class StatisticsService
             'Mosque Entry 2' => 'دخول المسجد 2',
             'Mosque Entry 3' => 'دخول المسجد 3',
         ];
-    
-        return $arabicNames[$name] ?? $name; 
+
+        return $arabicNames[$name] ?? $name;
     }
 
 }
