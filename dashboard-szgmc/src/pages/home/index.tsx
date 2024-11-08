@@ -51,11 +51,11 @@ const Home = () => {
       let response
 
       if (streams.length > 0 && selectedStreams.length === 0) {
-        const firstStream = streams[0]
-        const id =
-          firstStream.options && firstStream.options.length > 0 ? firstStream.options[0].value : firstStream.value
+        const streamIds = streams
+          .flatMap(stream => (stream.options ? stream.options.map(option => option.value) : [stream.value]))
+          .join(',')
 
-        response = await fetch(`${API_URL}/statistics/hourly?stream_id=${id}`)
+        response = await fetch(`${API_URL}/statistics/hourly?stream_id=${streamIds}`)
       } else {
         const selectedStreamIds = selectedStreams.join(',')
         response = await fetch(`${API_URL}/statistics/hourly?stream_id=${selectedStreamIds}`)

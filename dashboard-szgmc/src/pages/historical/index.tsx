@@ -53,12 +53,12 @@ const HistoricalPage = () => {
       }
 
       if (streams.length > 0 && selectedStreams.length === 0) {
-        const firstStream = streams[0]
-        const id =
-          firstStream.options && firstStream.options.length > 0 ? firstStream.options[0].value : firstStream.value
+        const streamIds = streams
+          .flatMap(stream => (stream.options ? stream.options.map(option => option.value) : [stream.value]))
+          .join(',')
 
         response = await fetch(
-          `${API_URL}/statistics/historical?stream_id=${id}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`
+          `${API_URL}/statistics/historical?stream_id=${streamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`
         )
       } else {
         const selectedStreamIds = selectedStreams.join(',')
