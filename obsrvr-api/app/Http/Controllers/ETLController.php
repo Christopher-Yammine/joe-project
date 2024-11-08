@@ -208,11 +208,10 @@ class ETLController extends Controller
         $toDate = $request->input('to_date');
         $duration = $request->input('duration');
 
+        $totalNewReturningHistoricalVisitors = $this->statisticsService->getNewReturningHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
+
         return response()->json([
-            'streamIds' => $streamIdsArray,
-            'fromDate' => $fromDate,
-            'toDate' => $toDate,
-            'duration' => $duration
+            'totalNewReturningHistoricalVisitors' => $totalNewReturningHistoricalVisitors,
         ], 200);
     }
 }

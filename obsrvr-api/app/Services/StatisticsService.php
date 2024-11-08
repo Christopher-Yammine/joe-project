@@ -729,4 +729,87 @@ class StatisticsService
         return $arabicNames[$name] ?? $name;
     }
 
+    public function getNewReturningHistoricalVisitors (array $streamIds, $fromDate, $toDate, $duration) {
+        $etlDataTable = $this->getEtlDataTableByDuration($duration);
+
+        $groupByFormat = $this->getGroupByFormat($duration);
+
+        $newVisitors = DB::table($etlDataTable)
+            ->whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->join('metrics', $etlDataTable . '.metric_id', '=', 'metrics.id')
+            ->where('metrics.name', '=', 'Unique')
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+            ->groupBy(DB::raw($groupByFormat))
+            ->orderBy(DB::raw($groupByFormat))
+            ->get();
+    
+        $returningVisitors = DB::table($etlDataTable)
+            ->whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '=', 'Returning')
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+            ->groupBy(DB::raw($groupByFormat))
+            ->orderBy(DB::raw($groupByFormat))
+            ->get();
+
+        $totalNewVisitors = $newVisitors->sum('total');
+
+        $totalReturningVisitors = $returningVisitors->sum('total');
+
+        $response = [
+            'firstTitle' => 'New',
+            'firstGeneralNumber' => strval($totalNewVisitors),
+            'secondTitle' => 'Returning',
+            'secondGeneralNumber' => strval($totalReturningVisitors),
+            'xAxis' => $newVisitors->pluck('period')->toArray(),
+            'commonChartSeries1' => [
+                [
+                    'name' => 'New',
+                    'name_ar' => 'جديد',
+                    'data' => $newVisitors->pluck('total')->toArray(),
+                ],
+                [
+                    'name' => 'Returning',
+                    'name_ar' => 'عودة',
+                    'data' => $returningVisitors->pluck('total')->toArray(),
+                ]
+            ]
+        ];
+        
+        return $response;
+    }
+
+    private function getEtlDataTableByDuration($duration) {
+        return match ($duration) {
+            'Daily' => 'etl_data_daily',
+            'Weekly' => 'etl_data_weekly',
+            'Monthly' => 'etl_data_monthly',
+            'Quarterly' => 'etl_data_quarterly',
+            'Yearly' => 'etl_data_yearly',
+            default => 'etl_data_daily',
+        };
+    }
+
+    private function getGroupByFormat($duration) {
+        return match ($duration) {
+            'Daily' => 'DATE_FORMAT(date, "%Y-%m-%d")',
+            'Weekly' => 'DATE_FORMAT(date, "%Y-%u")',
+            'Monthly' => 'DATE_FORMAT(date, "%Y-%m")',
+            'Quarterly' => 'CONCAT(YEAR(date), "-", QUARTER(date))',
+            'Yearly' => 'DATE_FORMAT(date, "%Y")',
+            default => 'DATE_FORMAT(date, "%Y-%m-%d")',
+        };
+    }
+
+    private function formatDataWithPeriod($data) {
+        return $data->map(function($item) {
+            return [
+                'period' => $item->period,
+                'total' => $item->total    
+            ];
+        })->toArray();
+    }
+
 }
