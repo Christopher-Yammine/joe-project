@@ -21,6 +21,10 @@ type ChartSeries = {
 }
 
 type totalNewReturningHistoricalVisitors = {
+  firstTitle: string
+  firstGeneralNumber: string
+  secondTitle: string
+  secondGeneralNumber: string
   xAxis: string[]
   commonChartSeries1: ChartSeries[]
 }
@@ -107,10 +111,10 @@ const HistoricalPage = () => {
   return (
     <Grid container spacing={4}>
       <LineChart
-        firstTitle={t('new')}
-        secondTitle={t('returning')}
-        firstGeneralNumber='260,158'
-        secondGeneralNumber='65,791'
+        firstTitle={t(totalNewReturningHistoricalVisitors?.firstTitle)}
+        secondTitle={t(totalNewReturningHistoricalVisitors?.secondTitle)}
+        firstGeneralNumber={totalNewReturningHistoricalVisitors?.firstGeneralNumber}
+        secondGeneralNumber={totalNewReturningHistoricalVisitors?.secondGeneralNumber}
         series={totalNewReturningHistoricalVisitors?.commonChartSeries1 || []}
         xAxis={totalNewReturningHistoricalVisitors?.xAxis || []}
       />
