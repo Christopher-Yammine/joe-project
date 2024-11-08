@@ -10,7 +10,10 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 import useStore from 'src/store/store'
 
 export default function DatePickerRange() {
-  const [fromDate, setFromDate] = useState(new Date())
+  const now = new Date()
+  const oneWeekAgo = new Date()
+  oneWeekAgo.setDate(now.getDate() - 7)
+  const [fromDate, setFromDate] = useState(oneWeekAgo)
   const [toDate, setToDate] = useState(new Date())
   const setFromDateStore = useStore(state => state.setFromDate)
   const setToDateStore = useStore(state => state.setToDate)

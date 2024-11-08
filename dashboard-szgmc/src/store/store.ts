@@ -24,12 +24,16 @@ export type Stream = {
   options: Option[]
 }
 
+const now = new Date()
+const oneWeekAgo = new Date()
+oneWeekAgo.setDate(now.getDate() - 7)
+
 const useStore = create<StreamStore>()(set => ({
   streams: [],
   selectedStreams: [],
   setStreams: (index: any) => set(state => ({ streams: index })),
   setSelectedStream: (index: any) => set(state => ({ selectedStreams: index })),
-  fromDate: new Date(),
+  fromDate: oneWeekAgo,
   setFromDate: (index: any) => set(state => ({ fromDate: index })),
   toDate: new Date(),
   setToDate: (index: any) => set(state => ({ toDate: index })),
