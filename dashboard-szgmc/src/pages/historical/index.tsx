@@ -9,10 +9,21 @@ import MultiLineChart from 'src/components/MultiLineChart/MultiLineChart'
 
 import dataJSON from '../../db/data.json'
 import { useTranslation } from 'react-i18next'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import useStore from 'src/store/store'
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL
+
+type ChartSeries = {
+  name: string
+  name_ar: string
+  data: number[]
+}
+
+type totalNewReturningHistoricalVisitors = {
+  xAxis: string[]
+  commonChartSeries1: ChartSeries[]
+}
 
 const HistoricalPage = () => {
   const { t } = useTranslation()
@@ -22,6 +33,9 @@ const HistoricalPage = () => {
   const fromDate = useStore(state => state.fromDate)
   const toDate = useStore(state => state.toDate)
   const durationSelect = useStore(state => state.durationSelect)
+
+  const [totalNewReturningHistoricalVisitors, setTotalNewReturningHistoricalVisitors] =
+    useState<totalNewReturningHistoricalVisitors>([])
 
   const formatDate = (date: Date): string => {
     return date instanceof Date ? date.toISOString().split('T')[0] : ''
@@ -71,6 +85,8 @@ const HistoricalPage = () => {
       }
       const data = await response.json()
       console.log('🚀 ~ fetchStatistics ~ data:', data)
+
+      setTotalNewReturningHistoricalVisitors(data.totalNewReturningHistoricalVisitors)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
     }
@@ -81,6 +97,8 @@ const HistoricalPage = () => {
   }, [])
 
   useEffect(() => {
+    console.log('🚀 ~ fetchStatistics ~ FromDate:', fromDate)
+    console.log('🚀 ~ fetchStatistics ~ ToDate:', toDate)
     if (streams.length > 0) {
       fetchStatistics()
     }
@@ -93,7 +111,8 @@ const HistoricalPage = () => {
         secondTitle={t('returning')}
         firstGeneralNumber='260,158'
         secondGeneralNumber='65,791'
-        series={dataJSON?.commonChartSeries1}
+        series={totalNewReturningHistoricalVisitors?.commonChartSeries1 || []}
+        xAxis={totalNewReturningHistoricalVisitors?.xAxis || []}
       />
 
       <LineChart
@@ -102,6 +121,20 @@ const HistoricalPage = () => {
         firstGeneralNumber='162,755'
         secondGeneralNumber='163,194'
         series={dataJSON?.commonChartSeries2}
+        xAxis={[
+          'Oct 2023 (W40)',
+          'Oct 2023 (W41)',
+          'Oct 2023 (W42)',
+          'Oct 2023 (W43)',
+          'Oct 2023 (W44)',
+          'Nov 2023 (W45)',
+          'Nov 2023 (W46)',
+          'Nov 2023 (W47)',
+          'Nov 2023 (W48)',
+          'Dec 2023 (W49)',
+          'Dec 2023 (W50)',
+          'Dec 2023 (W51)'
+        ]}
       />
 
       <LineChart
@@ -110,6 +143,20 @@ const HistoricalPage = () => {
         firstGeneralNumber='260,158'
         secondGeneralNumber='65,791'
         series={dataJSON?.commonChartSeries3}
+        xAxis={[
+          'Oct 2023 (W40)',
+          'Oct 2023 (W41)',
+          'Oct 2023 (W42)',
+          'Oct 2023 (W43)',
+          'Oct 2023 (W44)',
+          'Nov 2023 (W45)',
+          'Nov 2023 (W46)',
+          'Nov 2023 (W47)',
+          'Nov 2023 (W48)',
+          'Dec 2023 (W49)',
+          'Dec 2023 (W50)',
+          'Dec 2023 (W51)'
+        ]}
       />
 
       <LineChart
@@ -119,6 +166,20 @@ const HistoricalPage = () => {
         secondGeneralNumber='163,194'
         isReversed={true}
         series={dataJSON?.commonChartSeries4}
+        xAxis={[
+          'Oct 2023 (W40)',
+          'Oct 2023 (W41)',
+          'Oct 2023 (W42)',
+          'Oct 2023 (W43)',
+          'Oct 2023 (W44)',
+          'Nov 2023 (W45)',
+          'Nov 2023 (W46)',
+          'Nov 2023 (W47)',
+          'Nov 2023 (W48)',
+          'Dec 2023 (W49)',
+          'Dec 2023 (W50)',
+          'Dec 2023 (W51)'
+        ]}
       />
 
       <HeatmapChart series={dataJSON?.heatMapSeries} />

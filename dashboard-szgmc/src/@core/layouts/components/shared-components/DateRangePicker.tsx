@@ -55,7 +55,7 @@ export default function DatePickerRange() {
   const handleEvent = (event, picker: any) => {
     setFromDate(picker.startDate?._d)
     setToDate(picker.endDate?._d)
-    setFromDateStore(picker.endDate?._d)
+    setFromDateStore(picker.startDate?._d)
     setToDateStore(picker.endDate?._d)
   }
 
