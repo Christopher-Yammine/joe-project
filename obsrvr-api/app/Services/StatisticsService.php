@@ -279,10 +279,10 @@ class StatisticsService
 
         $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$startOfToday, $endOfToday])
-            ->join('demographicss', 'etl_data_hourly.demographicss_id', '=', 'demographicss.id')
-            ->join('age_groups', 'demographicss.age_group_id', '=', 'age_groups.id')
-            ->join('genders', 'demographicss.gender_id', '=', 'genders.id')
-            ->join('sentiments', 'demographicss.sentiment_id', '=', 'sentiments.id')
+            ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
+            ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
+            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
             ->select(
                 'genders.gender',
                 'sentiments.sentiment',
@@ -294,10 +294,10 @@ class StatisticsService
 
         $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
-            ->join('demographicss', 'etl_data_hourly.demographicss_id', '=', 'demographicss.id')
-            ->join('age_groups', 'demographicss.age_group_id', '=', 'age_groups.id')
-            ->join('genders', 'demographicss.gender_id', '=', 'genders.id')
-            ->join('sentiments', 'demographicss.sentiment_id', '=', 'sentiments.id')
+            ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
+            ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
+            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
             ->select(
                 'genders.gender',
                 'sentiments.sentiment',
