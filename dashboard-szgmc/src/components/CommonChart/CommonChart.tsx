@@ -15,6 +15,8 @@ interface Props {
   secondTitle: string
   firstGeneralNumber: string
   secondGeneralNumber: string
+  firstTrendNumber?: string
+  secondTrendNumber?: string
   isReversed?: boolean
   series: {
     name: string
@@ -29,6 +31,8 @@ const LineChart: React.FC<Props> = ({
   secondTitle,
   firstGeneralNumber,
   secondGeneralNumber,
+  firstTrendNumber,
+  secondTrendNumber,
   isReversed = false,
   series,
   xAxis
@@ -149,12 +153,12 @@ const LineChart: React.FC<Props> = ({
     {
       title: firstTitle,
       stats: firstGeneralNumber,
-      trendNumber: 1.16
+      trendNumber: firstTrendNumber
     },
     {
       title: secondTitle,
       stats: secondGeneralNumber,
-      trendNumber: 1.15,
+      trendNumber: secondTrendNumber,
       isReversed: isReversed
     }
   ]

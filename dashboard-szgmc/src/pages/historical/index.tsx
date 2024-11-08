@@ -11,6 +11,7 @@ import dataJSON from '../../db/data.json'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import useStore from 'src/store/store'
+import { useSettings } from 'src/@core/hooks/useSettings'
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL
 
@@ -20,17 +21,21 @@ type ChartSeries = {
   data: number[]
 }
 
-type totalNewReturningHistoricalVisitors = {
+type chartData = {
   firstTitle: string
   firstGeneralNumber: string
+  firstTrendNumber: string
   secondTitle: string
   secondGeneralNumber: string
+  secondTrendNumber: string
   xAxis: string[]
-  commonChartSeries1: ChartSeries[]
+  commonChartSeries: ChartSeries[]
 }
 
 const HistoricalPage = () => {
   const { t } = useTranslation()
+  const { settings } = useSettings()
+  const isAR = settings.language === 'ar'
   const streams = useStore(state => state.streams)
   const setStreams = useStore(state => state.setStreams)
   const selectedStreams = useStore(state => state.selectedStreams)
@@ -38,8 +43,8 @@ const HistoricalPage = () => {
   const toDate = useStore(state => state.toDate)
   const durationSelect = useStore(state => state.durationSelect)
 
-  const [totalNewReturningHistoricalVisitors, setTotalNewReturningHistoricalVisitors] =
-    useState<totalNewReturningHistoricalVisitors>([])
+  const [totalNewReturningHistoricalVisitors, setTotalNewReturningHistoricalVisitors] = useState<chartData>([])
+  const [totalGendersHistoricalVisitors, settotalGendersHistoricalVisitors] = useState<chartData>([])
 
   const formatDate = (date: Date): string => {
     return date instanceof Date ? date.toISOString().split('T')[0] : ''
@@ -90,7 +95,8 @@ const HistoricalPage = () => {
       const data = await response.json()
       console.log('🚀 ~ fetchStatistics ~ data:', data)
 
-      setTotalNewReturningHistoricalVisitors(data.totalNewReturningHistoricalVisitors)
+      setTotalNewReturningHistoricalVisitors(data?.totalNewReturningHistoricalVisitors)
+      settotalGendersHistoricalVisitors(data?.totalGendersHistoricalVisitors)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
     }
@@ -101,8 +107,6 @@ const HistoricalPage = () => {
   }, [])
 
   useEffect(() => {
-    console.log('🚀 ~ fetchStatistics ~ FromDate:', fromDate)
-    console.log('🚀 ~ fetchStatistics ~ ToDate:', toDate)
     if (streams.length > 0) {
       fetchStatistics()
     }
@@ -111,34 +115,44 @@ const HistoricalPage = () => {
   return (
     <Grid container spacing={4}>
       <LineChart
-        firstTitle={t(totalNewReturningHistoricalVisitors?.firstTitle)}
-        secondTitle={t(totalNewReturningHistoricalVisitors?.secondTitle)}
+        firstTitle={
+          !isAR
+            ? totalNewReturningHistoricalVisitors?.commonChartSeries?.[0]?.name ??
+              totalNewReturningHistoricalVisitors?.firstTitle
+            : totalNewReturningHistoricalVisitors?.commonChartSeries?.[0]?.name_ar ?? ''
+        }
+        secondTitle={
+          !isAR
+            ? totalNewReturningHistoricalVisitors?.commonChartSeries?.[1]?.name ??
+              totalNewReturningHistoricalVisitors?.secondTitle
+            : totalNewReturningHistoricalVisitors?.commonChartSeries?.[1]?.name_ar ?? ''
+        }
         firstGeneralNumber={totalNewReturningHistoricalVisitors?.firstGeneralNumber}
         secondGeneralNumber={totalNewReturningHistoricalVisitors?.secondGeneralNumber}
-        series={totalNewReturningHistoricalVisitors?.commonChartSeries1 || []}
+        series={totalNewReturningHistoricalVisitors?.commonChartSeries || []}
         xAxis={totalNewReturningHistoricalVisitors?.xAxis || []}
+        firstTrendNumber={totalNewReturningHistoricalVisitors?.firstTrendNumber}
+        secondTrendNumber={totalNewReturningHistoricalVisitors?.secondTrendNumber}
       />
 
       <LineChart
-        firstTitle={t('female')}
-        secondTitle={t('male')}
-        firstGeneralNumber='162,755'
-        secondGeneralNumber='163,194'
-        series={dataJSON?.commonChartSeries2}
-        xAxis={[
-          'Oct 2023 (W40)',
-          'Oct 2023 (W41)',
-          'Oct 2023 (W42)',
-          'Oct 2023 (W43)',
-          'Oct 2023 (W44)',
-          'Nov 2023 (W45)',
-          'Nov 2023 (W46)',
-          'Nov 2023 (W47)',
-          'Nov 2023 (W48)',
-          'Dec 2023 (W49)',
-          'Dec 2023 (W50)',
-          'Dec 2023 (W51)'
-        ]}
+        firstTitle={
+          !isAR
+            ? totalGendersHistoricalVisitors?.commonChartSeries?.[0]?.name ?? totalGendersHistoricalVisitors?.firstTitle
+            : totalGendersHistoricalVisitors?.commonChartSeries?.[0]?.name_ar ?? ''
+        }
+        secondTitle={
+          !isAR
+            ? totalGendersHistoricalVisitors?.commonChartSeries?.[1]?.name ??
+              totalGendersHistoricalVisitors?.secondTitle
+            : totalGendersHistoricalVisitors?.commonChartSeries?.[1]?.name_ar ?? ''
+        }
+        firstGeneralNumber={totalGendersHistoricalVisitors?.firstGeneralNumber}
+        secondGeneralNumber={totalGendersHistoricalVisitors?.secondGeneralNumber}
+        series={totalGendersHistoricalVisitors?.commonChartSeries || []}
+        xAxis={totalGendersHistoricalVisitors?.xAxis || []}
+        firstTrendNumber={totalGendersHistoricalVisitors?.firstTrendNumber}
+        secondTrendNumber={totalGendersHistoricalVisitors?.secondTrendNumber}
       />
 
       <LineChart

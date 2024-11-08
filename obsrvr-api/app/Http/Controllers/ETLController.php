@@ -209,9 +209,11 @@ class ETLController extends Controller
         $duration = $request->input('duration');
 
         $totalNewReturningHistoricalVisitors = $this->statisticsService->getNewReturningHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
+        $totalGendersHistoricVisitors = $this->statisticsService->getGenderHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
 
         return response()->json([
             'totalNewReturningHistoricalVisitors' => $totalNewReturningHistoricalVisitors,
+            'totalGendersHistoricalVisitors' => $totalGendersHistoricVisitors,
         ], 200);
     }
 }
