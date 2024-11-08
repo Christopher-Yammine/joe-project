@@ -50,7 +50,7 @@ export const DurationSelect = () => {
     setIsOpen(false)
   }
 
-  const [value, setValue] = useState(t('Weekly'))
+  const [value, setValue] = useState(t('Daily'))
   const setDurationSelect = useStore(state => state.setDurationSelect)
 
   if (window.location.pathname.includes('/home')) return null

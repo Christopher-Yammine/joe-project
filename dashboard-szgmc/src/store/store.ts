@@ -33,7 +33,7 @@ const useStore = create<StreamStore>()(set => ({
   setFromDate: (index: any) => set(state => ({ fromDate: index })),
   toDate: new Date(),
   setToDate: (index: any) => set(state => ({ toDate: index })),
-  durationSelect: 'Weekly',
+  durationSelect: 'Daily',
   setDurationSelect: (index: any) => set(state => ({ durationSelect: index }))
 }))
 
