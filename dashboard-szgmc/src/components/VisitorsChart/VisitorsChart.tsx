@@ -277,7 +277,6 @@ const VisitorsChart: React.FC<Props> = ({
     }
   ]
 
-  console.log('🚀 ~ visitorsChartSeries1Comparisons:', visitorsChartSeries1Comparisons)
   const statsValues = {
     ['FOOTFALL']: visitorsChartSeries1Comparisons,
     ['UNIQUE VISITORS']: visitorsChartSeries2Comparisons,
