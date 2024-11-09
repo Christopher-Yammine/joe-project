@@ -31,6 +31,9 @@ const HistoricalPage = () => {
   const [totalGendersHistoricalVisitors, setTotalGendersHistoricalVisitors] = useState<chartData>([])
   const [totalSentimentsHistoricalVisitors, setTotalSentimentsHistoricalVisitors] = useState<chartData>([])
   const [totalMosqueSouqHistoricalVisitors, setTotalMosqueSouqHistoricalVisitors] = useState<chartData>([])
+  const [visitorsChartSeries1, setVisitorsChartSeries1] = useState([])
+  const [visitorsChartSeries1Comparisons, setVisitorsChartSeries1Comparisons] = useState<any[]>([])
+  const [visitorsChartXAxis, setVisitorsChartXAxix] = useState([])
   const [staffChartSeriesHistorical, setStaffChartSeriesHistorical] = useState<StaffChartHistorical>({
     staffChartSeries: [],
     xAxis: []
@@ -83,12 +86,20 @@ const HistoricalPage = () => {
         throw new Error('Network response was not ok')
       }
       const data = await response.json()
-      console.log('🚀 ~ fetchStatistics ~ data:', data)
 
       setTotalNewReturningHistoricalVisitors(data?.totalNewReturningHistoricalVisitors)
       setTotalGendersHistoricalVisitors(data?.totalGendersHistoricalVisitors)
       setTotalSentimentsHistoricalVisitors(data?.totalSentimentsHistoricalVisitors)
       setTotalMosqueSouqHistoricalVisitors(data?.totalMosqueSouqHistoricalVisitors)
+      setVisitorsChartSeries1(data.visitorsChartSeries1)
+      setVisitorsChartSeries1Comparisons(
+        (data?.setVisitorsChartSeries1Comparisons || []).map(item => ({
+          ...item,
+          title: t(item.title)
+        }))
+      )
+      setVisitorsChartXAxix(data.xAxis)
+
       setStaffChartSeriesHistorical(data?.staffChartSeriesHistorical)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
@@ -103,6 +114,7 @@ const HistoricalPage = () => {
     if (streams.length > 0) {
       fetchStatistics()
     }
+    console.log('🚀 ~ visitorsChartSeries1Comparisons:', visitorsChartSeries1Comparisons)
   }, [fromDate, toDate, durationSelect, streams, selectedStreams])
 
   return (
@@ -193,14 +205,15 @@ const HistoricalPage = () => {
       <HeatmapChart series={dataJSON?.heatMapSeries} />
 
       <VisitorsChart
-        visitorsChartSeries1Daily={[]}
-        visitorsChartSeries1Dailycomparisons={[]}
-        visitorsChartSeries2Daily={[]}
-        visitorsChartSeries2Dailycomparisons={[]}
-        visitorsChartSeries3Daily={[]}
-        visitorsChartSeries3Dailycomparisons={[]}
-        visitorsChartSeries4Daily={[]}
-        visitorsChartSeries4Dailycomparisons={[]}
+        visitorsChartSeries1={visitorsChartSeries1}
+        visitorsChartSeries1Comparisons={visitorsChartSeries1Comparisons}
+        visitorsChartSeries2={[]}
+        visitorsChartSeries2Comparisons={[]}
+        visitorsChartSeries3={[]}
+        visitorsChartSeries3Comparisons={[]}
+        visitorsChartSeries4={[]}
+        visitorsChartSeries4Comparisons={[]}
+        xAxis={visitorsChartXAxis}
       />
       <MultiLineChart
         title={t('staff')}

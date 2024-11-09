@@ -38,26 +38,28 @@ const TabList = styled(MuiTabList)<TabListProps>(({ theme }) => ({
 
 interface Props {
   isDaily?: boolean
-  visitorsChartSeries1Daily: any
-  visitorsChartSeries1Dailycomparisons: any
-  visitorsChartSeries2Daily: any
-  visitorsChartSeries2Dailycomparisons: any
-  visitorsChartSeries3Daily: any
-  visitorsChartSeries3Dailycomparisons: any
-  visitorsChartSeries4Daily: any
-  visitorsChartSeries4Dailycomparisons: any
+  visitorsChartSeries1: any
+  visitorsChartSeries1Comparisons: any
+  visitorsChartSeries2: any
+  visitorsChartSeries2Comparisons: any
+  visitorsChartSeries3: any
+  visitorsChartSeries3Comparisons: any
+  visitorsChartSeries4: any
+  visitorsChartSeries4Comparisons: any
+  xAxis?: any
 }
 
 const VisitorsChart: React.FC<Props> = ({
   isDaily,
-  visitorsChartSeries1Daily,
-  visitorsChartSeries1Dailycomparisons,
-  visitorsChartSeries2Daily,
-  visitorsChartSeries2Dailycomparisons,
-  visitorsChartSeries3Daily,
-  visitorsChartSeries3Dailycomparisons,
-  visitorsChartSeries4Daily,
-  visitorsChartSeries4Dailycomparisons
+  visitorsChartSeries1,
+  visitorsChartSeries1Comparisons,
+  visitorsChartSeries2,
+  visitorsChartSeries2Comparisons,
+  visitorsChartSeries3,
+  visitorsChartSeries3Comparisons,
+  visitorsChartSeries4,
+  visitorsChartSeries4Comparisons,
+  xAxis
 }) => {
   const theme = useTheme()
   const { settings } = useSettings()
@@ -101,20 +103,7 @@ const VisitorsChart: React.FC<Props> = ({
       axisBorder: { show: false },
       tickAmount: isMobile ? 12 : isDaily ? 24 : 12,
       categories: !isDaily
-        ? [
-            'Oct 2023 (W40)',
-            'Oct 2023 (W41)',
-            'Oct 2023 (W42)',
-            'Oct 2023 (W43)',
-            'Oct 2023 (W44)',
-            'Nov 2023 (W45)',
-            'Nov 2023 (W46)',
-            'Nov 2023 (W47)',
-            'Nov 2023 (W48)',
-            'Dec 2023 (W49)',
-            'Dec 2023 (W50)',
-            'Dec 2023 (W51)'
-          ]
+        ? xAxis
         : isRTL
         ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23].reverse()
         : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
@@ -158,25 +147,26 @@ const VisitorsChart: React.FC<Props> = ({
   const handleTabChange = (event: SyntheticEvent, newValue: string) => {
     setValue(newValue)
   }
-  const visitorsData = isDaily ? visitorsChartSeries1Daily : dataJSON[`visitorsChartSeries1Daily`]
+
+  const visitorsData = visitorsChartSeries1
   const visitorsChartSeries1Data = visitorsData?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? t(item?.name_ar) : item?.name
   }))
 
-  const uniqueVisitorsData = isDaily ? visitorsChartSeries2Daily : dataJSON[`visitorsChartSeries2Daily`]
+  const uniqueVisitorsData = isDaily ? visitorsChartSeries2 : dataJSON[`visitorsChartSeries2Daily`]
   const visitorsChartSeries2Data = uniqueVisitorsData.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
 
-  const repeatedVisitorsData = isDaily ? visitorsChartSeries3Daily : dataJSON[`visitorsChartSeries3Daily`]
+  const repeatedVisitorsData = isDaily ? visitorsChartSeries3 : dataJSON[`visitorsChartSeries3Daily`]
   const visitorsChartSeries3Data = repeatedVisitorsData?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
 
-  const occupancyVisitorsData = isDaily ? visitorsChartSeries4Daily : dataJSON[`visitorsChartSeries4Daily`]
+  const occupancyVisitorsData = isDaily ? visitorsChartSeries4 : dataJSON[`visitorsChartSeries4Daily`]
   const visitorsChartSeries4Data = occupancyVisitorsData?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
@@ -287,11 +277,12 @@ const VisitorsChart: React.FC<Props> = ({
     }
   ]
 
+  console.log('🚀 ~ visitorsChartSeries1Comparisons:', visitorsChartSeries1Comparisons)
   const statsValues = {
-    ['FOOTFALL']: visitorsChartSeries1Dailycomparisons,
-    ['UNIQUE VISITORS']: visitorsChartSeries2Dailycomparisons,
-    ['REPEATED VISITORS']: visitorsChartSeries3Dailycomparisons,
-    ['OCCUPANCY']: visitorsChartSeries4Dailycomparisons
+    ['FOOTFALL']: visitorsChartSeries1Comparisons,
+    ['UNIQUE VISITORS']: visitorsChartSeries2Comparisons,
+    ['REPEATED VISITORS']: visitorsChartSeries3Comparisons,
+    ['OCCUPANCY']: visitorsChartSeries4Comparisons
   }
 
   useEffect(() => {

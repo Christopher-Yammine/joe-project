@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\EtlDataHourly;
 use App\Models\Stream;
+use Carbon\Carbon;
 
 use Illuminate\Support\Facades\DB;
 
@@ -906,12 +907,80 @@ class StatisticsService
         return $response;
     }
 
-    public function getTotalStaffDailyHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null, $isHistorical = false) {
+    public function getVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
+        $etlDataTable = $this->getEtlDataTableByDuration($duration);
+        $groupByFormat = $this->getGroupByFormat($duration);
+
+        $startDate = "$fromDate 00:00:00";
+        $endDate = "$toDate 23:59:59";
+
+        $todayResults = DB::table("$etlDataTable as etl")
+            ->select(
+                'streams.name',
+                DB::raw("$groupByFormat as hour"),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
+            ->groupBy('streams.id', 'hour', 'streams.name')
+            ->orderBy('hour')
+            ->get();
+
+            $visitorsChartSeries = [];
+        $xAxis = [];
+
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'data' => [],
+                ];
+            }
+
+            if (!in_array($row->hour, $xAxis)) {
+                $xAxis[] = $row->hour;
+            }
+
+            if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
+                $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
+            }
+
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+
+        foreach ($visitorsChartSeries as &$series) {
+            $series['data'] = array_values($series['data']);
+        }
+
+        $firstReturnTitle = 'avgFootfall';
+        $fourthReturnTitle = 'totalFootfall';
+        $calculateMetricsComparison = $this->calculateMetricsComparison(
+            $startDate, 
+            $endDate, 
+            $streamIds, 
+            false, 
+            false, 
+            null, 
+            $firstReturnTitle, 
+            $fourthReturnTitle
+        );
+
+        return [
+            'visitorsChartSeries1' => array_values($visitorsChartSeries),
+            'visitorsChartSeries1Comparisons' => array_values($calculateMetricsComparison),
+            'xAxis' => $xAxis,
+        ];
+    }
+
+    public function getTotalStaffDailyHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
     
-        $startDate = "$fromDate 00:00:00";
-        $endDate = "$toDate 23:59:59";
+        // $startDate = "$fromDate 00:00:00";
+        // $endDate = "$toDate 23:59:59";
+        $startDate = $fromDate ? Carbon::parse($fromDate)->format('Y-m-d') . ' 00:00:00' : null;
+        $endDate = $toDate ? Carbon::parse($toDate)->format('Y-m-d') . ' 23:59:59' : null;
     
         $results = DB::table("$etlDataTable as etl")
             ->select(
@@ -986,39 +1055,6 @@ class StatisticsService
             'Yearly' => 'DATE_FORMAT(date, "%Y")',
             default => 'DATE_FORMAT(date, "%Y-%m-%d")',
         };
-    }
-
-    public function calculateDataPoints($fromDate, $toDate, $duration)
-    {
-        return match ($duration) {
-            'daily' => 1,    // 1 data point per day
-            'hourly' => 24,  // 24 data points per day (1 per hour)
-            'weekly' => 7,   // 7 data points per week (1 per day)
-            'monthly' => $this->calculateMonths($fromDate, $toDate),  // Calculate months
-            'quarterly' => $this->calculateQuarters($fromDate, $toDate),  // Calculate quarters
-            'yearly' => $this->calculateYears($fromDate, $toDate),  // Calculate years
-            default => 24,    // Default to 24 (hourly)
-        };
-    }
-    private function calculateMonths($fromDate, $toDate)
-    {
-        $start = new \DateTime($fromDate);
-        $end = new \DateTime($toDate);
-        return ($end->format('Y') - $start->format('Y')) * 12 + ($end->format('n') - $start->format('n')) + 1;
-    }
-
-    private function calculateQuarters($fromDate, $toDate)
-    {
-        $start = new \DateTime($fromDate);
-        $end = new \DateTime($toDate);
-        return ceil((($end->format('Y') - $start->format('Y')) * 12 + ($end->format('n') - $start->format('n')) + 1) / 3);
-    }
-
-    private function calculateYears($fromDate, $toDate)
-    {
-        $start = new \DateTime($fromDate);
-        $end = new \DateTime($toDate);
-        return $end->format('Y') - $start->format('Y') + 1;
     }
 
     protected function calculateCumulativeSeries($seriesData)

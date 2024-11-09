@@ -21,7 +21,7 @@ interface Props {
   title: string
   isDaily?: boolean
   staffChartSeries: StaffChartSeriesData
-  xAxis: string[]
+  xAxis?: string[]
 }
 
 const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSeries, xAxis }) => {

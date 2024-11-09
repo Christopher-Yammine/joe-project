@@ -209,14 +209,14 @@ const Home = () => {
       />
       <VisitorsChart
         isDaily={true}
-        visitorsChartSeries1Daily={visitorsChartSeries1Daily}
-        visitorsChartSeries1Dailycomparisons={visitorsChartSeries1Dailycomparisons}
-        visitorsChartSeries2Daily={visitorsChartSeries2Daily}
-        visitorsChartSeries2Dailycomparisons={visitorsChartSeries2Dailycomparisons}
-        visitorsChartSeries3Daily={visitorsChartSeries3Daily}
-        visitorsChartSeries3Dailycomparisons={visitorsChartSeries3Dailycomparisons}
-        visitorsChartSeries4Daily={visitorsChartSeries4Daily}
-        visitorsChartSeries4Dailycomparisons={visitorsChartSeries4Dailycomparisons}
+        visitorsChartSeries1={visitorsChartSeries1Daily}
+        visitorsChartSeries1Comparisons={visitorsChartSeries1Dailycomparisons}
+        visitorsChartSeries2={visitorsChartSeries2Daily}
+        visitorsChartSeries2Comparisons={visitorsChartSeries2Dailycomparisons}
+        visitorsChartSeries3={visitorsChartSeries3Daily}
+        visitorsChartSeries3Comparisons={visitorsChartSeries3Dailycomparisons}
+        visitorsChartSeries4={visitorsChartSeries4Daily}
+        visitorsChartSeries4Comparisons={visitorsChartSeries4Dailycomparisons}
       />
       <MultiLineChart title={t('staffToday')} isDaily={true} staffChartSeries={staffChartSeries} />
     </Grid>
