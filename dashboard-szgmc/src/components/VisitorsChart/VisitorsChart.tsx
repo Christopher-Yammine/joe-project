@@ -154,19 +154,19 @@ const VisitorsChart: React.FC<Props> = ({
     name: isAR ? t(item?.name_ar) : item?.name
   }))
 
-  const uniqueVisitorsData = isDaily ? visitorsChartSeries2 : dataJSON[`visitorsChartSeries2Daily`]
+  const uniqueVisitorsData = visitorsChartSeries2
   const visitorsChartSeries2Data = uniqueVisitorsData.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
 
-  const repeatedVisitorsData = isDaily ? visitorsChartSeries3 : dataJSON[`visitorsChartSeries3Daily`]
+  const repeatedVisitorsData = visitorsChartSeries3
   const visitorsChartSeries3Data = repeatedVisitorsData?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
 
-  const occupancyVisitorsData = isDaily ? visitorsChartSeries4 : dataJSON[`visitorsChartSeries4Daily`]
+  const occupancyVisitorsData = visitorsChartSeries4
   const visitorsChartSeries4Data = occupancyVisitorsData?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name

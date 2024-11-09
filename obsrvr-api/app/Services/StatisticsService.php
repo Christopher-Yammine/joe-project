@@ -556,9 +556,9 @@ class StatisticsService
 
     public function getNewReturningHistoricalVisitors (array $streamIds, $fromDate, $toDate, $duration) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
-        
+
         $groupByFormat = $this->getGroupByFormat($duration);
-        
+
         $newVisitors = DB::table($etlDataTable)
         ->whereIn('stream_id', $streamIds)
         ->whereBetween('date', [$fromDate, $toDate])
@@ -637,14 +637,14 @@ class StatisticsService
                 ]
             ]
         ];
-        
+
         return $response;
     }
-    
+
     public function getGenderHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
-        
+
         $maleVisitors = DB::table($etlDataTable)
         ->whereIn('stream_id', $streamIds)
         ->whereBetween('date', [$fromDate, $toDate])
@@ -655,7 +655,7 @@ class StatisticsService
         ->groupBy(DB::raw($groupByFormat))
         ->orderBy(DB::raw($groupByFormat))
         ->get();
-        
+
         $femaleVisitors = DB::table($etlDataTable)
         ->whereIn('stream_id', $streamIds)
         ->whereBetween('date', [$fromDate, $toDate])
@@ -666,14 +666,14 @@ class StatisticsService
         ->groupBy(DB::raw($groupByFormat))
         ->orderBy(DB::raw($groupByFormat))
         ->get();
-        
+
         $totalMaleVisitors = $maleVisitors->sum('total');
         $totalFemaleVisitors = $femaleVisitors->sum('total');
-        
+
         $daysRange = (new \DateTime($toDate))->diff(new \DateTime($fromDate))->days;
         $previousToDate = (new \DateTime($fromDate))->modify('-1 day')->format('Y-m-d');
         $previousFromDate = (new \DateTime($previousToDate))->modify("-{$daysRange} days")->format('Y-m-d');
-        
+
         $previousMaleVisitors = DB::table($etlDataTable)
         ->whereIn('stream_id', $streamIds)
         ->whereBetween('date', [$previousFromDate, $previousToDate])
@@ -745,7 +745,7 @@ class StatisticsService
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
-            
+
             $unhappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
@@ -753,7 +753,7 @@ class StatisticsService
             ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
             ->whereIn('sentiments.sentiment', ['Sad', 'Neutral'])
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
-           
+
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
@@ -953,17 +953,20 @@ class StatisticsService
             $series['data'] = array_values($series['data']);
         }
 
+
         $firstReturnTitle = 'avgFootfall';
         $fourthReturnTitle = 'totalFootfall';
         $calculateMetricsComparison = $this->calculateMetricsComparison(
-            $startDate, 
-            $endDate, 
-            $streamIds, 
-            false, 
-            false, 
-            null, 
-            $firstReturnTitle, 
-            $fourthReturnTitle
+            $startDate,
+            $endDate,
+            $streamIds,
+            false,
+            false,
+            null,
+            $firstReturnTitle,
+            $fourthReturnTitle,
+            $etlDataTable,
+            $duration
         );
 
         return [
@@ -973,15 +976,209 @@ class StatisticsService
         ];
     }
 
+    public function getUniqueVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
+        $etlDataTable = $this->getEtlDataTableByDuration($duration);
+        $groupByFormat = $this->getGroupByFormat($duration);
+
+        $startDate = "$fromDate 00:00:00";
+        $endDate = "$toDate 23:59:59";
+
+        $todayResults = DB::table("$etlDataTable as etl")
+            ->select(
+                'streams.name',
+                DB::raw("$groupByFormat as hour"),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->where('metrics.name', 'Unique')
+            ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
+            ->groupBy('streams.id', 'hour', 'streams.name')
+            ->orderBy('hour')
+            ->get();
+
+            $visitorsChartSeries = [];
+
+            foreach ($todayResults as $row) {
+                if (!isset($visitorsChartSeries[$row->name])) {
+                    $visitorsChartSeries[$row->name] = [
+                        'name' => $row->name,
+                        'data' => [],
+                    ];
+                }
+
+                if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
+                    $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
+                }
+
+                $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+
+        foreach ($visitorsChartSeries as &$series) {
+            $series['data'] = array_values($series['data']);
+        }
+
+
+        $firstReturnTitle = 'avgUniqueVisitors';
+        $fourthReturnTitle = 'totalUniqueVisitors';
+        $calculateMetricsComparison = $this->calculateMetricsComparison(
+            $startDate,
+            $endDate,
+            $streamIds,
+            true,
+            false,
+            null,
+            $firstReturnTitle,
+            $fourthReturnTitle,
+            $etlDataTable,
+            $duration
+        );
+
+        return [
+            'visitorsChartSeries2' => array_values($visitorsChartSeries),
+            'visitorsChartSeries2Comparisons' => array_values($calculateMetricsComparison),
+        ];
+    }
+
+    public function getRepeatedVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
+        $etlDataTable = $this->getEtlDataTableByDuration($duration);
+        $groupByFormat = $this->getGroupByFormat($duration);
+
+        $startDate = "$fromDate 00:00:00";
+        $endDate = "$toDate 23:59:59";
+
+        $todayResults = DB::table("$etlDataTable as etl")
+            ->select(
+                'streams.name',
+                DB::raw("$groupByFormat as hour"),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->where('person_types.name', 'Returning')
+            ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
+            ->groupBy('streams.id', 'hour', 'streams.name')
+            ->orderBy('hour')
+            ->get();
+
+            $visitorsChartSeries = [];
+
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'data' => [],
+                ];
+            }
+
+            if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
+                $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
+            }
+
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+
+        foreach ($visitorsChartSeries as &$series) {
+            $series['data'] = array_values($series['data']);
+        }
+
+
+        $personType = 'returning';
+        $firstReturnTitle = 'avgRepeatedVisitors';
+        $fourthReturnTitle = 'totalRepeatedVisitors';
+        $calculateMetricsComparison = $this->calculateMetricsComparison(
+            $startDate,
+            $endDate,
+            $streamIds,
+            false,
+            false,
+            $personType,
+            $firstReturnTitle,
+            $fourthReturnTitle,
+            $etlDataTable,
+            $duration
+        );
+
+        return [
+            'visitorsChartSeries3' => array_values($visitorsChartSeries),
+            'visitorsChartSeries3Comparisons' => array_values($calculateMetricsComparison),
+        ];
+    }
+
+    public function getOccupancyVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
+        $etlDataTable = $this->getEtlDataTableByDuration($duration);
+        $groupByFormat = $this->getGroupByFormat($duration);
+
+        $startDate = "$fromDate 00:00:00";
+        $endDate = "$toDate 23:59:59";
+
+        $todayResults = DB::table("$etlDataTable as etl")
+            ->select(
+                'streams.name',
+                DB::raw("$groupByFormat as hour"),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->where('metrics.name', 'Occupancy')
+            ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
+            ->groupBy('streams.id', 'hour', 'streams.name')
+            ->orderBy('hour')
+            ->get();
+
+            $visitorsChartSeries = [];
+
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'data' => [],
+                ];
+            }
+
+            if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
+                $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
+            }
+
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+
+        foreach ($visitorsChartSeries as &$series) {
+            $series['data'] = array_values($series['data']);
+        }
+
+
+        $firstReturnTitle = 'avgOccupancyVisitors';
+        $fourthReturnTitle = 'totalOccupancy';
+        $calculateMetricsComparison = $this->calculateMetricsComparison(
+            $startDate,
+            $endDate,
+            $streamIds,
+            false,
+            true,
+            null,
+            $firstReturnTitle,
+            $fourthReturnTitle,
+            $etlDataTable,
+            $duration
+        );
+
+        return [
+            'visitorsChartSeries4' => array_values($visitorsChartSeries),
+            'visitorsChartSeries4Comparisons' => array_values($calculateMetricsComparison),
+        ];
+    }
+
     public function getTotalStaffDailyHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
-    
-        // $startDate = "$fromDate 00:00:00";
-        // $endDate = "$toDate 23:59:59";
-        $startDate = $fromDate ? Carbon::parse($fromDate)->format('Y-m-d') . ' 00:00:00' : null;
-        $endDate = $toDate ? Carbon::parse($toDate)->format('Y-m-d') . ' 23:59:59' : null;
-    
+
+        $startDate = "$fromDate 00:00:00";
+        $endDate = "$toDate 23:59:59";
+
         $results = DB::table("$etlDataTable as etl")
             ->select(
                 'streams.name',
@@ -996,7 +1193,7 @@ class StatisticsService
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderBy('hour')
             ->get();
-    
+
         $visitorsChartSeries = [];
 
         foreach ($results as $row) {
@@ -1004,17 +1201,17 @@ class StatisticsService
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
                     'name_ar' => $this->getArabicName($row->name),
-                    'data' => [], 
+                    'data' => [],
                 ];
             }
-        
+
             if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
                 $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
             }
-        
+
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
-    
+
         $staffChartSeries = [];
         $xAxis = [];
 
@@ -1026,9 +1223,9 @@ class StatisticsService
             ];
             $xAxis = array_merge($xAxis, array_keys($series['data']));
         }
-    
+
         $xAxis = array_values(array_unique($xAxis));
-        
+
         return [
             'staffChartSeries' => $staffChartSeries,
             'xAxis' => $xAxis,
@@ -1045,6 +1242,7 @@ class StatisticsService
             default => 'etl_data_daily',
         };
     }
+
 
     private function getGroupByFormat($duration) {
         return match ($duration) {
@@ -1076,40 +1274,41 @@ class StatisticsService
     }
 
     private function calculateMetricsComparison(
-        $today,
-        $yesterday,
+        $fromDate,
+        $toDate,
         array $streamIds,
         $isUniqueMetric = false,
         $isOccupancyMetric = false,
         $personType = null,
         $firstReturnTitle,
-        $fourthReturnTitle
+        $fourthReturnTitle,
+        $etlDataTable= 'etl_data_daily',
+        $duration = null,
     ) {
-        $lastHourWithData = DB::table('etl_data_hourly')
-            ->where('date', '>=', "$today 00:00:00")
-            ->where('date', '<=', "$today 23:59:59")
+        $lastHourWithData = DB::table("$etlDataTable")
+            ->where('date', '>=', "$fromDate 00:00:00")
+            ->where('date', '<=', "$fromDate 23:59:59")
             ->max(DB::raw('HOUR(date)'));
 
         $currentHour = $lastHourWithData !== null ? $lastHourWithData : date('G');
 
-        $todayStart = "$today 00:00:00";
-        $todayEnd = "$today " . str_pad($currentHour, 2, '0', STR_PAD_LEFT) . ":59:59";
-        $yesterdayStart = "$yesterday 00:00:00";
-        $yesterdayEnd = "$yesterday " . str_pad($currentHour, 2, '0', STR_PAD_LEFT) . ":59:59";
+        $fromDateStart = "$fromDate 00:00:00";
+        $fromDateEnd = "$fromDate " . str_pad($currentHour, 2, '0', STR_PAD_LEFT) . ":59:59";
+        $toDateStart = "$toDate 00:00:00";
+        $toDateEnd = "$toDate " . str_pad($currentHour, 2, '0', STR_PAD_LEFT) . ":59:59";
 
-
-        $query = DB::table('etl_data_hourly as etl')
+        $query = DB::table("$etlDataTable as etl")
             ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
             ->selectRaw("
-                SUM(CASE WHEN etl.date >= '$todayStart' AND etl.date <= '$todayEnd' THEN etl.value ELSE 0 END) AS today_total_value,
-                COUNT(CASE WHEN etl.date >= '$todayStart' AND etl.date <= '$todayEnd' THEN 1 END) AS today_total_entries,
-                SUM(CASE WHEN etl.date >= '$yesterdayStart' AND etl.date <= '$yesterdayEnd' THEN etl.value ELSE 0 END) AS yesterday_total_value,
-                COUNT(CASE WHEN etl.date >= '$yesterdayStart' AND etl.date <= '$yesterdayEnd' THEN 1 END) AS yesterday_total_entries,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$todayStart' AND etl.date <= '$todayEnd' THEN etl.value ELSE 0 END) AS today_new_visitors,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$yesterdayStart' AND etl.date <= '$yesterdayEnd' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$todayStart' AND etl.date <= '$todayEnd' THEN etl.value ELSE 0 END) AS today_souq_visitors,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$yesterdayStart' AND etl.date <= '$yesterdayEnd' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
+                SUM(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS today_total_value,
+                COUNT(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN 1 END) AS today_total_entries,
+                SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS yesterday_total_value,
+                COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN 1 END) AS yesterday_total_entries,
+                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS today_new_visitors,
+                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
+                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS today_souq_visitors,
+                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
             ");
 
 
@@ -1129,23 +1328,23 @@ class StatisticsService
         }
 
         if ($personType) {
-            $results->today_new_visitors = DB::table('etl_data_hourly as etl')
+            $results->today_new_visitors = DB::table("$etlDataTable as etl")
             ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->where('person_types.name', $personType)
-            ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+            ->whereBetween('etl.date', ["$fromDate 00:00:00", "$fromDate 23:59:59"])
             ->whereIn('etl.stream_id', $streamIds)
             ->sum('etl.value');
 
-            $results->yesterday_new_visitors = DB::table('etl_data_hourly as etl')
+            $results->yesterday_new_visitors = DB::table("$etlDataTable as etl")
             ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->where('person_types.name', $personType)
-            ->whereBetween('etl.date', ["$yesterday 00:00:00", "$yesterday 23:59:59"])
+            ->whereBetween('etl.date', ["$toDate 00:00:00", "$toDate 23:59:59"])
             ->whereIn('etl.stream_id', $streamIds)
             ->sum('etl.value');
         }
 
-        $todayAverageFootfall = $results->today_total_value / 24;
-        $yesterdayAverageFootfall = $results->yesterday_total_value / 24;
+        $todayAverageFootfall = $results->today_total_value / $this->calculateDurationAverage($duration, $fromDate, $toDate);
+        $yesterdayAverageFootfall = $results->yesterday_total_value / $this->calculateDurationAverage($duration, $fromDate, $toDate);
 
         $footfallPercentageDifference = $yesterdayAverageFootfall > 0
         ? (($todayAverageFootfall - $yesterdayAverageFootfall) / $yesterdayAverageFootfall) * 100
@@ -1200,5 +1399,43 @@ class StatisticsService
 
         return $arabicNames[$name] ?? $name;
     }
+
+
+function calculateDurationAverage($duration, $fromDate, $toDate)
+{
+    $duration = $duration ?? 'hourly';
+    $from = Carbon::parse($fromDate);
+    $to = Carbon::parse($toDate);
+
+    $totalDays = max(1, $from->diffInDays($to));
+
+    $numberOfPeriods = 1;
+
+    switch (strtolower($duration)) {
+        case 'hourly':
+            $numberOfPeriods = 24;
+            break;
+        case 'daily':
+            $numberOfPeriods = $totalDays;
+            break;
+        case 'weekly':
+            $numberOfPeriods = ceil($totalDays / 7);
+            break;
+        case 'monthly':
+            $numberOfPeriods = $from->diffInMonths($to);
+            break;
+        case 'quarterly':
+            $numberOfPeriods = ceil($from->diffInMonths($to) / 3);
+            break;
+        case 'yearly':
+            $numberOfPeriods = $from->diffInYears($to);
+            break;
+        default:
+            throw new \InvalidArgumentException("Invalid duration specified.");
+    }
+
+    return $numberOfPeriods;
+}
+
 
 }

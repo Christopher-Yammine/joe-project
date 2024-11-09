@@ -33,6 +33,12 @@ const HistoricalPage = () => {
   const [totalMosqueSouqHistoricalVisitors, setTotalMosqueSouqHistoricalVisitors] = useState<chartData>([])
   const [visitorsChartSeries1, setVisitorsChartSeries1] = useState([])
   const [visitorsChartSeries1Comparisons, setVisitorsChartSeries1Comparisons] = useState<any[]>([])
+  const [visitorsChartSeries2, setVisitorsChartSeries2] = useState([])
+  const [visitorsChartSeries2Comparisons, setVisitorsChartSeries2Comparisons] = useState<any[]>([])
+  const [visitorsChartSeries3, setVisitorsChartSeries3] = useState([])
+  const [visitorsChartSeries3Comparisons, setVisitorsChartSeries3Comparisons] = useState<any[]>([])
+  const [visitorsChartSeries4, setVisitorsChartSeries4] = useState([])
+  const [visitorsChartSeries4Comparisons, setVisitorsChartSeries4Comparisons] = useState<any[]>([])
   const [visitorsChartXAxis, setVisitorsChartXAxix] = useState([])
   const [staffChartSeriesHistorical, setStaffChartSeriesHistorical] = useState<StaffChartHistorical>({
     staffChartSeries: [],
@@ -74,12 +80,12 @@ const HistoricalPage = () => {
           .join(',')
 
         response = await fetch(
-          `${API_URL}/statistics/historical?stream_id=${streamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}&isHistorical=true`
+          `${API_URL}/statistics/historical?stream_id=${streamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`
         )
       } else {
         const selectedStreamIds = selectedStreams.join(',')
         response = await fetch(
-          `${API_URL}/statistics/historical?stream_id=${selectedStreamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}&isHistorical=true`
+          `${API_URL}/statistics/historical?stream_id=${selectedStreamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`
         )
       }
       if (!response.ok) {
@@ -93,12 +99,33 @@ const HistoricalPage = () => {
       setTotalMosqueSouqHistoricalVisitors(data?.totalMosqueSouqHistoricalVisitors)
       setVisitorsChartSeries1(data.visitorsChartSeries1)
       setVisitorsChartSeries1Comparisons(
-        (data?.setVisitorsChartSeries1Comparisons || []).map(item => ({
+        (data?.visitorsChartSeries1Comparisons || []).map(item => ({
           ...item,
           title: t(item.title)
         }))
       )
       setVisitorsChartXAxix(data.xAxis)
+      setVisitorsChartSeries2(data.visitorsChartSeries2)
+      setVisitorsChartSeries2Comparisons(
+        (data?.visitorsChartSeries2Comparisons || []).map(item => ({
+          ...item,
+          title: t(item.title)
+        }))
+      )
+      setVisitorsChartSeries3(data.visitorsChartSeries3)
+      setVisitorsChartSeries3Comparisons(
+        (data?.visitorsChartSeries3Comparisons || []).map(item => ({
+          ...item,
+          title: t(item.title)
+        }))
+      )
+      setVisitorsChartSeries4(data.visitorsChartSeries4)
+      setVisitorsChartSeries4Comparisons(
+        (data?.visitorsChartSeries4Comparisons || []).map(item => ({
+          ...item,
+          title: t(item.title)
+        }))
+      )
 
       setStaffChartSeriesHistorical(data?.staffChartSeriesHistorical)
     } catch (error) {
@@ -114,7 +141,6 @@ const HistoricalPage = () => {
     if (streams.length > 0) {
       fetchStatistics()
     }
-    console.log('🚀 ~ visitorsChartSeries1Comparisons:', visitorsChartSeries1Comparisons)
   }, [fromDate, toDate, durationSelect, streams, selectedStreams])
 
   return (
@@ -207,12 +233,12 @@ const HistoricalPage = () => {
       <VisitorsChart
         visitorsChartSeries1={visitorsChartSeries1}
         visitorsChartSeries1Comparisons={visitorsChartSeries1Comparisons}
-        visitorsChartSeries2={[]}
-        visitorsChartSeries2Comparisons={[]}
-        visitorsChartSeries3={[]}
-        visitorsChartSeries3Comparisons={[]}
-        visitorsChartSeries4={[]}
-        visitorsChartSeries4Comparisons={[]}
+        visitorsChartSeries2={visitorsChartSeries2}
+        visitorsChartSeries2Comparisons={visitorsChartSeries2Comparisons}
+        visitorsChartSeries3={visitorsChartSeries3}
+        visitorsChartSeries3Comparisons={visitorsChartSeries3Comparisons}
+        visitorsChartSeries4={visitorsChartSeries4}
+        visitorsChartSeries4Comparisons={visitorsChartSeries4Comparisons}
         xAxis={visitorsChartXAxis}
       />
       <MultiLineChart
