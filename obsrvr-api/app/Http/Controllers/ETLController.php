@@ -207,17 +207,21 @@ class ETLController extends Controller
         $fromDate = $request->input('from_date');
         $toDate = $request->input('to_date');
         $duration = $request->input('duration');
+        $isHistorical = $request->input('isHistorical');
 
         $totalNewReturningHistoricalVisitors = $this->statisticsService->getNewReturningHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
         $totalGendersHistoricVisitors = $this->statisticsService->getGenderHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
         $totalSentimentsHistoricalVisitors = $this->statisticsService->getSentimentsHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
         $totalMosqueSouqHistoricalVisitors = $this->statisticsService->getMosqueSouqHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
+        $staffChartSeries = $this->statisticsService->getTotalStaffDailyHistorical($streamIdsArray, $fromDate, $toDate, $duration, $isHistorical);
+
 
         return response()->json([
             'totalNewReturningHistoricalVisitors' => $totalNewReturningHistoricalVisitors,
             'totalGendersHistoricalVisitors' => $totalGendersHistoricVisitors,
             'totalSentimentsHistoricalVisitors' => $totalSentimentsHistoricalVisitors,
-            'totalMosqueSouqHistoricalVisitors' => $totalMosqueSouqHistoricalVisitors
+            'totalMosqueSouqHistoricalVisitors' => $totalMosqueSouqHistoricalVisitors,
+            'staffChartSeriesHistorical' => $staffChartSeries
         ], 200);
     }
 }

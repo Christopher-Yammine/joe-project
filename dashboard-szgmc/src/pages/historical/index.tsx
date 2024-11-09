@@ -47,6 +47,7 @@ const HistoricalPage = () => {
   const [totalGendersHistoricalVisitors, setTotalGendersHistoricalVisitors] = useState<chartData>([])
   const [totalSentimentsHistoricalVisitors, setTotalSentimentsHistoricalVisitors] = useState<chartData>([])
   const [totalMosqueSouqHistoricalVisitors, setTotalMosqueSouqHistoricalVisitors] = useState<chartData>([])
+  const [staffChartSeries, setStaffChartSeries] = useState([])
 
   const formatDate = (date: Date): string => {
     return date instanceof Date ? date.toISOString().split('T')[0] : ''
@@ -83,12 +84,12 @@ const HistoricalPage = () => {
           .join(',')
 
         response = await fetch(
-          `${API_URL}/statistics/historical?stream_id=${streamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`
+          `${API_URL}/statistics/historical?stream_id=${streamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}&isHistorical=true`
         )
       } else {
         const selectedStreamIds = selectedStreams.join(',')
         response = await fetch(
-          `${API_URL}/statistics/historical?stream_id=${selectedStreamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`
+          `${API_URL}/statistics/historical?stream_id=${selectedStreamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}&isHistorical=true`
         )
       }
       if (!response.ok) {
@@ -101,6 +102,7 @@ const HistoricalPage = () => {
       setTotalGendersHistoricalVisitors(data?.totalGendersHistoricalVisitors)
       setTotalSentimentsHistoricalVisitors(data?.totalSentimentsHistoricalVisitors)
       setTotalMosqueSouqHistoricalVisitors(data?.totalMosqueSouqHistoricalVisitors)
+      setStaffChartSeries(data?.staffChartSeriesHistorical)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
     }
@@ -213,7 +215,7 @@ const HistoricalPage = () => {
         visitorsChartSeries4Daily={[]}
         visitorsChartSeries4Dailycomparisons={[]}
       />
-      <MultiLineChart title={t('staff')} staffChartSeries={[]} />
+      <MultiLineChart title={t('staff')} staffChartSeries={staffChartSeries || []} />
     </Grid>
   )
 }
