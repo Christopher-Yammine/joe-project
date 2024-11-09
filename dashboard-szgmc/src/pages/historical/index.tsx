@@ -44,7 +44,9 @@ const HistoricalPage = () => {
   const durationSelect = useStore(state => state.durationSelect)
 
   const [totalNewReturningHistoricalVisitors, setTotalNewReturningHistoricalVisitors] = useState<chartData>([])
-  const [totalGendersHistoricalVisitors, settotalGendersHistoricalVisitors] = useState<chartData>([])
+  const [totalGendersHistoricalVisitors, setTotalGendersHistoricalVisitors] = useState<chartData>([])
+  const [totalSentimentsHistoricalVisitors, setTotalSentimentsHistoricalVisitors] = useState<chartData>([])
+  const [totalMosqueSouqHistoricalVisitors, setTotalMosqueSouqHistoricalVisitors] = useState<chartData>([])
 
   const formatDate = (date: Date): string => {
     return date instanceof Date ? date.toISOString().split('T')[0] : ''
@@ -96,7 +98,9 @@ const HistoricalPage = () => {
       console.log('🚀 ~ fetchStatistics ~ data:', data)
 
       setTotalNewReturningHistoricalVisitors(data?.totalNewReturningHistoricalVisitors)
-      settotalGendersHistoricalVisitors(data?.totalGendersHistoricalVisitors)
+      setTotalGendersHistoricalVisitors(data?.totalGendersHistoricalVisitors)
+      setTotalSentimentsHistoricalVisitors(data?.totalSentimentsHistoricalVisitors)
+      setTotalMosqueSouqHistoricalVisitors(data?.totalMosqueSouqHistoricalVisitors)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
     }
@@ -156,48 +160,45 @@ const HistoricalPage = () => {
       />
 
       <LineChart
-        firstTitle={t('mosqueVisitors')}
-        secondTitle={t('souqVisitors')}
-        firstGeneralNumber='260,158'
-        secondGeneralNumber='65,791'
-        series={dataJSON?.commonChartSeries3}
-        xAxis={[
-          'Oct 2023 (W40)',
-          'Oct 2023 (W41)',
-          'Oct 2023 (W42)',
-          'Oct 2023 (W43)',
-          'Oct 2023 (W44)',
-          'Nov 2023 (W45)',
-          'Nov 2023 (W46)',
-          'Nov 2023 (W47)',
-          'Nov 2023 (W48)',
-          'Dec 2023 (W49)',
-          'Dec 2023 (W50)',
-          'Dec 2023 (W51)'
-        ]}
+        firstTitle={
+          !isAR
+            ? totalMosqueSouqHistoricalVisitors?.commonChartSeries?.[0]?.name ??
+              totalMosqueSouqHistoricalVisitors?.firstTitle
+            : totalMosqueSouqHistoricalVisitors?.commonChartSeries?.[0]?.name_ar ?? ''
+        }
+        secondTitle={
+          !isAR
+            ? totalMosqueSouqHistoricalVisitors?.commonChartSeries?.[1]?.name ??
+              totalMosqueSouqHistoricalVisitors?.secondTitle
+            : totalMosqueSouqHistoricalVisitors?.commonChartSeries?.[1]?.name_ar ?? ''
+        }
+        firstGeneralNumber={totalMosqueSouqHistoricalVisitors?.firstGeneralNumber}
+        secondGeneralNumber={totalMosqueSouqHistoricalVisitors?.secondGeneralNumber}
+        series={totalMosqueSouqHistoricalVisitors?.commonChartSeries || []}
+        xAxis={totalMosqueSouqHistoricalVisitors?.xAxis || []}
+        firstTrendNumber={totalMosqueSouqHistoricalVisitors?.firstTrendNumber}
+        secondTrendNumber={totalMosqueSouqHistoricalVisitors?.secondTrendNumber}
       />
 
       <LineChart
-        firstTitle={t('happyVisitors')}
-        secondTitle={t('unhappyVisitors')}
-        firstGeneralNumber='162,755'
-        secondGeneralNumber='163,194'
-        isReversed={true}
-        series={dataJSON?.commonChartSeries4}
-        xAxis={[
-          'Oct 2023 (W40)',
-          'Oct 2023 (W41)',
-          'Oct 2023 (W42)',
-          'Oct 2023 (W43)',
-          'Oct 2023 (W44)',
-          'Nov 2023 (W45)',
-          'Nov 2023 (W46)',
-          'Nov 2023 (W47)',
-          'Nov 2023 (W48)',
-          'Dec 2023 (W49)',
-          'Dec 2023 (W50)',
-          'Dec 2023 (W51)'
-        ]}
+        firstTitle={
+          !isAR
+            ? totalSentimentsHistoricalVisitors?.commonChartSeries?.[0]?.name ??
+              totalSentimentsHistoricalVisitors?.firstTitle
+            : totalSentimentsHistoricalVisitors?.commonChartSeries?.[0]?.name_ar ?? ''
+        }
+        secondTitle={
+          !isAR
+            ? totalSentimentsHistoricalVisitors?.commonChartSeries?.[1]?.name ??
+              totalSentimentsHistoricalVisitors?.secondTitle
+            : totalSentimentsHistoricalVisitors?.commonChartSeries?.[1]?.name_ar ?? ''
+        }
+        firstGeneralNumber={totalSentimentsHistoricalVisitors?.firstGeneralNumber}
+        secondGeneralNumber={totalSentimentsHistoricalVisitors?.secondGeneralNumber}
+        series={totalSentimentsHistoricalVisitors?.commonChartSeries || []}
+        xAxis={totalSentimentsHistoricalVisitors?.xAxis || []}
+        firstTrendNumber={totalSentimentsHistoricalVisitors?.firstTrendNumber}
+        secondTrendNumber={totalSentimentsHistoricalVisitors?.secondTrendNumber}
       />
 
       <HeatmapChart series={dataJSON?.heatMapSeries} />

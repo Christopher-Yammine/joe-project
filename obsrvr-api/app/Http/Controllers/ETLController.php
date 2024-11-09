@@ -210,10 +210,14 @@ class ETLController extends Controller
 
         $totalNewReturningHistoricalVisitors = $this->statisticsService->getNewReturningHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
         $totalGendersHistoricVisitors = $this->statisticsService->getGenderHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
+        $totalSentimentsHistoricalVisitors = $this->statisticsService->getSentimentsHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
+        $totalMosqueSouqHistoricalVisitors = $this->statisticsService->getMosqueSouqHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
 
         return response()->json([
             'totalNewReturningHistoricalVisitors' => $totalNewReturningHistoricalVisitors,
             'totalGendersHistoricalVisitors' => $totalGendersHistoricVisitors,
+            'totalSentimentsHistoricalVisitors' => $totalSentimentsHistoricalVisitors,
+            'totalMosqueSouqHistoricalVisitors' => $totalMosqueSouqHistoricalVisitors
         ], 200);
     }
 }

@@ -488,33 +488,6 @@ class StatisticsService
     }
 
     return $metrics;
-
-        // return [
-        //     'averageFootfall' => [
-        //         'title' => $firstReturnTitle,
-        //         'stats' => round($todayAverageFootfall),
-        //         'trend' => $footfallPercentageDifference < 0 ? 'negative' : 'positive',
-        //         'trendNumber' => round(abs($footfallPercentageDifference), 2),
-        //     ],
-        //     // 'newVisitors' => [
-        //     //     'title' => 'newVisitors',
-        //     //     'stats' => $results->today_new_visitors,
-        //     //     'trend' => $newVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
-        //     //     'trendNumber' => round(abs($newVisitorsPercentageDifference), 2),
-        //     // ],
-        //     'souqVisitors' => [
-        //         'title' => 'visitorsToSouq',
-        //         'stats' => $results->today_souq_visitors,
-        //         'trend' => $souqVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
-        //         'trendNumber' => round(abs($souqVisitorsPercentageDifference), 2),
-        //     ],
-        //     'totalEntries' => [
-        //         'title' =>  $fourthReturnTitle,
-        //         'stats' => $results->today_total_value,
-        //         'trend' => $totalEntriesPercentageDifference < 0 ? 'negative' : 'positive',
-        //         'trendNumber' => round(abs($totalEntriesPercentageDifference), 2),
-        //     ],
-        // ];
     }
 
     public function getVisitorsData(array $streamIds) {
@@ -823,8 +796,8 @@ class StatisticsService
         $maleVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')  // Join the demographics table
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')  // Join the genders table through demographics
+            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
+            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
             ->where('genders.gender', '=', 'Male')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
             ->groupBy(DB::raw($groupByFormat))
@@ -834,8 +807,8 @@ class StatisticsService
         $femaleVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')  // Join the demographics table
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')  // Join the genders table through demographics
+            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
+            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
             ->where('genders.gender', '=', 'Female')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
             ->groupBy(DB::raw($groupByFormat))
@@ -852,8 +825,8 @@ class StatisticsService
         $previousMaleVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')  // Join the demographics table
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')  // Join the genders table through demographics
+            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')  
+            ->join('genders', 'demographics.gender_id', '=', 'genders.id') 
             ->where('genders.gender', '=', 'Male')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
             ->groupBy(DB::raw($groupByFormat))
@@ -863,8 +836,8 @@ class StatisticsService
         $previousFemaleVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')  // Join the demographics table
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')  // Join the genders table through demographics
+            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id') 
+            ->join('genders', 'demographics.gender_id', '=', 'genders.id') 
             ->where('genders.gender', '=', 'Female')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
             ->groupBy(DB::raw($groupByFormat))
@@ -906,6 +879,181 @@ class StatisticsService
         return $response;
     }    
 
+    public function getSentimentsHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration) {
+        $etlDataTable = $this->getEtlDataTableByDuration($duration);
+        $groupByFormat = $this->getGroupByFormat($duration);
+        
+        $happyVisitors = DB::table($etlDataTable)
+            ->whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
+            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+            ->where('sentiments.sentiment', '=', 'Happy')
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+            ->groupBy(DB::raw($groupByFormat))
+            ->orderBy(DB::raw($groupByFormat))
+            ->get();
+    
+        $unhappyVisitors = DB::table($etlDataTable)
+            ->whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
+            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+            ->whereIn('sentiments.sentiment', ['Sad', 'Neutral'])
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+            ->groupBy(DB::raw($groupByFormat))
+            ->orderBy(DB::raw($groupByFormat))
+            ->get();
+    
+        $totalHappyVisitors = $happyVisitors->sum('total');
+        $totalUnhappyVisitors = $unhappyVisitors->sum('total');
+    
+        $daysRange = (new \DateTime($toDate))->diff(new \DateTime($fromDate))->days;
+        $previousToDate = (new \DateTime($fromDate))->modify('-1 day')->format('Y-m-d');
+        $previousFromDate = (new \DateTime($previousToDate))->modify("-{$daysRange} days")->format('Y-m-d');
+    
+        $previousHappyVisitors = DB::table($etlDataTable)
+            ->whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$previousFromDate, $previousToDate])
+            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
+            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+            ->where('sentiments.sentiment', '=', 'Happy')
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+            ->groupBy(DB::raw($groupByFormat))
+            ->orderBy(DB::raw($groupByFormat))
+            ->get();
+    
+        $previousUnhappyVisitors = DB::table($etlDataTable)
+            ->whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$previousFromDate, $previousToDate])
+            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
+            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+            ->whereIn('sentiments.sentiment', ['Sad', 'Neutral'])
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+            ->groupBy(DB::raw($groupByFormat))
+            ->orderBy(DB::raw($groupByFormat))
+            ->get();
+    
+        $totalPreviousHappyVisitors = $previousHappyVisitors->sum('total');
+        $totalPreviousUnhappyVisitors = $previousUnhappyVisitors->sum('total');
+    
+        $happyVisitorsPercent = $this->calculatePercentChange($totalHappyVisitors, $totalPreviousHappyVisitors);
+        $formattedHappyVisitorsPercent = $happyVisitorsPercent > 0 ? "+$happyVisitorsPercent%" : "$happyVisitorsPercent%";
+    
+        $unhappyVisitorsPercent = $this->calculatePercentChange($totalUnhappyVisitors, $totalPreviousUnhappyVisitors);
+        $formattedUnhappyVisitorsPercent = $unhappyVisitorsPercent > 0 ? "+$unhappyVisitorsPercent%" : "$unhappyVisitorsPercent%";
+    
+        $response = [
+            'firstTitle' => 'Happy',
+            'firstGeneralNumber' => strval($totalHappyVisitors),
+            'firstTrendNumber' => strval($formattedHappyVisitorsPercent),
+            'secondTitle' => 'Unhappy',
+            'secondGeneralNumber' => strval($totalUnhappyVisitors),
+            'secondTrendNumber' => strval($formattedUnhappyVisitorsPercent),
+            'xAxis' => $happyVisitors->pluck('period')->toArray(),
+            'commonChartSeries' => [
+                [
+                    'name' => 'Happy Visitors',
+                    'name_ar' => 'سعيد',
+                    'data' => $happyVisitors->pluck('total')->toArray(),
+                ],
+                [
+                    'name' => 'Unhappy Visitors',
+                    'name_ar' => 'غير سعيد',
+                    'data' => $unhappyVisitors->pluck('total')->toArray(),
+                ]
+            ]
+        ];
+    
+        return $response;
+    }
+
+    public function getMosqueSouqHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration) {
+        $etlDataTable = $this->getEtlDataTableByDuration($duration);
+        $groupByFormat = $this->getGroupByFormat($duration);
+    
+        $mosqueVisitors = DB::table($etlDataTable)
+            ->whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
+            ->where('streams.name', 'like', '%Mosque%') // Filter by Mosque stream name
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+            ->groupBy(DB::raw($groupByFormat))
+            ->orderBy(DB::raw($groupByFormat))
+            ->get();
+    
+        $souqVisitors = DB::table($etlDataTable)
+            ->whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
+            ->where('streams.name', 'like', '%Souq%') // Filter by Souq stream name
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+            ->groupBy(DB::raw($groupByFormat))
+            ->orderBy(DB::raw($groupByFormat))
+            ->get();
+    
+        $totalMosqueVisitors = $mosqueVisitors->sum('total');
+        $totalSouqVisitors = $souqVisitors->sum('total');
+    
+        $daysRange = (new \DateTime($toDate))->diff(new \DateTime($fromDate))->days;
+    
+        $previousToDate = (new \DateTime($fromDate))->modify('-1 day')->format('Y-m-d');
+        $previousFromDate = (new \DateTime($previousToDate))->modify("-{$daysRange} days")->format('Y-m-d');
+    
+        $previousMosqueVisitors = DB::table($etlDataTable)
+            ->whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$previousFromDate, $previousToDate])
+            ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
+            ->where('streams.name', 'like', '%Mosque%')
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+            ->groupBy(DB::raw($groupByFormat))
+            ->orderBy(DB::raw($groupByFormat))
+            ->get();
+    
+        $previousSouqVisitors = DB::table($etlDataTable)
+            ->whereIn('stream_id', $streamIds)
+            ->whereBetween('date', [$previousFromDate, $previousToDate])
+            ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
+            ->where('streams.name', 'like', '%Souq%')
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+            ->groupBy(DB::raw($groupByFormat))
+            ->orderBy(DB::raw($groupByFormat))
+            ->get();
+    
+        $totalPreviousMosqueVisitors = $previousMosqueVisitors->sum('total');
+        $totalPreviousSouqVisitors = $previousSouqVisitors->sum('total');
+    
+        $mosqueVisitorsPercent = $this->calculatePercentChange($totalMosqueVisitors, $totalPreviousMosqueVisitors);
+        $formattedMosqueVisitorsPercent = $mosqueVisitorsPercent > 0 ? "+$mosqueVisitorsPercent%" : "$mosqueVisitorsPercent%";
+    
+        $souqVisitorsPercent = $this->calculatePercentChange($totalSouqVisitors, $totalPreviousSouqVisitors);
+        $formattedSouqVisitorsPercent = $souqVisitorsPercent > 0 ? "+$souqVisitorsPercent%" : "$souqVisitorsPercent%";
+    
+        $response = [
+            'firstTitle' => 'Mosque Visitors',
+            'firstGeneralNumber' => strval($totalMosqueVisitors),
+            'firstTrendNumber' => strval($formattedMosqueVisitorsPercent),
+            'secondTitle' => 'Souq Visitors',
+            'secondGeneralNumber' => strval($totalSouqVisitors),
+            'secondTrendNumber' => strval($formattedSouqVisitorsPercent),
+            'xAxis' => $mosqueVisitors->pluck('period')->toArray(),
+            'commonChartSeries' => [
+                [
+                    'name' => 'Mosque Visitors',
+                    'name_ar' => 'زوار المسجد',
+                    'data' => $mosqueVisitors->pluck('total')->toArray(),
+                ],
+                [
+                    'name' => 'Souq Visitors',
+                    'name_ar' => 'زوار السوق',
+                    'data' => $souqVisitors->pluck('total')->toArray(),
+                ]
+            ]
+        ];
+    
+        return $response;
+    }
+    
 
     private function getEtlDataTableByDuration($duration) {
         return match ($duration) {
