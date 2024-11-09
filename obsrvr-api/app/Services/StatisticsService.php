@@ -553,75 +553,16 @@ class StatisticsService
         ];
     }
 
-    public function getTotalStaffDailyHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null, $isHistorical = false) {
-        $etlDataTable = $this->getEtlDataTableByDuration($duration);
-        $groupByFormat = $this->getGroupByFormat($duration);
-
-        $startDate = "$fromDate 00:00:00";
-        $endDate = "$toDate 23:59:59";
-        $dataPoints = $this->calculateDataPoints($fromDate, $toDate, $duration);
-
-
-        $results = DB::table("$etlDataTable as etl")
-            ->select(
-                'streams.name',
-                DB::raw("$groupByFormat as hour"),
-                DB::raw('SUM(etl.value) as total_value')
-            )
-            ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->whereIn('etl.stream_id', $streamIds)
-            ->where('person_types.name', 'staff')
-            ->whereBetween('etl.date', [$startDate, $endDate])
-            ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
-            ->get();
-
-        $visitorsChartSeries = [];
-
-        foreach ($results as $row) {
-            if (!isset($visitorsChartSeries[$row->name])) {
-                $visitorsChartSeries[$row->name] = [
-                    'name' => $row->name,
-                    'name_ar' => $this->getArabicName($row->name),
-                    'data' => array_fill(0, $dataPoints, 0),  // Initialize the data array with appropriate points
-                ];
-            }
-
-
-            if (is_numeric($row->hour)) {
-                // Hourly data - store in hourly slots (0-23)
-                if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
-                    $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
-                }
-                $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
-            } else {
-                // Date-based data (assuming the hour is actually a date in this case)
-                if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
-                    $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
-                }
-                $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
-            }
-        }
-
-
-        $visitorsChartSeries = array_values($visitorsChartSeries);
-
-        return [
-            'staffChartSeries' => $visitorsChartSeries
-        ];
-    }
-
     public function getNewReturningHistoricalVisitors (array $streamIds, $fromDate, $toDate, $duration) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
-
+        
         $groupByFormat = $this->getGroupByFormat($duration);
-
+        
         $newVisitors = DB::table($etlDataTable)
-            ->whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$fromDate, $toDate])
-            ->join('metrics', $etlDataTable . '.metric_id', '=', 'metrics.id')
-            ->where('metrics.name', '=', 'Unique')
+        ->whereIn('stream_id', $streamIds)
+        ->whereBetween('date', [$fromDate, $toDate])
+        ->join('metrics', $etlDataTable . '.metric_id', '=', 'metrics.id')
+        ->where('metrics.name', '=', 'Unique')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -695,48 +636,48 @@ class StatisticsService
                 ]
             ]
         ];
-
+        
         return $response;
     }
-
+    
     public function getGenderHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
-
+        
         $maleVisitors = DB::table($etlDataTable)
-            ->whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$fromDate, $toDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
-            ->where('genders.gender', '=', 'Male')
-            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
-            ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
-            ->get();
-
+        ->whereIn('stream_id', $streamIds)
+        ->whereBetween('date', [$fromDate, $toDate])
+        ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
+        ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+        ->where('genders.gender', '=', 'Male')
+        ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+        ->groupBy(DB::raw($groupByFormat))
+        ->orderBy(DB::raw($groupByFormat))
+        ->get();
+        
         $femaleVisitors = DB::table($etlDataTable)
-            ->whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$fromDate, $toDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
-            ->where('genders.gender', '=', 'Female')
-            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
-            ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
-            ->get();
-
+        ->whereIn('stream_id', $streamIds)
+        ->whereBetween('date', [$fromDate, $toDate])
+        ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
+        ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+        ->where('genders.gender', '=', 'Female')
+        ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+        ->groupBy(DB::raw($groupByFormat))
+        ->orderBy(DB::raw($groupByFormat))
+        ->get();
+        
         $totalMaleVisitors = $maleVisitors->sum('total');
         $totalFemaleVisitors = $femaleVisitors->sum('total');
-
+        
         $daysRange = (new \DateTime($toDate))->diff(new \DateTime($fromDate))->days;
         $previousToDate = (new \DateTime($fromDate))->modify('-1 day')->format('Y-m-d');
         $previousFromDate = (new \DateTime($previousToDate))->modify("-{$daysRange} days")->format('Y-m-d');
-
+        
         $previousMaleVisitors = DB::table($etlDataTable)
-            ->whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$previousFromDate, $previousToDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+        ->whereIn('stream_id', $streamIds)
+        ->whereBetween('date', [$previousFromDate, $previousToDate])
+        ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
+        ->join('genders', 'demographics.gender_id', '=', 'genders.id')
             ->where('genders.gender', '=', 'Male')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
             ->groupBy(DB::raw($groupByFormat))
@@ -803,14 +744,15 @@ class StatisticsService
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
-
-        $unhappyVisitors = DB::table($etlDataTable)
+            
+            $unhappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
             ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
             ->whereIn('sentiments.sentiment', ['Sad', 'Neutral'])
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
+           
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
@@ -964,6 +906,66 @@ class StatisticsService
         return $response;
     }
 
+    public function getTotalStaffDailyHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null, $isHistorical = false) {
+        $etlDataTable = $this->getEtlDataTableByDuration($duration);
+        $groupByFormat = $this->getGroupByFormat($duration);
+    
+        $startDate = "$fromDate 00:00:00";
+        $endDate = "$toDate 23:59:59";
+    
+        $results = DB::table("$etlDataTable as etl")
+            ->select(
+                'streams.name',
+                DB::raw("$groupByFormat as hour"),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->where('person_types.name', 'staff')
+            ->whereBetween('etl.date', [$startDate, $endDate])
+            ->groupBy('streams.id', 'hour', 'streams.name')
+            ->orderBy('hour')
+            ->get();
+    
+        $visitorsChartSeries = [];
+
+        foreach ($results as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
+                    'data' => [], 
+                ];
+            }
+        
+            if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
+                $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
+            }
+        
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+        }
+    
+        $staffChartSeries = [];
+        $xAxis = [];
+
+        foreach ($visitorsChartSeries as $series) {
+            $staffChartSeries[] = [
+                'name' => $series['name'],
+                'name_ar' => $series['name_ar'],
+                'data' => array_values($series['data'])
+            ];
+            $xAxis = array_merge($xAxis, array_keys($series['data']));
+        }
+    
+        $xAxis = array_values(array_unique($xAxis));
+        
+        return [
+            'staffChartSeries' => $staffChartSeries,
+            'xAxis' => $xAxis,
+        ];
+    }
+
     private function getEtlDataTableByDuration($duration) {
         return match ($duration) {
             'Daily' => 'etl_data_daily',
@@ -986,49 +988,18 @@ class StatisticsService
         };
     }
 
-    // private function calculateDataPoints($fromDate, $toDate, $duration) {
-    //     $start = new \DateTime($fromDate);
-    //     $end = new \DateTime($toDate);
-
-    //     if ($duration === 'daily') {
-    //         return $start->diff($end)->days + 1; // +1 to include the end date
-    //     } elseif ($duration === 'weekly') {
-    //         return ceil($start->diff($end)->days / 7); // Calculate weeks
-    //     } elseif ($duration === 'monthly') {
-    //         return ($end->format('Y') - $start->format('Y')) * 12 + ($end->format('n') - $start->format('n')) + 1;
-    //     } elseif ($duration === 'quarterly') {
-    //         return ceil((($end->format('Y') - $start->format('Y')) * 12 + ($end->format('n') - $start->format('n')) + 1) / 3); // Calculate quarters
-    //     } elseif ($duration === 'yearly') {
-    //         return $end->format('Y') - $start->format('Y') + 1; // Calculate years
-    //     }
-
-    //     return 24; // Default to 24 data points for hourly if no match
-    // }
-
-    // public function calculateDataPoints($fromDate, $toDate, $duration)
-    // {
-    //     return match ($duration) {
-    //         'daily' => 1,  // One data point per day
-    //         'hourly' => 24, // One data point for each hour
-    //         'weekly' => 7,  // One data point for each day in a week
-    //         default => 24,  // Default to hourly if no duration is provided
-    //     };
-    // }
-
     public function calculateDataPoints($fromDate, $toDate, $duration)
-{
-    return match ($duration) {
-        'daily' => 1,    // 1 data point per day
-        'hourly' => 24,  // 24 data points per day (1 per hour)
-        'weekly' => 7,   // 7 data points per week (1 per day)
-        'monthly' => $this->calculateMonths($fromDate, $toDate),  // Calculate months
-        'quarterly' => $this->calculateQuarters($fromDate, $toDate),  // Calculate quarters
-        'yearly' => $this->calculateYears($fromDate, $toDate),  // Calculate years
-        default => 24,    // Default to 24 (hourly)
-    };
-}
-
-// Additional helper functions to calculate months, quarters, and years
+    {
+        return match ($duration) {
+            'daily' => 1,    // 1 data point per day
+            'hourly' => 24,  // 24 data points per day (1 per hour)
+            'weekly' => 7,   // 7 data points per week (1 per day)
+            'monthly' => $this->calculateMonths($fromDate, $toDate),  // Calculate months
+            'quarterly' => $this->calculateQuarters($fromDate, $toDate),  // Calculate quarters
+            'yearly' => $this->calculateYears($fromDate, $toDate),  // Calculate years
+            default => 24,    // Default to 24 (hourly)
+        };
+    }
     private function calculateMonths($fromDate, $toDate)
     {
         $start = new \DateTime($fromDate);
@@ -1193,6 +1164,5 @@ class StatisticsService
 
         return $arabicNames[$name] ?? $name;
     }
-
 
 }

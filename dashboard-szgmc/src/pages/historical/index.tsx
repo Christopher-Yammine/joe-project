@@ -12,25 +12,9 @@ import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import useStore from 'src/store/store'
 import { useSettings } from 'src/@core/hooks/useSettings'
+import { chartData, StaffChartHistorical } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL
-
-type ChartSeries = {
-  name: string
-  name_ar: string
-  data: number[]
-}
-
-type chartData = {
-  firstTitle: string
-  firstGeneralNumber: string
-  firstTrendNumber: string
-  secondTitle: string
-  secondGeneralNumber: string
-  secondTrendNumber: string
-  xAxis: string[]
-  commonChartSeries: ChartSeries[]
-}
 
 const HistoricalPage = () => {
   const { t } = useTranslation()
@@ -47,7 +31,10 @@ const HistoricalPage = () => {
   const [totalGendersHistoricalVisitors, setTotalGendersHistoricalVisitors] = useState<chartData>([])
   const [totalSentimentsHistoricalVisitors, setTotalSentimentsHistoricalVisitors] = useState<chartData>([])
   const [totalMosqueSouqHistoricalVisitors, setTotalMosqueSouqHistoricalVisitors] = useState<chartData>([])
-  const [staffChartSeries, setStaffChartSeries] = useState([])
+  const [staffChartSeriesHistorical, setStaffChartSeriesHistorical] = useState<StaffChartHistorical>({
+    staffChartSeries: [],
+    xAxis: []
+  })
 
   const formatDate = (date: Date): string => {
     return date instanceof Date ? date.toISOString().split('T')[0] : ''
@@ -102,7 +89,7 @@ const HistoricalPage = () => {
       setTotalGendersHistoricalVisitors(data?.totalGendersHistoricalVisitors)
       setTotalSentimentsHistoricalVisitors(data?.totalSentimentsHistoricalVisitors)
       setTotalMosqueSouqHistoricalVisitors(data?.totalMosqueSouqHistoricalVisitors)
-      setStaffChartSeries(data?.staffChartSeriesHistorical)
+      setStaffChartSeriesHistorical(data?.staffChartSeriesHistorical)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
     }
@@ -215,7 +202,11 @@ const HistoricalPage = () => {
         visitorsChartSeries4Daily={[]}
         visitorsChartSeries4Dailycomparisons={[]}
       />
-      <MultiLineChart title={t('staff')} staffChartSeries={staffChartSeries || []} />
+      <MultiLineChart
+        title={t('staff')}
+        staffChartSeries={staffChartSeriesHistorical.staffChartSeries}
+        xAxis={staffChartSeriesHistorical.xAxis}
+      />
     </Grid>
   )
 }
