@@ -64,15 +64,6 @@ class StatisticsService
             $totalVisitorsYesterday += $entry->total;
         }
     }
-    // foreach ($todayData as $entry) {
-    //     $todaySeriesData[$entry->hour] = $entry->total;
-    //     $totalVisitorsToday += $entry->total;
-    // }
-
-    // foreach ($yesterdayData as $entry) {
-    //     $yesterdaySeriesData[$entry->hour] = $entry->total;
-    //     $totalVisitorsYesterday += $entry->total;
-    // }
 
     $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
 
@@ -145,20 +136,6 @@ class StatisticsService
             }
         }
 
-        // foreach ($todayData as $entry) {
-        //     if ($entry->day == $startOfToday->toDateString()) {
-        //         $todaySeriesData[$entry->hour] = $entry->total;
-        //         $totalVisitorsToday += $entry->total;
-        //     }
-        // }
-
-        // foreach ($yesterdayData as $entry) {
-        //     if ($entry->day == $startOfYesterday->toDateString()) {
-        //         $yesterdaySeriesData[$entry->hour] = $entry->total;
-        //         $totalVisitorsYesterday += $entry->total;
-        //     }
-        // }
-
         $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
 
         $percentChange = $this->calculatePercentChange($totalVisitorsToday, $totalVisitorsYesterday);
@@ -229,20 +206,6 @@ class StatisticsService
                 $totalOccupancyYesterday += $entry->total;
             }
         }
-
-        // foreach ($todayOccupancyData as $entry) {
-        //     if ($entry->day == $startOfToday->toDateString()) {
-        //         $todaySeriesData[$entry->hour] = $entry->total;
-        //         $totalOccupancyToday += $entry->total;
-        //     }
-        // }
-
-        // foreach ($yesterdayOccupancyData as $entry) {
-        //     if ($entry->day == $startOfYesterday->toDateString()) {
-        //         $yesterdaySeriesData[$entry->hour] = $entry->total;
-        //         $totalOccupancyYesterday += $entry->total;
-        //     }
-        // }
 
         $percentChange = $this->calculatePercentChange($totalOccupancyToday, $totalOccupancyYesterday);
         $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
@@ -920,7 +883,7 @@ class StatisticsService
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->whereIn('etl.stream_id', $streamIds)
-            ->whereBetween('etl.date', ["$startDate", "$endDate"])
+            ->whereBetween('etl.date', [$startDate, $endDate])
             ->groupBy('streams.id', 'day_of_week', 'hour', 'streams.name')
             ->orderBy('day_of_week')
             ->orderBy('hour')
@@ -948,46 +911,61 @@ class StatisticsService
 
         $heatMapData = [];
 
-    foreach (range(1, 7) as $dayOfWeek) {
-        foreach (range(0, 23) as $hour) {
-            $heatMapData[$dayOfWeek][$hour] = 0;  // Set initial value as 0
+        foreach (range(1, 7) as $dayOfWeek) {
+            foreach (range(0, 23) as $hour) {
+                $heatMapData[$dayOfWeek][$hour] = 0;
+            }
         }
-    }
 
-    // Populate heatmap data with total values
-    foreach ($results as $result) {
-        $dayOfWeek = $result->day_of_week;
-        $heatMapData[$dayOfWeek][$result->hour] = $result->total_value; // Only store the total_value
-    }
+        foreach ($results as $result) {
+            $dayOfWeek = $result->day_of_week;
+            $heatMapData[$dayOfWeek][$result->hour] = $result->total_value;
+        }
 
-    $formattedData = [];
+        $formattedData = [];
 
-    // Format the data for the response
-    foreach ($heatMapData as $dayOfWeek => $hoursData) {
-        $dayName = $dayNames[$dayOfWeek];
-        $dayNameAr = $dayNamesAr[$dayOfWeek];
+        foreach ($heatMapData as $dayOfWeek => $hoursData) {
+            $dayName = $dayNames[$dayOfWeek];
+            $dayNameAr = $dayNamesAr[$dayOfWeek];
 
-        $dayData = [
-            'name' => $dayName,
-            'name_ar' => $dayNameAr,
-            'data' => [],
-        ];
-
-        foreach (range(0, 23) as $hour) {
-            $dayData['data'][] = [
-                'x' => (string) $hour,
-                'y' => $hoursData[$hour] ?? 0,  // Ensure y is a number (either from data or default 0)
+            $dayData = [
+                'name' => $dayName,
+                'name_ar' => $dayNameAr,
+                'data' => [],
             ];
+
+            foreach (range(0, 23) as $hour) {
+                $dayData['data'][] = [
+                    'x' => (string) $hour,
+                    'y' => $hoursData[$hour] ?? 0,
+                ];
+            }
+
+            $formattedData[] = $dayData;
         }
 
-        $formattedData[] = $dayData;
+        $topHourlyData = collect($results)
+            ->sortByDesc('total_value')
+            ->take(4)
+            ->map(function ($result) use ($dayNames) {
+                /** @var object $result */
+                $dayName = $dayNames[$result->day_of_week];
+                $hour = $result->hour;
+                $hourFormatted = $hour >= 12 ? ($hour > 12 ? ($hour - 12) . ' PM' : '12 PM') : ($hour === 0 ? '12 AM' : $hour . ' AM');
+
+                return [
+                    'title' => "{$dayName}, {$hourFormatted}",
+                    'stats' => (string) $result->total_value,
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        return [
+            'series' => $formattedData,
+            'topHourlyData' => $topHourlyData,
+        ];
     }
-
-    return [
-        'series' => $formattedData,
-    ];
-}
-
 
 
     public function getVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {

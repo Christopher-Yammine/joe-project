@@ -27,9 +27,10 @@ type HeatmapChartProps = {
       y: number
     }[]
   }[]
+  topHourlyData: any
 }
 
-const HeatmapChart: FC<HeatmapChartProps> = ({ series }) => {
+const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
   // ** Hook
   const theme = useTheme()
 
@@ -207,7 +208,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series }) => {
             }}
           >
             <CardContent sx={{ minWidth: { md: '400px', xs: 'none' }, height: '412px' }}>
-              {data.map((item: any, index: number) => (
+              {topHourlyData.map((item: any, index: number) => (
                 <Box
                   key={index}
                   sx={{

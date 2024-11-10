@@ -32,6 +32,7 @@ const HistoricalPage = () => {
   const [totalSentimentsHistoricalVisitors, setTotalSentimentsHistoricalVisitors] = useState<chartData>([])
   const [totalMosqueSouqHistoricalVisitors, setTotalMosqueSouqHistoricalVisitors] = useState<chartData>([])
   const [heatMapData, setHeatMapData] = useState([])
+  const [topHourlyData, setTopHourlyData] = useState([])
   const [visitorsChartSeries1, setVisitorsChartSeries1] = useState([])
   const [visitorsChartSeries1Comparisons, setVisitorsChartSeries1Comparisons] = useState<any[]>([])
   const [visitorsChartSeries2, setVisitorsChartSeries2] = useState([])
@@ -99,6 +100,7 @@ const HistoricalPage = () => {
       setTotalSentimentsHistoricalVisitors(data?.totalSentimentsHistoricalVisitors)
       setTotalMosqueSouqHistoricalVisitors(data?.totalMosqueSouqHistoricalVisitors)
       setHeatMapData(data?.series)
+      setTopHourlyData(data?.topHourlyData)
       setVisitorsChartSeries1(data.visitorsChartSeries1)
       setVisitorsChartSeries1Comparisons(
         (data?.visitorsChartSeries1Comparisons || []).map(item => ({
@@ -231,7 +233,7 @@ const HistoricalPage = () => {
         secondTrendNumber={totalSentimentsHistoricalVisitors?.secondTrendNumber}
       />
 
-      <HeatmapChart series={heatMapData} />
+      <HeatmapChart series={heatMapData} topHourlyData={topHourlyData} />
 
       <VisitorsChart
         visitorsChartSeries1={visitorsChartSeries1}
