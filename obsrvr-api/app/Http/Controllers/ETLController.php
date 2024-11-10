@@ -212,6 +212,7 @@ class ETLController extends Controller
         $totalGendersHistoricVisitors = $this->statisticsService->getGenderHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
         $totalSentimentsHistoricalVisitors = $this->statisticsService->getSentimentsHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
         $totalMosqueSouqHistoricalVisitors = $this->statisticsService->getMosqueSouqHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
+        $heatMapData = $this->statisticsService->getHeatMapChartData($streamIdsArray, $fromDate, $toDate);
         $totalVisitorsHistorical = $this->statisticsService->getVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
         $totalUniqueVisitorsHistorical = $this->statisticsService->getUniqueVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
         $totalRepeatedVisitorsHistorical = $this->statisticsService->getRepeatedVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
@@ -224,6 +225,7 @@ class ETLController extends Controller
             'totalGendersHistoricalVisitors' => $totalGendersHistoricVisitors,
             'totalSentimentsHistoricalVisitors' => $totalSentimentsHistoricalVisitors,
             'totalMosqueSouqHistoricalVisitors' => $totalMosqueSouqHistoricalVisitors,
+            ...$heatMapData,
             ...$totalVisitorsHistorical,
             ...$totalUniqueVisitorsHistorical,
             ...$totalRepeatedVisitorsHistorical,

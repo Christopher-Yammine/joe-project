@@ -907,6 +907,89 @@ class StatisticsService
         return $response;
     }
 
+    public function getHeatMapChartData(array $streamIds, $fromDate = null, $toDate = null) {
+        $startDate = "$fromDate 00:00:00";
+        $endDate = "$toDate 23:59:59";
+
+        $results = DB::table('etl_data_hourly as etl')
+            ->select(
+                'streams.name',
+                DB::raw('DAYOFWEEK(etl.date) as day_of_week'),
+                DB::raw('HOUR(etl.date) as hour'),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->whereBetween('etl.date', ["$startDate", "$endDate"])
+            ->groupBy('streams.id', 'day_of_week', 'hour', 'streams.name')
+            ->orderBy('day_of_week')
+            ->orderBy('hour')
+            ->get();
+
+        $dayNamesAr = [
+            1 => 'الأحد',
+            2 => 'الإثنين',
+            3 => 'الثلاثاء',
+            4 => 'الأربعاء',
+            5 => 'الخميس',
+            6 => 'الجمعة',
+            7 => 'السبت',
+        ];
+
+        $dayNames = [
+            1 => 'Sunday',
+            2 => 'Monday',
+            3 => 'Tuesday',
+            4 => 'Wednesday',
+            5 => 'Thursday',
+            6 => 'Friday',
+            7 => 'Saturday',
+        ];
+
+        $heatMapData = [];
+
+    foreach (range(1, 7) as $dayOfWeek) {
+        foreach (range(0, 23) as $hour) {
+            $heatMapData[$dayOfWeek][$hour] = 0;  // Set initial value as 0
+        }
+    }
+
+    // Populate heatmap data with total values
+    foreach ($results as $result) {
+        $dayOfWeek = $result->day_of_week;
+        $heatMapData[$dayOfWeek][$result->hour] = $result->total_value; // Only store the total_value
+    }
+
+    $formattedData = [];
+
+    // Format the data for the response
+    foreach ($heatMapData as $dayOfWeek => $hoursData) {
+        $dayName = $dayNames[$dayOfWeek];
+        $dayNameAr = $dayNamesAr[$dayOfWeek];
+
+        $dayData = [
+            'name' => $dayName,
+            'name_ar' => $dayNameAr,
+            'data' => [],
+        ];
+
+        foreach (range(0, 23) as $hour) {
+            $dayData['data'][] = [
+                'x' => (string) $hour,
+                'y' => $hoursData[$hour] ?? 0,  // Ensure y is a number (either from data or default 0)
+            ];
+        }
+
+        $formattedData[] = $dayData;
+    }
+
+    return [
+        'series' => $formattedData,
+    ];
+}
+
+
+
     public function getVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
