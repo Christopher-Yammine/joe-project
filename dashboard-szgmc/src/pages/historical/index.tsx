@@ -167,8 +167,8 @@ const HistoricalPage = () => {
         secondGeneralNumber={totalNewReturningHistoricalVisitors?.secondGeneralNumber}
         series={totalNewReturningHistoricalVisitors?.commonChartSeries || []}
         xAxis={totalNewReturningHistoricalVisitors?.xAxis || []}
-        firstTrendNumber={totalNewReturningHistoricalVisitors?.firstTrendNumber}
-        secondTrendNumber={totalNewReturningHistoricalVisitors?.secondTrendNumber}
+        firstTrendNumber={totalNewReturningHistoricalVisitors?.firstTrendNumber ?? ''}
+        secondTrendNumber={totalNewReturningHistoricalVisitors?.secondTrendNumber ?? ''}
       />
 
       <LineChart
@@ -187,8 +187,8 @@ const HistoricalPage = () => {
         secondGeneralNumber={totalGendersHistoricalVisitors?.secondGeneralNumber}
         series={totalGendersHistoricalVisitors?.commonChartSeries || []}
         xAxis={totalGendersHistoricalVisitors?.xAxis || []}
-        firstTrendNumber={totalGendersHistoricalVisitors?.firstTrendNumber}
-        secondTrendNumber={totalGendersHistoricalVisitors?.secondTrendNumber}
+        firstTrendNumber={totalGendersHistoricalVisitors?.firstTrendNumber ?? ''}
+        secondTrendNumber={totalGendersHistoricalVisitors?.secondTrendNumber ?? ''}
       />
 
       <LineChart
@@ -208,8 +208,8 @@ const HistoricalPage = () => {
         secondGeneralNumber={totalMosqueSouqHistoricalVisitors?.secondGeneralNumber}
         series={totalMosqueSouqHistoricalVisitors?.commonChartSeries || []}
         xAxis={totalMosqueSouqHistoricalVisitors?.xAxis || []}
-        firstTrendNumber={totalMosqueSouqHistoricalVisitors?.firstTrendNumber}
-        secondTrendNumber={totalMosqueSouqHistoricalVisitors?.secondTrendNumber}
+        firstTrendNumber={totalMosqueSouqHistoricalVisitors?.firstTrendNumber ?? ''}
+        secondTrendNumber={totalMosqueSouqHistoricalVisitors?.secondTrendNumber ?? ''}
       />
 
       <LineChart
@@ -229,8 +229,8 @@ const HistoricalPage = () => {
         secondGeneralNumber={totalSentimentsHistoricalVisitors?.secondGeneralNumber}
         series={totalSentimentsHistoricalVisitors?.commonChartSeries || []}
         xAxis={totalSentimentsHistoricalVisitors?.xAxis || []}
-        firstTrendNumber={totalSentimentsHistoricalVisitors?.firstTrendNumber}
-        secondTrendNumber={totalSentimentsHistoricalVisitors?.secondTrendNumber}
+        firstTrendNumber={totalSentimentsHistoricalVisitors?.firstTrendNumber ?? ''}
+        secondTrendNumber={totalSentimentsHistoricalVisitors?.secondTrendNumber ?? ''}
       />
 
       <HeatmapChart series={heatMapData} topHourlyData={topHourlyData} />

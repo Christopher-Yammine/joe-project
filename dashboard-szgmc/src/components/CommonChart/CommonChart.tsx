@@ -241,9 +241,7 @@ const LineChart: React.FC<Props> = ({
                         fontWeight: 500,
                         color: `${item?.trendNumber?.startsWith('-') || item?.isReversed ? 'red' : 'green'}`
                       }}
-                    >
-                      PW
-                    </Typography>
+                    ></Typography>
                   </Box>
                 </Box>
               </Box>

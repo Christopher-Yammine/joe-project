@@ -208,29 +208,29 @@ class ETLController extends Controller
         $toDate = $request->input('to_date');
         $duration = $request->input('duration');
 
-        $totalNewReturningHistoricalVisitors = $this->statisticsService->getNewReturningHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
-        $totalGendersHistoricVisitors = $this->statisticsService->getGenderHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
-        $totalSentimentsHistoricalVisitors = $this->statisticsService->getSentimentsHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
-        $totalMosqueSouqHistoricalVisitors = $this->statisticsService->getMosqueSouqHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
+        // $totalNewReturningHistoricalVisitors = $this->statisticsService->getNewReturningHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
+        // $totalGendersHistoricVisitors = $this->statisticsService->getGenderHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
+        // $totalSentimentsHistoricalVisitors = $this->statisticsService->getSentimentsHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
+        // $totalMosqueSouqHistoricalVisitors = $this->statisticsService->getMosqueSouqHistoricalVisitors($streamIdsArray, $fromDate, $toDate, $duration);
         $heatMapData = $this->statisticsService->getHeatMapChartData($streamIdsArray, $fromDate, $toDate);
-        $totalVisitorsHistorical = $this->statisticsService->getVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
-        $totalUniqueVisitorsHistorical = $this->statisticsService->getUniqueVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
-        $totalRepeatedVisitorsHistorical = $this->statisticsService->getRepeatedVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
-        $totalOccupancyVisitorsHistorical = $this->statisticsService->getOccupancyVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
-        $staffChartSeriesHistorical = $this->statisticsService->getTotalStaffDailyHistorical($streamIdsArray, $fromDate, $toDate, $duration);
+        // $totalVisitorsHistorical = $this->statisticsService->getVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
+        // $totalUniqueVisitorsHistorical = $this->statisticsService->getUniqueVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
+        // $totalRepeatedVisitorsHistorical = $this->statisticsService->getRepeatedVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
+        // $totalOccupancyVisitorsHistorical = $this->statisticsService->getOccupancyVisitorsDataHistorical($streamIdsArray, $fromDate, $toDate, $duration);
+        // $staffChartSeriesHistorical = $this->statisticsService->getTotalStaffDailyHistorical($streamIdsArray, $fromDate, $toDate, $duration);
 
 
         return response()->json([
-            'totalNewReturningHistoricalVisitors' => $totalNewReturningHistoricalVisitors,
-            'totalGendersHistoricalVisitors' => $totalGendersHistoricVisitors,
-            'totalSentimentsHistoricalVisitors' => $totalSentimentsHistoricalVisitors,
-            'totalMosqueSouqHistoricalVisitors' => $totalMosqueSouqHistoricalVisitors,
+            // 'totalNewReturningHistoricalVisitors' => $totalNewReturningHistoricalVisitors,
+            // 'totalGendersHistoricalVisitors' => $totalGendersHistoricVisitors,
+            // 'totalSentimentsHistoricalVisitors' => $totalSentimentsHistoricalVisitors,
+            // 'totalMosqueSouqHistoricalVisitors' => $totalMosqueSouqHistoricalVisitors,
             ...$heatMapData,
-            ...$totalVisitorsHistorical,
-            ...$totalUniqueVisitorsHistorical,
-            ...$totalRepeatedVisitorsHistorical,
-            ...$totalOccupancyVisitorsHistorical,
-            'staffChartSeriesHistorical' => $staffChartSeriesHistorical
+            // ...$totalVisitorsHistorical,
+            // ...$totalUniqueVisitorsHistorical,
+            // ...$totalRepeatedVisitorsHistorical,
+            // ...$totalOccupancyVisitorsHistorical,
+            // 'staffChartSeriesHistorical' => $staffChartSeriesHistorical
         ], 200);
     }
 }

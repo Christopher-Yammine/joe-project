@@ -874,12 +874,13 @@ class StatisticsService
         $startDate = "$fromDate 00:00:00";
         $endDate = "$toDate 23:59:59";
 
-        $nonCumulativeResults = DB::table('etl_data_hourly as etl')
+        $results = DB::table('etl_data_hourly as etl')
             ->select(
                 'streams.name',
                 DB::raw('DAYOFWEEK(etl.date) as day_of_week'),
                 DB::raw('HOUR(etl.date) as hour'),
-                'etl.value'
+                'etl.value',
+                DB::raw('SUM(etl.value) OVER (PARTITION BY streams.id, DAYOFWEEK(etl.date), HOUR(etl.date)) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->whereIn('etl.stream_id', $streamIds)
@@ -887,22 +888,6 @@ class StatisticsService
             ->orderBy('day_of_week')
             ->orderBy('hour')
             ->get();
-
-        $cumulativeResults = DB::table('etl_data_hourly as etl')
-            ->select(
-                'streams.name',
-                DB::raw('DAYOFWEEK(etl.date) as day_of_week'),
-                DB::raw('HOUR(etl.date) as hour'),
-                DB::raw('SUM(etl.value) as total_value')
-            )
-            ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->whereIn('etl.stream_id', $streamIds)
-            ->whereBetween('etl.date', [$startDate, $endDate])
-            ->groupBy('streams.id', 'day_of_week', 'hour', 'streams.name')
-            ->orderBy('day_of_week')
-            ->orderBy('hour')
-            ->get();
-
 
         $dayNamesAr = [
             1 => 'الأحد',
@@ -925,6 +910,7 @@ class StatisticsService
         ];
 
         $heatMapData = [];
+        $hourlyData = [];
 
         foreach (range(1, 7) as $dayOfWeek) {
             foreach (range(0, 23) as $hour) {
@@ -932,13 +918,29 @@ class StatisticsService
             }
         }
 
-        foreach ($cumulativeResults as $result) {
+        foreach ($results as $result) {
             $dayOfWeek = $result->day_of_week;
-            $heatMapData[$dayOfWeek][$result->hour] = $result->total_value;
+            $hour = $result->hour;
+            $value = $result->value;
+            $heatMapData[$dayOfWeek][$hour] = $result->total_value;
+
+            $hourlyData[] = [
+                'day_of_week' => $dayOfWeek,
+                'hour' => $hour,
+                'value' => $value,
+                'title' => "{$dayNames[$dayOfWeek]}, " . $this->formatHour($hour),
+            ];
         }
 
-        $formattedData = [];
+        usort($hourlyData, function ($a, $b) {
+            return $b['value'] - $a['value'];
+        });
 
+        dd($hourlyData);
+
+        $topHourlyData = array_slice($hourlyData, 0, 4);
+
+        $formattedData = [];
         foreach ($heatMapData as $dayOfWeek => $hoursData) {
             $dayName = $dayNames[$dayOfWeek];
             $dayNameAr = $dayNamesAr[$dayOfWeek];
@@ -959,26 +961,33 @@ class StatisticsService
             $formattedData[] = $dayData;
         }
 
-        $topHourlyData = collect($nonCumulativeResults)
-            ->sortByDesc('value')
-            ->take(4)
-            ->map(function ($result) use ($dayNames) {
-                /** @var object $result */
-                $dayName = $dayNames[$result->day_of_week];
-                $hour = $result->hour;
-                $hourFormatted = $hour >= 12 ? ($hour > 12 ? ($hour - 12) . ' PM' : '12 PM') : ($hour === 0 ? '12 AM' : $hour . ' AM');
-                return [
-                    'title' => "{$dayName}, {$hourFormatted}",
-                    'stats' => (string) $result->value,
-                ];
-            })
-            ->values()
-            ->toArray();
-
         return [
             'series' => $formattedData,
-            'topHourlyData' => $topHourlyData,
+            'topHourlyData' => $this->formatTopHourlyData($topHourlyData),
         ];
+    }
+
+    private function formatHour($hour) {
+        if ($hour == 0) {
+            return "12 AM";
+        } elseif ($hour < 12) {
+            return "{$hour} AM";
+        } elseif ($hour == 12) {
+            return "12 PM";
+        } else {
+            return ($hour - 12) . " PM";
+        }
+    }
+
+    private function formatTopHourlyData($topHourlyData) {
+        $formattedTopData = [];
+        foreach ($topHourlyData as $data) {
+            $formattedTopData[] = [
+                'title' => $data['title'],
+                'stats' => (string) $data['value'],
+            ];
+        }
+        return $formattedTopData;
     }
 
 
