@@ -936,8 +936,6 @@ class StatisticsService
             return $b['value'] - $a['value'];
         });
 
-        dd($hourlyData);
-
         $topHourlyData = array_slice($hourlyData, 0, 4);
 
         $formattedData = [];
