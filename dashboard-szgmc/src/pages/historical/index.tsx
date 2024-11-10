@@ -248,8 +248,8 @@ const HistoricalPage = () => {
       />
       <MultiLineChart
         title={t('staff')}
-        staffChartSeries={staffChartSeriesHistorical.staffChartSeries}
-        xAxis={staffChartSeriesHistorical.xAxis}
+        staffChartSeries={staffChartSeriesHistorical?.staffChartSeries}
+        xAxis={staffChartSeriesHistorical?.xAxis}
       />
     </Grid>
   )

@@ -792,7 +792,7 @@ class StatisticsService
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
-            ->where('streams.name', 'like', '%Mosque%') // Filter by Mosque stream name
+            ->where('streams.name', 'like', '%Mosque%')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -802,7 +802,7 @@ class StatisticsService
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
-            ->where('streams.name', 'like', '%Souq%') // Filter by Souq stream name
+            ->where('streams.name', 'like', '%Souq%')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -874,7 +874,21 @@ class StatisticsService
         $startDate = "$fromDate 00:00:00";
         $endDate = "$toDate 23:59:59";
 
-        $results = DB::table('etl_data_hourly as etl')
+        $nonCumulativeResults = DB::table('etl_data_hourly as etl')
+            ->select(
+                'streams.name',
+                DB::raw('DAYOFWEEK(etl.date) as day_of_week'),
+                DB::raw('HOUR(etl.date) as hour'),
+                'etl.value'
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->whereBetween('etl.date', [$startDate, $endDate])
+            ->orderBy('day_of_week')
+            ->orderBy('hour')
+            ->get();
+
+        $cumulativeResults = DB::table('etl_data_hourly as etl')
             ->select(
                 'streams.name',
                 DB::raw('DAYOFWEEK(etl.date) as day_of_week'),
@@ -888,6 +902,7 @@ class StatisticsService
             ->orderBy('day_of_week')
             ->orderBy('hour')
             ->get();
+
 
         $dayNamesAr = [
             1 => 'الأحد',
@@ -917,7 +932,7 @@ class StatisticsService
             }
         }
 
-        foreach ($results as $result) {
+        foreach ($cumulativeResults as $result) {
             $dayOfWeek = $result->day_of_week;
             $heatMapData[$dayOfWeek][$result->hour] = $result->total_value;
         }
@@ -944,18 +959,17 @@ class StatisticsService
             $formattedData[] = $dayData;
         }
 
-        $topHourlyData = collect($results)
-            ->sortByDesc('total_value')
+        $topHourlyData = collect($nonCumulativeResults)
+            ->sortByDesc('value')
             ->take(4)
             ->map(function ($result) use ($dayNames) {
                 /** @var object $result */
                 $dayName = $dayNames[$result->day_of_week];
                 $hour = $result->hour;
                 $hourFormatted = $hour >= 12 ? ($hour > 12 ? ($hour - 12) . ' PM' : '12 PM') : ($hour === 0 ? '12 AM' : $hour . ' AM');
-
                 return [
                     'title' => "{$dayName}, {$hourFormatted}",
-                    'stats' => (string) $result->total_value,
+                    'stats' => (string) $result->value,
                 ];
             })
             ->values()

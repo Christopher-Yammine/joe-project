@@ -44,6 +44,44 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
 
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
 
+  const getDynamicRanges = () => {
+    const allYValues = series.flatMap(item => item.data.map(d => d.y))
+
+    const minY = Math.min(...allYValues)
+    const maxY = Math.max(...allYValues)
+
+    const rangeCount = 7
+    const step = Math.ceil((maxY - minY) / rangeCount)
+
+    const staticColors = [
+      'rgba(174, 158, 133, 0.19)', // Range 1
+      'rgba(174, 158, 133, 0.33)', // Range 2
+      'rgba(174, 158, 133, 0.52)', // Range 3
+      'rgba(174, 158, 133, 0.65)', // Range 4
+      'rgba(174, 158, 133, 0.78)', // Range 5
+      '#ae9e85', // Range 6
+      'rgba(174, 158, 133, 0.95)' // Range 7 (new shade)
+    ]
+
+    const dynamicRanges = []
+    for (let i = 0; i < rangeCount; i++) {
+      const from = roundToNearest(minY + i * step)
+      const to = i === rangeCount - 1 ? maxY : roundToNearest(from + step)
+      const name = `${from}-${to}`
+      const color = staticColors[i]
+
+      dynamicRanges.push({ from, to, name, color })
+    }
+
+    return dynamicRanges
+  }
+
+  const roundToNearest = value => {
+    return Math.round(value / 50) * 50
+  }
+
+  const dynamicRanges = getDynamicRanges()
+
   const options: ApexOptions = {
     chart: {
       parentHeightOffset: 0,
@@ -72,15 +110,18 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     plotOptions: {
       heatmap: {
         enableShades: false,
+        // colorScale: {
+        //   ranges: [
+        //     { to: 10, from: 0, name: '0-10', color: 'rgba(174, 158, 133, 0.19)' },
+        //     { to: 20, from: 11, name: '10-20', color: 'rgba(174, 158, 133, 0.33)' },
+        //     { to: 30, from: 21, name: '20-30', color: 'rgba(174, 158, 133, 0.52)' },
+        //     { to: 40, from: 31, name: '30-40', color: 'rgba(174, 158, 133, 0.65)' },
+        //     { to: 50, from: 41, name: '40-50', color: 'rgba(174, 158, 133, 0.78)' },
+        //     { to: 60, from: 51, name: '50-60', color: '#ae9e85' }
+        //   ]
+        // }
         colorScale: {
-          ranges: [
-            { to: 10, from: 0, name: '0-10', color: 'rgba(174, 158, 133, 0.19)' },
-            { to: 20, from: 11, name: '10-20', color: 'rgba(174, 158, 133, 0.33)' },
-            { to: 30, from: 21, name: '20-30', color: 'rgba(174, 158, 133, 0.52)' },
-            { to: 40, from: 31, name: '30-40', color: 'rgba(174, 158, 133, 0.65)' },
-            { to: 50, from: 41, name: '40-50', color: 'rgba(174, 158, 133, 0.78)' },
-            { to: 60, from: 51, name: '50-60', color: '#ae9e85' }
-          ]
+          ranges: dynamicRanges
         }
       }
     },
