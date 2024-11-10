@@ -1367,17 +1367,30 @@ class StatisticsService
         $etlDataTable= 'etl_data_daily',
         $duration = null,
     ) {
-        $lastHourWithData = DB::table("$etlDataTable")
-            ->where('date', '>=', "$fromDate 00:00:00")
-            ->where('date', '<=', "$fromDate 23:59:59")
-            ->max(DB::raw('HOUR(date)'));
+        if ($duration === 'daily') {
+            $lastHourWithData = DB::table("$etlDataTable")
+                ->where('date', '>=', "$fromDate 00:00:00")
+                ->where('date', '<=', "$fromDate 23:59:59")
+                ->max(DB::raw('HOUR(date)'));
 
-        $currentHour = $lastHourWithData !== null ? $lastHourWithData : date('G');
+            $currentHour = $lastHourWithData !== null ? $lastHourWithData : date('G');
 
-        $fromDateStart = "$fromDate 00:00:00";
-        $fromDateEnd = "$fromDate " . str_pad($currentHour, 2, '0', STR_PAD_LEFT) . ":59:59";
-        $toDateStart = "$toDate 00:00:00";
-        $toDateEnd = "$toDate " . str_pad($currentHour, 2, '0', STR_PAD_LEFT) . ":59:59";
+            $fromDateStart = "$fromDate 00:00:00";
+            $fromDateEnd = "$fromDate " . str_pad($currentHour, 2, '0', STR_PAD_LEFT) . ":59:59";
+            $toDateStart = "$toDate 00:00:00";
+            $toDateEnd = "$toDate " . str_pad($currentHour, 2, '0', STR_PAD_LEFT) . ":59:59";
+
+            $query = $this->getDailyQuery($etlDataTable, $streamIds, $fromDateStart, $fromDateEnd, $toDateStart, $toDateEnd);
+        } else {
+           $dateRanges = $this->getDateRange($fromDate, $toDate, $duration);
+
+           $fromDateStart = $dateRanges['fromDateStart'];
+            $fromDateEnd = $dateRanges['fromDateEnd'];
+            $toDateStart = $dateRanges['toDateStart'];
+            $toDateEnd = $dateRanges['toDateEnd'];
+
+            $query = $this->getNonDailyQuery($etlDataTable, $streamIds, $fromDateStart, $fromDateEnd, $toDateStart, $toDateEnd);
+        }
 
         $query = DB::table("$etlDataTable as etl")
             ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
@@ -1518,6 +1531,86 @@ function calculateDurationAverage($duration, $fromDate, $toDate)
 
     return $numberOfPeriods;
 }
+
+private function getDateRange($fromDate, $toDate, $duration)
+{
+    $fromDateStart = $fromDateEnd = $toDateStart = $toDateEnd = null;
+
+    switch ($duration) {
+        case 'weekly':
+            $fromDateStart = (new DateTime($fromDate))->modify('this week')->format('Y-m-d 00:00:00');
+            $fromDateEnd = (new DateTime($fromDate))->modify('this week +6 days')->format('Y-m-d 23:59:59');
+
+            $toDateStart = (new DateTime($toDate))->modify('last week')->format('Y-m-d 00:00:00');
+            $toDateEnd = (new DateTime($toDate))->modify('last week +6 days')->format('Y-m-d 23:59:59');
+            break;
+
+        case 'monthly':
+            $fromDateStart = (new DateTime($fromDate))->modify('first day of this month')->format('Y-m-d 00:00:00');
+            $fromDateEnd = (new DateTime($fromDate))->modify('last day of this month')->format('Y-m-d 23:59:59');
+
+            $toDateStart = (new DateTime($toDate))->modify('first day of last month')->format('Y-m-d 00:00:00');
+            $toDateEnd = (new DateTime($toDate))->modify('last day of last month')->format('Y-m-d 23:59:59');
+            break;
+
+        case 'yearly':
+            $fromDateStart = (new DateTime($fromDate))->modify('first day of January this year')->format('Y-m-d 00:00:00');
+            $fromDateEnd = (new DateTime($fromDate))->modify('last day of December this year')->format('Y-m-d 23:59:59');
+
+            $toDateStart = (new DateTime($toDate))->modify('first day of January last year')->format('Y-m-d 00:00:00');
+            $toDateEnd = (new DateTime($toDate))->modify('last day of December last year')->format('Y-m-d 23:59:59');
+            break;
+
+        default: // Daily (default)
+            $fromDateStart = "$fromDate 00:00:00";
+            $fromDateEnd = "$fromDate 23:59:59";
+            $toDateStart = "$toDate 00:00:00";
+            $toDateEnd = "$toDate 23:59:59";
+            break;
+    }
+
+    return [
+        'fromDateStart' => $fromDateStart,
+        'fromDateEnd' => $fromDateEnd,
+        'toDateStart' => $toDateStart,
+        'toDateEnd' => $toDateEnd,
+    ];
+}
+
+private function getDailyQuery($etlDataTable, $streamIds, $fromDateStart, $fromDateEnd, $toDateStart, $toDateEnd)
+{
+    return DB::table("$etlDataTable as etl")
+        ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+        ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
+        ->selectRaw("
+            SUM(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS today_total_value,
+            COUNT(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN 1 END) AS today_total_entries,
+            SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS yesterday_total_value,
+            COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN 1 END) AS yesterday_total_entries,
+            SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS today_new_visitors,
+            SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS yesterday_new_visitors,
+            SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS today_souq_visitors,
+            SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS yesterday_souq_visitors
+        ");
+}
+
+private function getNonDailyQuery($etlDataTable, $streamIds, $fromDateStart, $fromDateEnd, $toDateStart, $toDateEnd)
+{
+    return DB::table("$etlDataTable as etl")
+        ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
+        ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
+        ->selectRaw("
+            SUM(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_total_value,
+            COUNT(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN 1 END) AS current_total_entries,
+            SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_total_value,
+            COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN 1 END) AS previous_total_entries,
+            SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_new_visitors,
+            SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_new_visitors,
+            SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_souq_visitors,
+            SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_souq_visitors
+        ");
+}
+
 
 
 }

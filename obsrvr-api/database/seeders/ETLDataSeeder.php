@@ -22,12 +22,12 @@ class ETLDataSeeder extends Seeder
     {
         $footfalls = PersonType::all()->pluck('id')->toArray();
         $metrics = Metric::all()->pluck('id')->toArray();
-        $demographics = Demographic::all()->take(10)->pluck('id')->toArray();
+        $demographics = Demographic::all()->take(8)->pluck('id')->toArray();
         // $demographics = Demographic::all()->pluck('id')->toArray();
         $streams = Stream::all()->pluck('id')->toArray();
 
         // $startDateHourly = Carbon::yesterday()->setTime(0, 0, 0);
-        $startDateHourly = Carbon::now()->subDays(365)->setTime(0, 0, 0);
+        $startDateHourly = Carbon::now()->subDays(20)->setTime(0, 0, 0);
         $endDateHourly = Carbon::now();
 
         $startDateDaily = Carbon::now()->startOfDay()->subDays(30);

@@ -155,7 +155,7 @@ const VisitorsChart: React.FC<Props> = ({
   }))
 
   const uniqueVisitorsData = visitorsChartSeries2
-  const visitorsChartSeries2Data = uniqueVisitorsData.map(item => ({
+  const visitorsChartSeries2Data = uniqueVisitorsData?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
