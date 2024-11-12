@@ -170,10 +170,6 @@ const Home = () => {
     }
   }
 
-  useEffect(() => {
-    console.log('staffChartSeries', staffChartSeries)
-  }, [staffChartSeries])
-
   return (
     <Grid container spacing={4}>
       <VerseCard verseCardTextKey={'verseCardTextKey'} />

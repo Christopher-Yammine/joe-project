@@ -50,23 +50,25 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     const minY = Math.min(...allYValues)
     const maxY = Math.max(...allYValues)
 
-    const rangeCount = 7
+    const rangeCount = 9
     const step = Math.ceil((maxY - minY) / rangeCount)
 
     const staticColors = [
-      'rgba(174, 158, 133, 0.19)', // Range 1
-      'rgba(174, 158, 133, 0.33)', // Range 2
-      'rgba(174, 158, 133, 0.52)', // Range 3
-      'rgba(174, 158, 133, 0.65)', // Range 4
-      'rgba(174, 158, 133, 0.78)', // Range 5
-      '#ae9e85', // Range 6
-      'rgba(174, 158, 133, 0.95)' // Range 7 (new shade)
+      'rgba(174, 158, 133, 0.10)',
+      'rgba(174, 158, 133, 0.20)',
+      'rgba(174, 158, 133, 0.30)',
+      'rgba(174, 158, 133, 0.40)',
+      'rgba(174, 158, 133, 0.50)',
+      'rgba(174, 158, 133, 0.60)',
+      'rgba(174, 158, 133, 0.70)',
+      'rgba(174, 158, 133, 0.80)',
+      'rgba(174, 158, 133, 0.90)'
     ]
 
     const dynamicRanges = []
     for (let i = 0; i < rangeCount; i++) {
-      const from = roundToNearest(minY + i * step)
-      const to = i === rangeCount - 1 ? maxY : roundToNearest(from + step)
+      const from = minY + i * step
+      const to = i === rangeCount - 1 ? maxY : from + step
       const name = `${from}-${to}`
       const color = staticColors[i]
 
@@ -74,10 +76,6 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     }
 
     return dynamicRanges
-  }
-
-  const roundToNearest = value => {
-    return Math.round(value / 50) * 50
   }
 
   const dynamicRanges = getDynamicRanges()
@@ -217,73 +215,75 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
   }))
 
   return (
-    <Grid item xs={12}>
-      <Card>
-        <CardHeader title={t('peakEngagement')} sx={{ borderBottom: '1px solid #cacccf' }} />
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'start',
-            flexDirection: { xs: 'column', md: 'row' }
-          }}
-        >
-          <Box sx={{ width: '100%', pb: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <CardContent
-              sx={{ width: '100%', padding: '0', paddingTop: '12px !important', paddingBottom: '0px !important' }}
-            >
-              <ReactApexcharts type='heatmap' height={330} options={options} series={mappedSeries} />
-            </CardContent>
-          </Box>
-
+    dynamicRanges && (
+      <Grid item xs={12}>
+        <Card>
+          <CardHeader title={t('peakEngagement')} sx={{ borderBottom: '1px solid #cacccf' }} />
           <Box
             sx={{
               display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              borderLeft: {
-                xs: 'none',
-                md: '1px solid #cacccf'
-              },
-              height: '100%',
-              width: { xs: '100%', md: '50%' }
+              alignItems: 'start',
+              flexDirection: { xs: 'column', md: 'row' }
             }}
           >
-            <CardContent sx={{ minWidth: { md: '400px', xs: 'none' }, height: '412px' }}>
-              {topHourlyData.map((item: any, index: number) => (
-                <Box
-                  key={index}
-                  sx={{
-                    py: 2,
-                    px: 3,
-                    display: 'flex',
-                    width: '100%',
-                    borderRadius: 1,
-                    alignItems: 'center',
-                    backgroundColor: 'background.default',
-                    mb: index !== data.length - 1 ? 4 : undefined
-                  }}
-                >
+            <Box sx={{ width: '100%', pb: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CardContent
+                sx={{ width: '100%', padding: '0', paddingTop: '12px !important', paddingBottom: '0px !important' }}
+              >
+                <ReactApexcharts type='heatmap' height={330} options={options} series={mappedSeries} />
+              </CardContent>
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                borderLeft: {
+                  xs: 'none',
+                  md: '1px solid #cacccf'
+                },
+                height: '100%',
+                width: { xs: '100%', md: '50%' }
+              }}
+            >
+              <CardContent sx={{ minWidth: { md: '400px', xs: 'none' }, height: '412px' }}>
+                {topHourlyData.map((item: any, index: number) => (
                   <Box
+                    key={index}
                     sx={{
-                      width: '100%',
+                      py: 2,
+                      px: 3,
                       display: 'flex',
-                      flexWrap: 'wrap',
-                      alignItems: 'flex-end',
-                      justifyContent: 'space-between'
+                      width: '100%',
+                      borderRadius: 1,
+                      alignItems: 'center',
+                      backgroundColor: 'background.default',
+                      mb: index !== topHourlyData.length - 1 ? 4 : undefined
                     }}
                   >
-                    <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
-                      <Typography sx={{ color: 'text.secondary' }}>{item.title}</Typography>
-                      <Typography sx={{ fontWeight: 500, fontSize: '1.125rem' }}>{item.stats}</Typography>
+                    <Box
+                      sx={{
+                        width: '100%',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'flex-end',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                        <Typography sx={{ color: 'text.secondary' }}>{item.title}</Typography>
+                        <Typography sx={{ fontWeight: 500, fontSize: '1.125rem' }}>{item.stats}</Typography>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-              ))}
-            </CardContent>
+                ))}
+              </CardContent>
+            </Box>
           </Box>
-        </Box>
-      </Card>
-    </Grid>
+        </Card>
+      </Grid>
+    )
   )
 }
 

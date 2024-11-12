@@ -145,7 +145,6 @@ const HistoricalPage = () => {
     if (streams.length > 0) {
       fetchStatistics()
     }
-    console.log('heatMapData', heatMapData)
   }, [fromDate, toDate, durationSelect, streams, selectedStreams])
 
   return (
@@ -246,6 +245,7 @@ const HistoricalPage = () => {
         visitorsChartSeries4Comparisons={visitorsChartSeries4Comparisons}
         xAxis={visitorsChartXAxis}
       />
+
       <MultiLineChart
         title={t('staff')}
         staffChartSeries={staffChartSeriesHistorical?.staffChartSeries}
