@@ -57,7 +57,7 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSer
       borderColor: theme.palette.divider,
       padding: {
         top: 5,
-        right: 6,
+        right: 15,
         bottom: 7
       }
     },

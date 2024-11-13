@@ -86,7 +86,7 @@ const VisitorsChart: React.FC<Props> = ({
       borderColor: theme.palette.divider,
       padding: {
         top: 5,
-        right: 6,
+        right: 15,
         bottom: 7
       }
     },
