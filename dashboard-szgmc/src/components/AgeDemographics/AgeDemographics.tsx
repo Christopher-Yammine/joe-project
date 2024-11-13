@@ -17,6 +17,8 @@ type AgeDemographicsProps = {
   maxValue: number
 }
 
+const sharedColors = ['#CFE0C3', '#ae9e85']
+
 export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title, maxValue, minValue }) => {
   const theme = useTheme()
 
@@ -42,7 +44,7 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title, maxVa
       stacked: true,
       toolbar: { show: false }
     },
-    colors: ['#CFE0C3', '#ae9e85'],
+    colors: sharedColors,
     plotOptions: {
       bar: {
         horizontal: true,

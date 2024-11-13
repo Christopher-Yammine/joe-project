@@ -161,8 +161,8 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
         style: {
           colors: theme.palette.text.disabled
         },
-        formatter: function (value) {
-          return String(value)?.slice(0, 3).toUpperCase()
+        formatter: (value: any) => {
+          return !isAR ? String(value)?.slice(0, 3).toUpperCase() : `${value}`
         }
       }
     },
