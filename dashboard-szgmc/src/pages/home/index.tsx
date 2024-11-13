@@ -7,6 +7,7 @@ import { StatisticBlock } from 'src/components/StatisticBlock'
 import VerseCard from 'src/components/VerseCard'
 import VisitorsChart from 'src/components/VisitorsChart/VisitorsChart'
 import useStore from 'src/store/store'
+import dataJSON from '../../db/data.json'
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL
 
@@ -16,35 +17,37 @@ const Home = () => {
   const setStreams = useStore(state => state.setStreams)
   const selectedStreams = useStore(state => state.selectedStreams)
   const [totalStatistics, setTotalStatistics] = useState({
-    number: '0',
-    percent: '0%',
-    cumulativeSeriesData: []
+    number: dataJSON?.totalVisitorsCard?.number,
+    percent: dataJSON?.totalVisitorsCard?.percent,
+    cumulativeSeriesData: dataJSON?.totalVisitorsCard?.cumulativeSeriesData
   })
   const [uniqueStatistics, setUniqueStatistics] = useState({
-    number: '0',
-    percent: '0%',
-    cumulativeSeriesData: []
+    number: dataJSON?.totalUniqueVisitorsCard?.number,
+    percent: dataJSON?.totalUniqueVisitorsCard?.percent,
+    cumulativeSeriesData: dataJSON?.totalUniqueVisitorsCard?.cumulativeSeriesData
   })
   const [occupancyStatistics, setOccupancyStatistics] = useState({
-    number: '0',
-    percent: '0%',
-    seriesData: []
+    number: dataJSON?.totalOccupancyCard?.number,
+    percent: dataJSON?.totalOccupancyCard?.percent,
+    seriesData: dataJSON?.totalOccupancyCard?.seriesData
   })
-  const [ageBarChartSeries, setAgeBarChartSeries] = useState([])
-  const [happyFacesRangeChartSeries, setHappyFacesRangeChartSeries] = useState([])
-  const [visitorsChartSeries1Daily, setVisitorsChartSeries1Daily] = useState([])
-  const [visitorsChartSeries1Dailycomparisons, setVisitorsChartSeries1Dailycomparisons] = useState<any[]>([])
-  const [visitorsChartSeries2Daily, setVisitorsChartSeries2Daily] = useState([])
+  const [ageBarChartSeries, setAgeBarChartSeries] = useState(dataJSON?.ageBarChartSeries)
+  const [happyFacesRangeChartSeries, setHappyFacesRangeChartSeries] = useState(dataJSON?.ageSentimentBarChartSeries)
+  const [visitorsChartSeries1Daily, setVisitorsChartSeries1Daily] = useState(dataJSON?.visitorsChartSeries1Daily)
+  const [visitorsChartSeries1Dailycomparisons, setVisitorsChartSeries1Dailycomparisons] = useState<any[]>(
+    dataJSON?.visitorsChartSeries1Dailycomparisons
+  )
+  const [visitorsChartSeries2Daily, setVisitorsChartSeries2Daily] = useState(dataJSON?.visitorsChartSeries2Daily)
   const [visitorsChartSeries2Dailycomparisons, setVisitorsChartSeries2Dailycomparisons] = useState<any[]>([])
-  const [visitorsChartSeries3Daily, setVisitorsChartSeries3Daily] = useState([])
+  const [visitorsChartSeries3Daily, setVisitorsChartSeries3Daily] = useState(dataJSON?.visitorsChartSeries3Daily)
   const [visitorsChartSeries3Dailycomparisons, setVisitorsChartSeries3Dailycomparisons] = useState<any[]>([])
-  const [visitorsChartSeries4Daily, setVisitorsChartSeries4Daily] = useState([])
+  const [visitorsChartSeries4Daily, setVisitorsChartSeries4Daily] = useState(dataJSON?.visitorsChartSeries4Daily)
   const [visitorsChartSeries4Dailycomparisons, setVisitorsChartSeries4Dailycomparisons] = useState<any[]>([])
-  const [staffChartSeries, setStaffChartSeries] = useState([])
-  const [ageMinValue, setAgeMinValue] = useState(0)
-  const [ageMaxValue, setAgeMaxValue] = useState(0)
-  const [sentimentMinValue, setSentimentMinValue] = useState(0)
-  const [sentimentMaxValue, setSentimentMaxValue] = useState(0)
+  const [staffChartSeries, setStaffChartSeries] = useState(dataJSON?.staffChartSeriesDaily)
+  const [ageMinValue, setAgeMinValue] = useState(-1000)
+  const [ageMaxValue, setAgeMaxValue] = useState(1000)
+  const [sentimentMinValue, setSentimentMinValue] = useState(-2000)
+  const [sentimentMaxValue, setSentimentMaxValue] = useState(2000)
 
   const fetchStatistics = async () => {
     try {
@@ -174,10 +177,10 @@ const Home = () => {
     <Grid container spacing={4}>
       <VerseCard verseCardTextKey={'verseCardTextKey'} />
       <StatisticBlock
-        number={totalStatistics.number}
+        number={totalStatistics.number || dataJSON?.totalVisitorsCard.number}
         percent={totalStatistics.percent}
         title={t('totalVisitors')}
-        seriesData={totalStatistics.cumulativeSeriesData}
+        seriesData={totalStatistics.cumulativeSeriesData || dataJSON?.totalVisitorsCard?.cumulativeSeriesData}
       />
       <StatisticBlock
         number={uniqueStatistics.number}

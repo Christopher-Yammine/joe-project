@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 import useStore from 'src/store/store'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { chartData, StaffChartHistorical } from './types'
+import { mockNewReturningHistoricalVisitors } from 'src/db/data2'
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL
 
@@ -27,14 +28,24 @@ const HistoricalPage = () => {
   const toDate = useStore(state => state.toDate)
   const durationSelect = useStore(state => state.durationSelect)
 
-  const [totalNewReturningHistoricalVisitors, setTotalNewReturningHistoricalVisitors] = useState<chartData>([])
-  const [totalGendersHistoricalVisitors, setTotalGendersHistoricalVisitors] = useState<chartData>([])
-  const [totalSentimentsHistoricalVisitors, setTotalSentimentsHistoricalVisitors] = useState<chartData>([])
-  const [totalMosqueSouqHistoricalVisitors, setTotalMosqueSouqHistoricalVisitors] = useState<chartData>([])
-  const [heatMapData, setHeatMapData] = useState([])
-  const [topHourlyData, setTopHourlyData] = useState([])
-  const [visitorsChartSeries1, setVisitorsChartSeries1] = useState([])
-  const [visitorsChartSeries1Comparisons, setVisitorsChartSeries1Comparisons] = useState<any[]>([])
+  const [totalNewReturningHistoricalVisitors, setTotalNewReturningHistoricalVisitors] = useState<chartData>(
+    dataJSON?.totalNewReturningHistoricalVisitors
+  )
+  const [totalGendersHistoricalVisitors, setTotalGendersHistoricalVisitors] = useState<chartData>(
+    dataJSON?.totalGendersHistoricalVisitors
+  )
+  const [totalSentimentsHistoricalVisitors, setTotalSentimentsHistoricalVisitors] = useState<chartData>(
+    dataJSON?.totalSentimentsHistoricalVisitors
+  )
+  const [totalMosqueSouqHistoricalVisitors, setTotalMosqueSouqHistoricalVisitors] = useState<chartData>(
+    dataJSON?.totalMosqueSouqHistoricalVisitors
+  )
+  const [heatMapData, setHeatMapData] = useState(dataJSON?.heatMapSeries)
+  const [topHourlyData, setTopHourlyData] = useState(dataJSON?.topHourlyData)
+  const [visitorsChartSeries1, setVisitorsChartSeries1] = useState(dataJSON?.visitorsChartSeries1)
+  const [visitorsChartSeries1Comparisons, setVisitorsChartSeries1Comparisons] = useState<any[]>(
+    dataJSON?.visitorsChartSeries1Dailycomparisons
+  )
   const [visitorsChartSeries2, setVisitorsChartSeries2] = useState([])
   const [visitorsChartSeries2Comparisons, setVisitorsChartSeries2Comparisons] = useState<any[]>([])
   const [visitorsChartSeries3, setVisitorsChartSeries3] = useState([])
@@ -43,7 +54,7 @@ const HistoricalPage = () => {
   const [visitorsChartSeries4Comparisons, setVisitorsChartSeries4Comparisons] = useState<any[]>([])
   const [visitorsChartXAxis, setVisitorsChartXAxix] = useState([])
   const [staffChartSeriesHistorical, setStaffChartSeriesHistorical] = useState<StaffChartHistorical>({
-    staffChartSeries: [],
+    staffChartSeries: dataJSON?.staffChartSeriesTotal,
     xAxis: []
   })
 
