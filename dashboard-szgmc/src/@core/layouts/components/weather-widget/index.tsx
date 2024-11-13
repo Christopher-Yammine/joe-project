@@ -14,7 +14,46 @@ const WeatherWidget = () => {
   const isRTL = settings.direction === 'rtl'
 
   const getWeatherImage = (code, isDaytime) => {
-    if (!isDaytime) return '🌙' // Moon icon for night
+    if (!isDaytime) {
+      switch (code) {
+        case 0:
+          return '🌙' // Clear night
+        case 1:
+        case 2:
+        case 3:
+          return (
+            <img
+              src='/images/partly-cloudy-night.png'
+              alt='Partly Cloudy Night'
+              style={{ width: '50px', height: '50px' }}
+            />
+          )
+        case 45:
+        case 48:
+          return '🌫️' // Fog
+        case 51:
+        case 53:
+        case 55:
+          return '🌧️' // Drizzle
+        case 61:
+        case 63:
+        case 65:
+          return '🌧️' // Rain
+        case 71:
+        case 73:
+        case 75:
+          return '🌨️' // Snow
+        default:
+          return (
+            <img
+              src='/images/partly-cloudy-night.png'
+              alt='Partly Cloudy Night'
+              style={{ width: '50px', height: '50px' }}
+            />
+          ) // Default partly cloudy night (moon with a cloud)
+      }
+    }
+
     switch (code) {
       case 0:
         return '☀️' // Clear sky
@@ -38,7 +77,7 @@ const WeatherWidget = () => {
       case 75:
         return '🌨️' // Snow
       default:
-        return '🌤️' // Default partly sunny for other cases
+        return '🌤️' // Default partly sunny
     }
   }
 
@@ -67,7 +106,7 @@ const WeatherWidget = () => {
   const todayTempMax = temperature_2m_max[0]
   const todayTempMin = temperature_2m_min[0]
   const todayWeatherCode = weathercode[0]
-  const averageTemp = ((todayTempMax + todayTempMin) / 2).toFixed(1)
+  const averageTemp = Math.round((todayTempMax + todayTempMin) / 2)
 
   const currentHour = new Date().getHours()
   const isDaytime = currentHour >= 6 && currentHour < 18
