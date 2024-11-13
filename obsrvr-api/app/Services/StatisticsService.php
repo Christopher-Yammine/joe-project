@@ -349,6 +349,10 @@ class StatisticsService
         $fourthReturnTitle = 'totalFootfall';
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, false, null, $firstReturnTitle, $fourthReturnTitle);
 
+        usort($visitorsChartSeries, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+
         return [
             'visitorsChartSeries1Daily' => array_values($visitorsChartSeries),
             'visitorsChartSeries1Dailycomparisons' => array_values($calculateMetricsComparison),
@@ -389,6 +393,10 @@ class StatisticsService
         $firstReturnTitle = 'avgUniqueVisitors';
         $fourthReturnTitle = 'totalUniqueVisitors';
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, true, false, null, $firstReturnTitle, $fourthReturnTitle);
+
+        usort($visitorsChartSeries, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
 
         return [
             'visitorsChartSeries2Daily' => array_values($visitorsChartSeries),
@@ -432,6 +440,10 @@ class StatisticsService
         $fourthReturnTitle = 'totalRepeatedVisitors';
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, false, $personType, $firstReturnTitle, $fourthReturnTitle);
 
+        usort($staffChartSeries, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+
         return [
             'visitorsChartSeries3Daily' => array_values($visitorsChartSeries),
             'visitorsChartSeries3Dailycomparisons' => array_values($calculateMetricsComparison),
@@ -473,6 +485,10 @@ class StatisticsService
         $fourthReturnTitle = 'totalOccupancy';
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, true, null, $firstReturnTitle, $fourthReturnTitle);
 
+        usort($staffChartSeries, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+
         return [
             'visitorsChartSeries4Daily' => array_values($visitorsChartSeries),
             'visitorsChartSeries4Dailycomparisons' => array_values($calculateMetricsComparison),
@@ -510,7 +526,9 @@ class StatisticsService
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
-        $visitorsChartSeries = array_values($visitorsChartSeries);
+        usort($visitorsChartSeries, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
 
         return [
             'staffChartSeries' => $visitorsChartSeries
@@ -972,7 +990,8 @@ class StatisticsService
             ];
         }
 
-    private function formatHour($hour) {
+
+        private function formatHour($hour) {
         if ($hour == 0) {
             return "12 AM";
         } elseif ($hour < 12) {
@@ -1058,6 +1077,10 @@ class StatisticsService
             $duration
         );
 
+        usort($visitorsChartSeries, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+
         return [
             'visitorsChartSeries1' => array_values($visitorsChartSeries),
             'visitorsChartSeries1Comparisons' => array_values($calculateMetricsComparison),
@@ -1123,6 +1146,10 @@ class StatisticsService
             $etlDataTable,
             $duration
         );
+
+        usort($visitorsChartSeries, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
 
         return [
             'visitorsChartSeries2' => array_values($visitorsChartSeries),
@@ -1190,6 +1217,10 @@ class StatisticsService
             $duration
         );
 
+        usort($visitorsChartSeries, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+
         return [
             'visitorsChartSeries3' => array_values($visitorsChartSeries),
             'visitorsChartSeries3Comparisons' => array_values($calculateMetricsComparison),
@@ -1255,6 +1286,10 @@ class StatisticsService
             $duration
         );
 
+        usort($visitorsChartSeries, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+
         return [
             'visitorsChartSeries4' => array_values($visitorsChartSeries),
             'visitorsChartSeries4Comparisons' => array_values($calculateMetricsComparison),
@@ -1313,6 +1348,9 @@ class StatisticsService
             $xAxis = array_merge($xAxis, array_keys($series['data']));
         }
 
+        usort($staffChartSeries, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
         $xAxis = array_values(array_unique($xAxis));
 
         return [
