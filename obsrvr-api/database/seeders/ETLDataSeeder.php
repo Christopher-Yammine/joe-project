@@ -27,7 +27,7 @@ class ETLDataSeeder extends Seeder
         $streams = Stream::all()->pluck('id')->toArray();
 
         // $startDateHourly = Carbon::yesterday()->setTime(0, 0, 0);
-        $startDateHourly = Carbon::now()->subDays(20)->setTime(0, 0, 0);
+        $startDateHourly = Carbon::now()->subDays(15)->setTime(0, 0, 0);
         $endDateHourly = Carbon::now();
 
         $startDateDaily = Carbon::now()->startOfDay()->subDays(30);

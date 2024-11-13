@@ -220,8 +220,8 @@ class StatisticsService
     public function getAgeGenderSentimentBarChartData(array $streamIds) {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
-        $startOfYesterday = now()->subDay()->startOfDay();
-        $endOfYesterday = now()->subDay()->endOfDay();
+        // $startOfYesterday = now()->subDay()->startOfDay();
+        // $endOfYesterday = now()->subDay()->endOfDay();
 
         $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$startOfToday, $endOfToday])
@@ -238,20 +238,20 @@ class StatisticsService
             ->groupBy('genders.gender', 'sentiments.sentiment', 'age_groups.group_name')
             ->get();
 
-        $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
-            ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
-            ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
-            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
-            ->select(
-                'genders.gender',
-                'sentiments.sentiment',
-                'age_groups.group_name',
-                DB::raw('SUM(etl_data_hourly.value) as total')
-            )
-            ->groupBy('genders.gender', 'sentiments.sentiment', 'age_groups.group_name')
-            ->get();
+        // $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
+        //     ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
+        //     ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
+        //     ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
+        //     ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+        //     ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+        //     ->select(
+        //         'genders.gender',
+        //         'sentiments.sentiment',
+        //         'age_groups.group_name',
+        //         DB::raw('SUM(etl_data_hourly.value) as total')
+        //     )
+        //     ->groupBy('genders.gender', 'sentiments.sentiment', 'age_groups.group_name')
+        //     ->get();
 
             $ageBarChartSeries = [];
             $ageSentimentBarChartSeries = [];
@@ -289,27 +289,32 @@ class StatisticsService
         $sadMaxWithDecrease = -abs(round($sadMax * 1.1));
 
         $ageBarChartSeriesFormatted = [];
-        foreach ($ageBarChartSeries as $gender => $data) {
-            $total = array_sum(array_values($data));
-            $ageBarChartSeriesFormatted[] = [
-                'name' => "{$gender} [total = " . abs($total) . "]",
-                'name_ar' => "{$gender} [المجموع = " . abs($total) . "]",
-                'data' => array_reverse(array_values($data)),
-                'maxWithIncrease' => $gender === 'Males' ? $maleMaxWithIncrease : $femaleMaxWithIncrease
-            ];
+        foreach (['Males', 'Females'] as $gender) {
+            if (isset($ageBarChartSeries[$gender])) {
+                $total = array_sum(array_values($ageBarChartSeries[$gender]));
+                $ageBarChartSeriesFormatted[] = [
+                    'name' => "{$gender} [ " . abs($total) . "]",
+                    'name_ar' => "{$gender} [" . abs($total) . "]",
+                    'data' => array_reverse(array_values($ageBarChartSeries[$gender])),
+                    'maxWithIncrease' => $gender === 'Males' ? $maleMaxWithIncrease : $femaleMaxWithIncrease
+                ];
+            }
         }
 
         $ageSentimentBarChartSeriesFormatted = [];
-        foreach ($ageSentimentBarChartSeries as $sentiment => $data) {
-            $total = array_sum(array_values($data));
-            $maxWithIncrease = $sentiment === 'Happy Visitors' ? $happyMaxWithIncrease : $sadMaxWithDecrease;
-            $ageSentimentBarChartSeriesFormatted[] = [
-                'name' => "{$sentiment} [total = " . abs($total) . "]",
-                'name_ar' => "{$sentiment} [المجموع = " . abs($total) . "]",
-                'data' => array_reverse(array_values($data)),
-                'maxWithIncrease' => $maxWithIncrease
-            ];
+        foreach (['Happy Visitors', 'Unhappy Visitors'] as $sentiment) {
+            if (isset($ageSentimentBarChartSeries[$sentiment])) {
+                $total = array_sum(array_values($ageSentimentBarChartSeries[$sentiment]));
+                $maxWithIncrease = $sentiment === 'Happy Visitors' ? $happyMaxWithIncrease : $sadMaxWithDecrease;
+                $ageSentimentBarChartSeriesFormatted[] = [
+                    'name' => "{$sentiment} [" . abs($total) . "]",
+                    'name_ar' => "{$sentiment} [" . abs($total) . "]",
+                    'data' => array_reverse(array_values($ageSentimentBarChartSeries[$sentiment])),
+                    'maxWithIncrease' => $maxWithIncrease
+                ];
+            }
         }
+
         return [
             'ageBarChartSeries' => $ageBarChartSeriesFormatted,
             'ageSentimentBarChartSeries' => $ageSentimentBarChartSeriesFormatted,
@@ -440,7 +445,7 @@ class StatisticsService
         $fourthReturnTitle = 'totalRepeatedVisitors';
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, false, $personType, $firstReturnTitle, $fourthReturnTitle);
 
-        usort($staffChartSeries, function ($a, $b) {
+        usort($visitorsChartSeries, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
 
@@ -485,7 +490,7 @@ class StatisticsService
         $fourthReturnTitle = 'totalOccupancy';
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, true, null, $firstReturnTitle, $fourthReturnTitle);
 
-        usort($staffChartSeries, function ($a, $b) {
+        usort($visitorsChartSeries, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
 
@@ -1372,10 +1377,10 @@ class StatisticsService
 
 
     private function getGroupByFormat($duration) {
-        return match ($duration) {
+        return match (strtolower($duration)) {
             'Daily' => 'DATE_FORMAT(date, "%Y-%m-%d")',
-            'Weekly' => 'DATE_FORMAT(date, "%Y-%u")',
-            'Monthly' => 'DATE_FORMAT(date, "%Y-%m")',
+            'weekly' => 'CONCAT(DATE_FORMAT(date, "%b %Y"), " (W", WEEK(date), ")")',
+            'monthly' => 'DATE_FORMAT(date, "%b %Y")',
             'Quarterly' => 'CONCAT(YEAR(date), "-", QUARTER(date))',
             'Yearly' => 'DATE_FORMAT(date, "%Y")',
             default => 'DATE_FORMAT(date, "%Y-%m-%d")',
@@ -1554,7 +1559,7 @@ function calculateDurationAverage($duration, $fromDate, $toDate)
             $numberOfPeriods = ceil($from->diffInMonths($to) / 3);
             break;
         case 'yearly':
-            $numberOfPeriods = $from->diffInYears($to);
+            $numberOfPeriods = max(1, $from->diffInYears($to));
             break;
         default:
             throw new \InvalidArgumentException("Invalid duration specified.");
