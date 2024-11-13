@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ETLController;
+use App\Http\Controllers\StreamController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,3 +25,5 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::get('/statistics/hourly', [ETLController::class, 'getHourlyStatistics']);
+Route::get('/statistics/historical', [ETLController::class, 'getHistoricalStatistics']);
+Route::get('/streams', [StreamController::class, 'getAllStreams']);

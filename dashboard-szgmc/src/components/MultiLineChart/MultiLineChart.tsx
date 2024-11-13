@@ -15,13 +15,16 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 
 import dataJSON from '../../db/data.json'
 import { useEffect, useState } from 'react'
+import { StaffChartSeriesData } from 'src/pages/historical/types'
 
 interface Props {
   title: string
   isDaily?: boolean
+  staffChartSeries: StaffChartSeriesData
+  xAxis?: string[]
 }
 
-const MultiLineChart: React.FC<Props> = ({ title, isDaily = false }) => {
+const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSeries, xAxis }) => {
   const theme = useTheme()
 
   const { settings } = useSettings()
@@ -32,7 +35,7 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false }) => {
 
   const [isChartLoaded, setIsChartLoaded] = useState(false)
 
-  const series = dataJSON[`staffChartSeries${isDaily ? 'Daily' : 'Total'}`]?.map(item => ({
+  const series = staffChartSeries?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
@@ -72,20 +75,7 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false }) => {
 
       tickAmount: isMobile ? 12 : isDaily ? 24 : 12,
       categories: !isDaily
-        ? [
-            'Oct 2023 (W40)',
-            'Oct 2023 (W41)',
-            'Oct 2023 (W42)',
-            'Oct 2023 (W43)',
-            'Oct 2023 (W44)',
-            'Nov 2023 (W45)',
-            'Nov 2023 (W46)',
-            'Nov 2023 (W47)',
-            'Nov 2023 (W48)',
-            'Dec 2023 (W49)',
-            'Dec 2023 (W50)',
-            'Dec 2023 (W51)'
-          ]
+        ? xAxis
         : isRTL
         ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23].reverse()
         : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],

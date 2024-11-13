@@ -1,5 +1,5 @@
 import { Card, CardHeader, Grid, Theme, useMediaQuery, useTheme } from '@mui/material'
-import React, { FC } from 'react'
+import React, { FC, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { useSettings } from 'src/@core/hooks/useSettings'
@@ -9,11 +9,15 @@ type AgeDemographicsProps = {
     name: string
     name_ar?: string
     data: number[]
+    minValue?: number
+    maxValue?: number
   }[]
   title: string
+  minValue: number
+  maxValue: number
 }
 
-export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title }) => {
+export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title, maxValue, minValue }) => {
   const theme = useTheme()
 
   const { t } = useTranslation()
@@ -65,8 +69,9 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title }) => 
           colors: theme?.palette?.text?.primary
         }
       },
-      min: -50000,
-      max: 50000,
+      min: minValue ?? 0,
+      max: maxValue ?? 0,
+
       title: {
         text: 'Age Group',
         style: {
@@ -130,7 +135,7 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title }) => 
         colors: theme?.palette?.text?.primary
       },
       markers: {
-        offsetX: isRTL ?  2 : -2
+        offsetX: isRTL ? 2 : -2
       }
     }
   }

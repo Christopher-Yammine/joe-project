@@ -4,40 +4,52 @@ import { useState } from 'react'
 import Select, { OptionProps, components } from 'react-select'
 import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
+import useStore from 'src/store/store'
 
 const CameraSelect = () => {
   const { t } = useTranslation()
-  const options = [
-    {
-      label: t('Mosque'),
-      value: 'mosque',
-      options: [
-        {
-          label: t('Mosque Entry 1'),
-          value: 'Mosque Entry 1'
-        },
-        {
-          label: t('Mosque Entry 2'),
-          value: 'Mosque Entry 2'
-        },
-        {
-          label: t('Mosque Entry 3'),
-          value: 'Mosque Entry 3'
-        }
-      ]
-    },
-    {
-      label: t('Souq'),
-      value: 'souq',
-      options: [
-        {
-          label: t('Souq Entry 1'),
-          value: 'Souq Entry 1'
-        }
-      ]
-    }
-  ]
 
+  const streams = useStore(state => state.streams)
+  const setSelectedStreams = useStore(state => state.setSelectedStream)
+  // const options = [
+  //   {
+  //     label: t('Mosque'),
+  //     value: 'mosque',
+  //     options: [
+  //       {
+  //         label: t('Mosque Entry 1'),
+  //         value: 'Mosque Entry 1'
+  //       },
+  //       {
+  //         label: t('Mosque Entry 2'),
+  //         value: 'Mosque Entry 2'
+  //       },
+  //       {
+  //         label: t('Mosque Entry 3'),
+  //         value: 'Mosque Entry 3'
+  //       }
+  //     ]
+  //   },
+  //   {
+  //     label: t('Souq'),
+  //     value: 'souq',
+  //     options: [
+  //       {
+  //         label: t('Souq Entry 1'),
+  //         value: 'Souq Entry 1'
+  //       }
+  //     ]
+  //   }
+  // ]
+
+  const options = streams?.map(stream => ({
+    label: t(stream.label),
+    value: stream.value,
+    options: stream.options.map(entry => ({
+      label: t(entry.label),
+      value: entry.value
+    }))
+  }))
   const theme = useTheme()
 
   const [selected, setSelected] = useState([])
@@ -61,6 +73,10 @@ const CameraSelect = () => {
           return prevSelected.filter(item => !data.options.find(option => option.label === item.label))
         }
 
+        // @ts-ignore
+        const ids = uniqueItems.flatMap((item: any) => (item.options ? item.option.map(opt => opt.value) : item.value))
+        // @ts-ignore
+        setSelectedStreams(prevSelected.concat(ids))
         // @ts-ignore
         return prevSelected.concat(uniqueItems)
       })
@@ -103,7 +119,7 @@ const CameraSelect = () => {
           }}
         >
           <svg xmlns='http://www.w3.org/2000/svg' width='15px' height='15px' viewBox='0 0 48 48'>
-            <g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='4'>
+            <g fill='none' stroke='currentColor' strokeLinecap='round' strokeLinejoin='round' strokeWidth='4'>
               <path d='M19.006 26.276V37H5m37.62-15.785l-3.863-1.035l-4.003 7.21l5.796 1.553z' />
               <path d='m38.757 20.18l-4.003 7.21l-1.742 2.639L5 22.523L8.623 9L40.5 17.541z' />
             </g>
@@ -149,7 +165,11 @@ const CameraSelect = () => {
       <Select
         onChange={option => {
           // @ts-ignore
-          return setSelected(option)
+          // return setSelected(option)
+          setSelected(option)
+          // @ts-ignore
+          const ids = option.flatMap((item: any) => (item.options ? item.option.map(opt => opt.value) : item.value))
+          setSelectedStreams(ids)
         }}
         closeMenuOnSelect={false}
         isMulti

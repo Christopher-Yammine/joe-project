@@ -12,6 +12,7 @@ import { useTheme } from '@mui/material/styles'
 // ** Icon Imports
 import { Badge } from '@mui/material'
 import { t } from 'i18next'
+import useStore from 'src/store/store'
 
 export const DurationSelect = () => {
   const { settings } = useSettings()
@@ -49,7 +50,8 @@ export const DurationSelect = () => {
     setIsOpen(false)
   }
 
-  const [value, setValue] = useState('Weekly')
+  const [value, setValue] = useState(t('Daily'))
+  const setDurationSelect = useStore(state => state.setDurationSelect)
 
   if (window.location.pathname.includes('/home')) return null
 
@@ -104,6 +106,7 @@ export const DurationSelect = () => {
           sx={{ p: 0 }}
           onClick={() => {
             setValue('Daily')
+            setDurationSelect('Daily')
             handleDropdownClose()
           }}
         >
@@ -113,6 +116,7 @@ export const DurationSelect = () => {
           sx={{ p: 0 }}
           onClick={() => {
             setValue('Weekly')
+            setDurationSelect('Weekly')
             handleDropdownClose()
           }}
         >
@@ -122,6 +126,7 @@ export const DurationSelect = () => {
           sx={{ p: 0 }}
           onClick={() => {
             setValue('Monthly')
+            setDurationSelect('Monthly')
             handleDropdownClose()
           }}
         >
@@ -131,6 +136,7 @@ export const DurationSelect = () => {
           sx={{ p: 0 }}
           onClick={() => {
             setValue('Yearly')
+            setDurationSelect('Yearly')
             handleDropdownClose()
           }}
         >
