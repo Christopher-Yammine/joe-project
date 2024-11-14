@@ -10,9 +10,8 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 import useStore from 'src/store/store'
 
 export default function DatePickerRange() {
-  const now = new Date()
-  const oneWeekAgo = new Date()
-  oneWeekAgo.setDate(now.getDate() - 7)
+  const now = moment().startOf('day')
+  const oneWeekAgo = moment().subtract(7, 'days').startOf('day')
   const [fromDate, setFromDate] = useState(oneWeekAgo)
   const [toDate, setToDate] = useState(new Date())
   const setFromDateStore = useStore(state => state.setFromDate)
@@ -25,8 +24,6 @@ export default function DatePickerRange() {
   const isAR = settings.language === 'ar'
 
   const range = {
-    Today: [moment(), moment()],
-    Yesterday: [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
     'Last 7 Days': [moment().subtract(6, 'days'), moment()],
     'Last 30 Days': [moment().subtract(29, 'days'), moment()],
     'This Month': [moment().startOf('month'), moment().endOf('month')],
@@ -35,8 +32,6 @@ export default function DatePickerRange() {
   }
 
   const rangeRtl = {
-    اليوم: [moment(), moment()],
-    أمس: [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
     'آخر 7 أيام': [moment().subtract(6, 'days'), moment()],
     'آخر 30 يوما': [moment().subtract(29, 'days'), moment()],
     'هذا الشهر': [moment().startOf('month'), moment().endOf('month')],
@@ -56,23 +51,36 @@ export default function DatePickerRange() {
 
   // @ts-ignore
   const handleEvent = (event, picker: any) => {
-    setFromDate(picker.startDate?._d)
-    setToDate(picker.endDate?._d)
-    setFromDateStore(picker.startDate?._d)
-    setToDateStore(picker.endDate?._d)
+    const startDate = picker.startDate?._d
+    const startDatePlusOne = moment(startDate).startOf('day').add(1, 'days').toDate()
+    const endDate = picker.endDate.endOf('day')?._d
+
+    const isSameDate = moment(endDate).isSame(startDate, 'day')
+
+    if (isSameDate) {
+      return
+    }
+
+    setFromDate(startDate)
+    setToDate(endDate)
+
+    setFromDateStore(startDatePlusOne)
+    setToDateStore(endDate)
   }
 
   if (window.location.pathname.includes('/home')) return null
 
   return (
     <DateRangePicker
-      onEvent={handleEvent}
+      onApply={handleEvent}
       initialSettings={{
         ranges: isAR ? rangeRtl : range,
-        startDate: new Date(),
-        endDate: new Date(),
+        startDate: now,
+        endDate: now,
         alwaysShowCalendars: true,
-        locale: 'ar'
+        locale: 'ar',
+        maxDate: moment(),
+        autoApply: false
       }}
     >
       <button
