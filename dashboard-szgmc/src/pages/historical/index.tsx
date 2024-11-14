@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react'
 import useStore from 'src/store/store'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { chartData, StaffChartHistorical } from './types'
-import { mockNewReturningHistoricalVisitors } from 'src/db/data2'
+import SkeletonLoading from 'src/@core/layouts/components/skeleton-loading'
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL
 
@@ -57,6 +57,7 @@ const HistoricalPage = () => {
     staffChartSeries: dataJSON?.staffChartSeriesTotal,
     xAxis: []
   })
+  const [loading, setLoading] = useState(false)
 
   const formatDate = (date: Date): string => {
     return date instanceof Date ? date.toISOString().split('T')[0] : ''
@@ -64,6 +65,7 @@ const HistoricalPage = () => {
 
   const getAllStreams = async () => {
     try {
+      setLoading(true)
       const response = await fetch(`${API_URL}/streams`)
       if (!response.ok) {
         throw new Error('Network response was not ok')
@@ -72,11 +74,14 @@ const HistoricalPage = () => {
       setStreams(streams)
     } catch (error) {
       console.log(error)
+    } finally {
+      setLoading(false)
     }
   }
 
   const fetchStatistics = async () => {
     try {
+      setLoading(true)
       let formattedFromDate
       let formattedToDate
       let response
@@ -145,6 +150,8 @@ const HistoricalPage = () => {
       setStaffChartSeriesHistorical(data?.staffChartSeriesHistorical)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -157,6 +164,10 @@ const HistoricalPage = () => {
       fetchStatistics()
     }
   }, [fromDate, toDate, durationSelect, streams, selectedStreams])
+
+  if (loading) {
+    return <SkeletonLoading />
+  }
 
   return (
     <Grid container spacing={4}>

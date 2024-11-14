@@ -8,6 +8,8 @@ import VerseCard from 'src/components/VerseCard'
 import VisitorsChart from 'src/components/VisitorsChart/VisitorsChart'
 import useStore from 'src/store/store'
 import dataJSON from '../../db/data.json'
+import { Box, Skeleton } from '@mui/material'
+import SkeletonLoading from 'src/@core/layouts/components/skeleton-loading'
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL
 
@@ -49,9 +51,11 @@ const Home = () => {
   const [ageMaxValue, setAgeMaxValue] = useState(1000)
   const [sentimentMinValue, setSentimentMinValue] = useState(-2000)
   const [sentimentMaxValue, setSentimentMaxValue] = useState(2000)
+  const [loading, setLoading] = useState(false)
 
   const fetchStatistics = async () => {
     try {
+      setLoading(true)
       let response
 
       if (streams.length > 0 && selectedStreams.length === 0) {
@@ -149,6 +153,8 @@ const Home = () => {
       setStaffChartSeries(data.staffChartSeries)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -164,6 +170,7 @@ const Home = () => {
 
   const getAllStreams = async () => {
     try {
+      setLoading(true)
       const response = await fetch(`${API_URL}/streams`)
       if (!response.ok) {
         throw new Error('Network response was not ok')
@@ -172,7 +179,13 @@ const Home = () => {
       setStreams(streams)
     } catch (error) {
       console.log(error)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  if (loading) {
+    return <SkeletonLoading />
   }
 
   return (
