@@ -148,7 +148,6 @@ const WeatherWidget = () => {
   const todayTempMin = temperature_2m_min[0]
   const todayWeatherCode = weathercode[0]
   const averageTemp = Math.round((todayTempMax + todayTempMin) / 2)
-  console.log('todayWeatherCode', todayWeatherCode)
 
   const currentHour = new Date().getHours()
   const isDaytime = currentHour >= 6 && currentHour < 18
