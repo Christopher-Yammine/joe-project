@@ -1,5 +1,5 @@
 import { Box } from '@mui/system'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import Select, { OptionProps, components } from 'react-select'
 import { useTheme } from '@mui/material/styles'
@@ -154,8 +154,34 @@ const CameraSelect = () => {
     )
   }
 
+  // const selectRef = useRef(null)
+
+  // // @ts-ignore
+  // const handleClickOutside = event => {
+  //   // @ts-ignore
+  //   if (!selectRef.current && !selectRef.current.contains(event.target)) {
+  //     handleMenuClose()
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   console.log('Event listener added')
+  //   document.addEventListener('mousedown', handleClickOutside)
+
+  //   return () => {
+  //     console.log('Event listener removed')
+  //     document.removeEventListener('mousedown', handleClickOutside)
+  //   }
+  // }, [])
+
+  const handleMenuClose = () => {
+    const ids = selected.flatMap((item: any) => (item.options ? item.options.map(opt => opt.value) : item.value))
+    setSelectedStreams(ids)
+  }
+
   return (
     <Box
+      // ref={selectRef}
       style={{
         minWidth: '200px',
         backgroundColor: theme.palette.background.paper,
@@ -168,13 +194,14 @@ const CameraSelect = () => {
           // return setSelected(option)
           setSelected(option)
           // @ts-ignore
-          const ids = option.flatMap((item: any) => (item.options ? item.option.map(opt => opt.value) : item.value))
-          setSelectedStreams(ids)
+          // const ids = option.flatMap((item: any) => (item.options ? item.option.map(opt => opt.value) : item.value))
+          // setSelectedStreams(ids)
         }}
+        onMenuClose={handleMenuClose}
         closeMenuOnSelect={false}
         isMulti
         components={{ Option, ValueContainer: CustomValueContainer }}
-        hideSelectedOptions={false}
+        hideSelectedOptions={true}
         formatGroupLabel={GroupLabel}
         options={options}
         value={selected}
