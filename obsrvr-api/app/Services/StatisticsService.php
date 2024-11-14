@@ -356,6 +356,7 @@ class StatisticsService
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
                     'data' => array_fill(0, 24, 0),
                 ];
             }
@@ -401,6 +402,7 @@ class StatisticsService
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
                     'data' => array_fill(0, 24, 0),
                 ];
             }
@@ -446,6 +448,7 @@ class StatisticsService
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
                     'data' => array_fill(0, 24, 0),
                 ];
             }
@@ -492,6 +495,7 @@ class StatisticsService
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
                     'data' => array_fill(0, 24, 0),
                 ];
             }
@@ -1059,6 +1063,7 @@ class StatisticsService
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
                     'data' => [],
                 ];
             }
@@ -1133,6 +1138,7 @@ class StatisticsService
                 if (!isset($visitorsChartSeries[$row->name])) {
                     $visitorsChartSeries[$row->name] = [
                         'name' => $row->name,
+                        'name_ar' => $this->getArabicName($row->name),
                         'data' => [],
                     ];
                 }
@@ -1202,6 +1208,7 @@ class StatisticsService
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
                     'data' => [],
                 ];
             }
@@ -1272,6 +1279,7 @@ class StatisticsService
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
                     'data' => [],
                 ];
             }
@@ -1535,6 +1543,7 @@ class StatisticsService
     private function getArabicName($name) {
         $arabicNames = [
             'Souq' => 'سوق',
+            'Souq Entry 1' => 'دخول السوق 1',
             'Mosque Entry 1' => 'دخول المسجد 1',
             'Mosque Entry 2' => 'دخول المسجد 2',
             'Mosque Entry 3' => 'دخول المسجد 3',
