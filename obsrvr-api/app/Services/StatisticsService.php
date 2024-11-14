@@ -220,8 +220,6 @@ class StatisticsService
     public function getAgeGenderSentimentBarChartData(array $streamIds) {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
-        // $startOfYesterday = now()->subDay()->startOfDay();
-        // $endOfYesterday = now()->subDay()->endOfDay();
 
         $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$startOfToday, $endOfToday])
@@ -238,21 +236,6 @@ class StatisticsService
             ->groupBy('genders.gender', 'sentiments.sentiment', 'age_groups.group_name')
             ->get();
 
-        // $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-        //     ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
-        //     ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
-        //     ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
-        //     ->join('genders', 'demographics.gender_id', '=', 'genders.id')
-        //     ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
-        //     ->select(
-        //         'genders.gender',
-        //         'sentiments.sentiment',
-        //         'age_groups.group_name',
-        //         DB::raw('SUM(etl_data_hourly.value) as total')
-        //     )
-        //     ->groupBy('genders.gender', 'sentiments.sentiment', 'age_groups.group_name')
-        //     ->get();
-
             $ageBarChartSeries = [];
             $ageSentimentBarChartSeries = [];
             $maleMax = 0;
@@ -260,16 +243,31 @@ class StatisticsService
             $happyMax = 0;
             $sadMax = 0;
 
+            $ageGroups = $todayData->pluck('group_name')->unique()->sort()->toArray();
+            $yAxis = array_reverse(array_values($ageGroups));  // Make sure the Y-axis is an ordered list of age groups
+
+            // Create data series for Males and Females
             foreach ($todayData as $entry) {
-                if ($entry->gender === 'Male') {
-                    $totalValue = -abs($entry->total);
-                    $ageBarChartSeries['Males'][$entry->group_name] = $totalValue;
-                    $maleMax = max($maleMax, abs($entry->total));
-                } elseif ($entry->gender === 'Female') {
+                if ($entry->gender === 'Female') {
                     $totalValue = abs($entry->total);
                     $ageBarChartSeries['Females'][$entry->group_name] = $totalValue;
                     $femaleMax = max($femaleMax, $entry->total);
+                } elseif ($entry->gender === 'Male') {
+                    $totalValue = -abs($entry->total);
+                    $ageBarChartSeries['Males'][$entry->group_name] = $totalValue;
+                    $maleMax = max($maleMax, abs($entry->total));
                 }
+
+                // if ($entry->sentiment === 'Sad' || $entry->sentiment === 'Neutral') {
+                //     if (!isset($ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name])) {
+                //         $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] = 0;
+                //     }
+                //     $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] -= abs($entry->total);
+                //     $sadMax = max($sadMax, abs($ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name]));
+                // } elseif ($entry->sentiment === 'Happy') {
+                //     $ageSentimentBarChartSeries['Happy Visitors'][$entry->group_name] = $entry->total;
+                //     $happyMax = max($happyMax, $entry->total);
+                // }
 
                 if ($entry->sentiment === 'Happy') {
                     $ageSentimentBarChartSeries['Happy Visitors'][$entry->group_name] = $entry->total;
@@ -279,46 +277,60 @@ class StatisticsService
                         $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] = 0;
                     }
                     $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] -= abs($entry->total);
-                    $sadMax = max($sadMax, abs($entry->total));
+                    $sadMax = max($sadMax, abs($ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name]));
                 }
             }
 
-        $maleMaxWithIncrease = -abs(round($maleMax * 1.1));
-        $femaleMaxWithIncrease = round($femaleMax * 1.1);
-        $happyMaxWithIncrease = round($happyMax * 1.1);
-        $sadMaxWithDecrease = -abs(round($sadMax * 1.1));
+            $maxOverall = max($maleMax, $femaleMax);
+            $maxWithIncrease = round($maxOverall * 1.1);
+            $maleMaxWithIncrease = -abs($maxWithIncrease);
+            $femaleMaxWithIncrease = abs($maxWithIncrease);
 
-        $ageBarChartSeriesFormatted = [];
-        foreach (['Males', 'Females'] as $gender) {
-            if (isset($ageBarChartSeries[$gender])) {
-                $total = array_sum(array_values($ageBarChartSeries[$gender]));
-                $ageBarChartSeriesFormatted[] = [
-                    'name' => "{$gender} [ " . abs($total) . "]",
-                    'name_ar' => "{$gender} [" . abs($total) . "]",
-                    'data' => array_reverse(array_values($ageBarChartSeries[$gender])),
-                    'maxWithIncrease' => $gender === 'Males' ? $maleMaxWithIncrease : $femaleMaxWithIncrease
-                ];
+            $sentimentMaxOverall = max($happyMax, $sadMax);
+            $sentimentMaxWithIncrease = round($sentimentMaxOverall * 1.1);
+            $happyMaxWithIncrease = -abs($sentimentMaxWithIncrease);
+            $sadMaxWithDecrease = abs($sentimentMaxWithIncrease);
+
+            $ageBarChartSeriesFormatted = [];
+            foreach (['Males', 'Females'] as $gender) {
+                if (isset($ageBarChartSeries[$gender])) {
+                    $data = array_fill_keys($yAxis, 0);
+                    foreach ($ageBarChartSeries[$gender] as $group => $value) {
+                        $data[$group] = $value;
+                    }
+                    $total = array_sum(array_values($data));
+                    $ageBarChartSeriesFormatted[] = [
+                        'name' => "{$gender} [" . abs($total) . "]",
+                        'name_ar' => $this->getArabicName($gender) . " [" . abs($total) . "]",
+                        'data' => array_values($data),
+                        'maxWithIncrease' => $gender === 'Males' ? $maleMaxWithIncrease : $femaleMaxWithIncrease
+                    ];
+                }
             }
-        }
 
-        $ageSentimentBarChartSeriesFormatted = [];
-        foreach (['Happy Visitors', 'Unhappy Visitors'] as $sentiment) {
-            if (isset($ageSentimentBarChartSeries[$sentiment])) {
-                $total = array_sum(array_values($ageSentimentBarChartSeries[$sentiment]));
-                $maxWithIncrease = $sentiment === 'Happy Visitors' ? $happyMaxWithIncrease : $sadMaxWithDecrease;
-                $ageSentimentBarChartSeriesFormatted[] = [
-                    'name' => "{$sentiment} [" . abs($total) . "]",
-                    'name_ar' => "{$sentiment} [" . abs($total) . "]",
-                    'data' => array_reverse(array_values($ageSentimentBarChartSeries[$sentiment])),
-                    'maxWithIncrease' => $maxWithIncrease
-                ];
+            $ageSentimentBarChartSeriesFormatted = [];
+            foreach (['Happy Visitors', 'Unhappy Visitors'] as $sentiment) {
+                if (isset($ageSentimentBarChartSeries[$sentiment])) {
+                    $data = array_fill_keys($yAxis, 0);
+                    foreach ($ageSentimentBarChartSeries[$sentiment] as $group => $value) {
+                        $data[$group] = $value;
+                    }
+                    $total = array_sum(array_values($data));
+                    $maxWithIncrease = $sentiment === 'Happy Visitors' ? $happyMaxWithIncrease : $sadMaxWithDecrease;
+                    $ageSentimentBarChartSeriesFormatted[] = [
+                        'name' => "{$sentiment} [" . abs($total) . "]",
+                        'name_ar' => $this->getArabicName($sentiment) . " [" . abs($total) . "]",
+                        'data' => array_values($data),
+                        'maxWithIncrease' => $maxWithIncrease
+                    ];
+                }
             }
-        }
 
-        return [
-            'ageBarChartSeries' => $ageBarChartSeriesFormatted,
-            'ageSentimentBarChartSeries' => $ageSentimentBarChartSeriesFormatted,
-        ];
+            return [
+                'ageBarChartSeries' => $ageBarChartSeriesFormatted,
+                'ageSentimentBarChartSeries' => $ageSentimentBarChartSeriesFormatted,
+                'yAxis' => $yAxis
+            ];
     }
 
     public function getVisitorsData(array $streamIds) {
@@ -1526,6 +1538,10 @@ class StatisticsService
             'Mosque Entry 1' => 'دخول المسجد 1',
             'Mosque Entry 2' => 'دخول المسجد 2',
             'Mosque Entry 3' => 'دخول المسجد 3',
+            'Males' => 'الذكور',
+            'Females' => 'الإناث',
+            'Happy Visitors' => 'الزوار السعداء',
+            'Unhappy Visitors' => 'الزوار غير السعداء',
         ];
 
         return $arabicNames[$name] ?? $name;

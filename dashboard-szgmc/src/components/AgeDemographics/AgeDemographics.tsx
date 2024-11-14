@@ -15,11 +15,12 @@ type AgeDemographicsProps = {
   title: string
   minValue: number
   maxValue: number
+  yAxis?: string[]
 }
 
 const sharedColors = ['#CFE0C3', '#ae9e85']
 
-export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title, maxValue, minValue }) => {
+export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title, maxValue, minValue, yAxis }) => {
   const theme = useTheme()
 
   const { t } = useTranslation()
@@ -100,22 +101,24 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title, maxVa
       theme: settings?.mode
     },
     xaxis: {
-      categories: [
-        '85+',
-        '80-84',
-        '75-79',
-        '70-74',
-        '65-69',
-        '60-64',
-        '55-59',
-        '50-54',
-        '45-49',
-        '40-44',
-        '35-39',
-        '30-34',
-        '25-29',
-        '19-24'
-      ],
+      categories: yAxis
+        ? yAxis
+        : [
+            '85+',
+            '80-84',
+            '75-79',
+            '70-74',
+            '65-69',
+            '60-64',
+            '55-59',
+            '50-54',
+            '45-49',
+            '40-44',
+            '35-39',
+            '30-34',
+            '25-29',
+            '19-24'
+          ],
       title: {
         text: t('totalVisitors'),
         style: {

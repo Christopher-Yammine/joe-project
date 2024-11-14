@@ -33,6 +33,7 @@ const Home = () => {
   })
   const [ageBarChartSeries, setAgeBarChartSeries] = useState(dataJSON?.ageBarChartSeries)
   const [happyFacesRangeChartSeries, setHappyFacesRangeChartSeries] = useState(dataJSON?.ageSentimentBarChartSeries)
+  const [demographicsYAxis, setDemographicsYAxis] = useState([])
   const [visitorsChartSeries1Daily, setVisitorsChartSeries1Daily] = useState(dataJSON?.visitorsChartSeries1Daily)
   const [visitorsChartSeries1Dailycomparisons, setVisitorsChartSeries1Dailycomparisons] = useState<any[]>(
     dataJSON?.visitorsChartSeries1Dailycomparisons
@@ -104,6 +105,7 @@ const Home = () => {
         setSentimentMinValue(minSentiment)
         setSentimentMaxValue(maxSentiment)
       }
+      setDemographicsYAxis(data.yAxis)
 
       setTotalStatistics({
         number: visitorsData.number,
@@ -199,12 +201,14 @@ const Home = () => {
         title={t('ageGenderDemographic')}
         minValue={ageMinValue}
         maxValue={ageMaxValue}
+        yAxis={demographicsYAxis}
       />
       <AgeDemographics
         series={happyFacesRangeChartSeries}
         title={t('ageSentimentDemographic')}
         minValue={sentimentMinValue}
         maxValue={sentimentMaxValue}
+        yAxis={demographicsYAxis}
       />
       <VisitorsChart
         isDaily={true}

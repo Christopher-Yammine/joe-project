@@ -23,10 +23,8 @@ class ETLDataSeeder extends Seeder
         $footfalls = PersonType::all()->pluck('id')->toArray();
         $metrics = Metric::all()->pluck('id')->toArray();
         $demographics = Demographic::all()->take(8)->pluck('id')->toArray();
-        // $demographics = Demographic::all()->pluck('id')->toArray();
         $streams = Stream::all()->pluck('id')->toArray();
 
-        // $startDateHourly = Carbon::yesterday()->setTime(0, 0, 0);
         $startDateHourly = Carbon::now()->subDays(15)->setTime(0, 0, 0);
         $endDateHourly = Carbon::now();
 
@@ -59,6 +57,21 @@ class ETLDataSeeder extends Seeder
         $date = $startDate->copy();
 
         while ($date <= $endDate) {
+            if ($date->isSunday()) {
+                $this->incrementDate($date, $interval);
+                continue;
+            }
+
+            if ($interval === 'hour') {
+                $startHour = 9;
+                $endHour = ($date->isSaturday()) ? 14 : (rand(21, 22));
+
+                if ($date->hour < $startHour || $date->hour > $endHour) {
+                    $date->addHour();
+                    continue;
+                }
+            }
+
             foreach ($footfalls as $footfall) {
                 foreach ($demographics as $demographic) {
                     foreach ($streams as $stream) {
@@ -81,30 +94,35 @@ class ETLDataSeeder extends Seeder
                 }
             }
 
-            switch ($interval) {
-                case 'hour':
-                    $date->addHour();
-                    break;
-                case 'day':
-                    $date->addDay();
-                    break;
-                case 'week':
-                    $date->addWeek();
-                    break;
-                case 'month':
-                    $date->addMonth();
-                    break;
-                case 'quarter':
-                    $date->addQuarter();
-                    break;
-                case 'year':
-                    $date->addYear();
-                    break;
-            }
+            $this->incrementDate($date, $interval);
         }
 
         if (!empty($data)) {
             $model::insert($data);
+        }
+    }
+
+    protected function incrementDate(&$date, $interval)
+    {
+        switch ($interval) {
+            case 'hour':
+                $date->addHour();
+                break;
+            case 'day':
+                $date->addDay();
+                break;
+            case 'week':
+                $date->addWeek();
+                break;
+            case 'month':
+                $date->addMonth();
+                break;
+            case 'quarter':
+                $date->addQuarter();
+                break;
+            case 'year':
+                $date->addYear();
+                break;
         }
     }
 }
