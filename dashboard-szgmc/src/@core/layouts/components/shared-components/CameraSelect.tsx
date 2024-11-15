@@ -147,9 +147,18 @@ const CameraSelect = () => {
       return acc
     }, [])
 
+    const displayOptions =
+      groupedOptions.length > 3 ? `${groupedOptions.slice(0, 3).join(', ')}...` : groupedOptions.join(', ')
+
     return (
       <components.ValueContainer {...props}>
-        {groupedOptions.length > 0 ? <div style={{ width: '200px' }}>{groupedOptions.join(', ')}</div> : children}
+        {groupedOptions.length > 0 ? (
+          <div style={{ width: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {displayOptions}
+          </div>
+        ) : (
+          children
+        )}
       </components.ValueContainer>
     )
   }
@@ -158,6 +167,14 @@ const CameraSelect = () => {
 
   // // @ts-ignore
   // const handleClickOutside = event => {
+  //   // console.log('🚀 ~ CameraSelect ~ selectRef:', selectRef)
+  //   // console.log('🚀 ~ handleClickOutside ~ !selectRef.current:', !selectRef.current)
+
+  //   // console.log(
+  //   //   '🚀 ~ handleClickOutside ~ !selectRef.current.contains(event.target):',
+  //   //   // @ts-ignore
+  //   //   !selectRef.current.contains(event.target)
+  //   // )
   //   // @ts-ignore
   //   if (!selectRef.current && !selectRef.current.contains(event.target)) {
   //     handleMenuClose()
@@ -168,14 +185,15 @@ const CameraSelect = () => {
   //   console.log('Event listener added')
   //   document.addEventListener('mousedown', handleClickOutside)
 
-  //   return () => {
-  //     console.log('Event listener removed')
-  //     document.removeEventListener('mousedown', handleClickOutside)
-  //   }
+  //   // return () => {
+  //   //   console.log('Event listener removed')
+  //   //   document.removeEventListener('mousedown', handleClickOutside)
+  //   // }
   // }, [])
 
   const handleMenuClose = () => {
     const ids = selected.flatMap((item: any) => (item.options ? item.options.map(opt => opt.value) : item.value))
+    console.log(ids)
     setSelectedStreams(ids)
   }
 
@@ -191,11 +209,7 @@ const CameraSelect = () => {
       <Select
         onChange={option => {
           // @ts-ignore
-          // return setSelected(option)
           setSelected(option)
-          // @ts-ignore
-          // const ids = option.flatMap((item: any) => (item.options ? item.option.map(opt => opt.value) : item.value))
-          // setSelectedStreams(ids)
         }}
         onMenuClose={handleMenuClose}
         closeMenuOnSelect={false}
