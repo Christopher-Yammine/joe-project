@@ -680,7 +680,6 @@ class StatisticsService
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
 
         $groupByFormat = $this->getGroupByFormat($duration);
-
         $dateRanges = $this->getDateRange($fromDate, $toDate, $duration);
 
         $fromDateCurrent = $dateRanges['fromDateCurrent'];
@@ -1528,8 +1527,8 @@ class StatisticsService
             'Daily' => 'DATE_FORMAT(date, "%Y-%m-%d")',
             'weekly' => 'CONCAT(DATE_FORMAT(date, "%b %Y"), " (W", WEEK(date), ")")',
             'monthly' => 'DATE_FORMAT(date, "%b %Y")',
-            'Quarterly' => 'CONCAT(YEAR(date), "-", QUARTER(date))',
-            'Yearly' => 'DATE_FORMAT(date, "%Y")',
+            'quarterly' => 'CONCAT(YEAR(date), "-", QUARTER(date))',
+            'yearly' => 'DATE_FORMAT(date, "%Y")',
             default => 'DATE_FORMAT(date, "%Y-%m-%d")',
         };
     }
@@ -1705,7 +1704,7 @@ function calculateDurationAverage($duration, $fromDate, $toDate)
             $numberOfPeriods = ceil($totalDays / 7);
             break;
         case 'monthly':
-            $numberOfPeriods = $from->diffInMonths($to);
+            $numberOfPeriods = max(1, $from->diffInMonths($to));
             break;
         case 'quarterly':
             $numberOfPeriods = ceil($from->diffInMonths($to) / 3);
@@ -1745,14 +1744,23 @@ private function getDateRange($fromDate, $toDate, $duration)
             $toDatePrevious = (new \DateTime($fromDate))->modify("-1 day")->format('Y-m-d 23:59:59');
             break;
 
+        // case 'yearly':
+        //     $fromDateCurrent = (new \DateTime($fromDate))->modify('first day of January')->format('Y-m-d 00:00:00');
+        //     $toDateCurrent = (new \DateTime($toDate))->modify('last day of December')->format('Y-m-d 23:59:59');
+
+        //     $yearDifference = (new \DateTime($toDate))->format('Y') - (new \DateTime($fromDate))->format('Y') + 1;
+
+        //     $fromDatePrevious = (new \DateTime($fromDate))->modify("-$yearDifference years")->modify('first day of January')->format('Y-m-d 00:00:00');
+        //     $toDatePrevious = (new \DateTime($toDate))->modify("-$yearDifference years")->modify('last day of December')->format('Y-m-d 23:59:59');
+
         case 'yearly':
-            $fromDateCurrent = (new \DateTime($fromDate))->modify('first day of January')->format('Y-m-d 00:00:00');
-            $toDateCurrent = (new \DateTime($toDate))->modify('last day of December')->format('Y-m-d 23:59:59');
+            $fromDateCurrent = (new \DateTime($fromDate))->modify('first day of January this year')->format('Y-m-d 00:00:00');
+            $toDateCurrent = (new \DateTime($fromDate))->modify('last day of December this year')->format('Y-m-d 23:59:59');
 
-            $yearDifference = (new \DateTime($toDate))->format('Y') - (new \DateTime($fromDate))->format('Y') + 1;
+            $dateInterval = (new \DateTime($fromDate))->diff(new \DateTime($toDate))->days + 1;
 
-            $fromDatePrevious = (new \DateTime($fromDate))->modify("-$yearDifference years")->modify('first day of January')->format('Y-m-d 00:00:00');
-            $toDatePrevious = (new \DateTime($toDate))->modify("-$yearDifference years")->modify('last day of December')->format('Y-m-d 23:59:59');
+            $fromDatePrevious = (new \DateTime($fromDate))->modify("-$dateInterval days")->format('Y-m-d 00:00:00');
+            $toDatePrevious = (new \DateTime($fromDate))->modify("-1 day")->format('Y-m-d 23:59:59');
 
             // dd([
             //     'Case' => 'Yearly',

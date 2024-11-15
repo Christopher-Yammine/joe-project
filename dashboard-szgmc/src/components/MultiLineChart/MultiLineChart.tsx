@@ -13,7 +13,6 @@ import { Grid, Theme, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/system'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
-import dataJSON from '../../db/data.json'
 import { useEffect, useState } from 'react'
 import { StaffChartSeriesData } from 'src/pages/historical/types'
 
@@ -106,7 +105,7 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSer
     yaxis: {
       opposite: isRTL,
       labels: {
-        padding: isRTL ? 4 : 0,
+        padding: isRTL ? 4 : 4,
         formatter: value => `${value}`,
         style: {
           fontSize: '14px',

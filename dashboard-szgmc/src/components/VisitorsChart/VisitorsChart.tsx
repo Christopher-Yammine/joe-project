@@ -103,7 +103,7 @@ const VisitorsChart: React.FC<Props> = ({
       axisTicks: { show: false },
       axisBorder: { show: false },
       tickAmount: isMobile ? 12 : isDaily ? 24 : 12,
-      categories: xAxis,
+      categories: isRTL ? xAxis.reverse() : xAxis,
       crosshairs: {
         stroke: { color: `rgba(${theme.palette.customColors.main}, 0.2)` }
       },
