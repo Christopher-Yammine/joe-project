@@ -27,12 +27,14 @@ const Home = () => {
   const [uniqueStatistics, setUniqueStatistics] = useState({
     number: dataJSON?.totalUniqueVisitorsCard?.number,
     percent: dataJSON?.totalUniqueVisitorsCard?.percent,
-    cumulativeSeriesData: dataJSON?.totalUniqueVisitorsCard?.cumulativeSeriesData
+    cumulativeSeriesData: dataJSON?.totalUniqueVisitorsCard?.cumulativeSeriesData,
+    xAxis: []
   })
   const [occupancyStatistics, setOccupancyStatistics] = useState({
     number: dataJSON?.totalOccupancyCard?.number,
     percent: dataJSON?.totalOccupancyCard?.percent,
-    seriesData: dataJSON?.totalOccupancyCard?.seriesData
+    seriesData: dataJSON?.totalOccupancyCard?.seriesData,
+    xAxis: []
   })
   const [ageBarChartSeries, setAgeBarChartSeries] = useState(dataJSON?.ageBarChartSeries)
   const [happyFacesRangeChartSeries, setHappyFacesRangeChartSeries] = useState(dataJSON?.ageSentimentBarChartSeries)
@@ -41,6 +43,7 @@ const Home = () => {
   const [visitorsChartSeries1Dailycomparisons, setVisitorsChartSeries1Dailycomparisons] = useState<any[]>(
     dataJSON?.visitorsChartSeries1Dailycomparisons
   )
+  const [visitorsChartXAxis, setVisitorChartXAxis] = useState([])
   const [visitorsChartSeries2Daily, setVisitorsChartSeries2Daily] = useState(dataJSON?.visitorsChartSeries2Daily)
   const [visitorsChartSeries2Dailycomparisons, setVisitorsChartSeries2Dailycomparisons] = useState<any[]>([])
   const [visitorsChartSeries3Daily, setVisitorsChartSeries3Daily] = useState(dataJSON?.visitorsChartSeries3Daily)
@@ -84,6 +87,7 @@ const Home = () => {
       )
 
       setVisitorsChartSeries1Daily(data.visitorsChartSeries1Daily)
+      setVisitorChartXAxis(data?.xAxis)
       setHappyFacesRangeChartSeries(data.ageSentimentBarChartSeries)
       setAgeBarChartSeries(data.ageBarChartSeries)
 
@@ -121,12 +125,14 @@ const Home = () => {
       setUniqueStatistics({
         number: uniqueVisitors.number,
         percent: uniqueVisitors.percent,
-        cumulativeSeriesData: uniqueVisitors.cumulativeSeriesData
+        cumulativeSeriesData: uniqueVisitors.cumulativeSeriesData,
+        xAxis: uniqueVisitors.xAxis
       })
       setOccupancyStatistics({
         number: occupancy.number,
         percent: occupancy.percent,
-        seriesData: occupancy.seriesData
+        seriesData: occupancy.seriesData,
+        xAxis: occupancy.xAxis
       })
       setVisitorsChartSeries2Dailycomparisons(
         (data?.visitorsChartSeries2Dailycomparisons || []).map(item => ({
@@ -186,6 +192,10 @@ const Home = () => {
     }
   }
 
+  useEffect(() => {
+    console.log('visitorsChartXAxis', visitorsChartXAxis)
+  }, [visitorsChartXAxis])
+
   if (loading) {
     return <SkeletonLoading />
   }
@@ -205,12 +215,14 @@ const Home = () => {
         percent={uniqueStatistics.percent}
         title={t('uniqueVisitors')}
         seriesData={uniqueStatistics.cumulativeSeriesData}
+        xAxis={uniqueStatistics.xAxis}
       />
       <StatisticBlock
         number={occupancyStatistics.number}
         seriesData={occupancyStatistics.seriesData}
         percent={occupancyStatistics.percent}
         title={t('occupancy')}
+        xAxis={occupancyStatistics.xAxis}
       />
       <AgeDemographics
         series={ageBarChartSeries}
@@ -236,6 +248,7 @@ const Home = () => {
         visitorsChartSeries3Comparisons={visitorsChartSeries3Dailycomparisons}
         visitorsChartSeries4={visitorsChartSeries4Daily}
         visitorsChartSeries4Comparisons={visitorsChartSeries4Dailycomparisons}
+        xAxis={visitorsChartXAxis}
       />
       <MultiLineChart title={t('staffToday')} isDaily={true} staffChartSeries={staffChartSeries} />
     </Grid>
