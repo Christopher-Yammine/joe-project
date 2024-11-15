@@ -681,6 +681,13 @@ class StatisticsService
 
         $groupByFormat = $this->getGroupByFormat($duration);
 
+        $dateRanges = $this->getDateRange($fromDate, $toDate, $duration);
+
+        $fromDateCurrent = $dateRanges['fromDateCurrent'];
+        $toDateCurrent = $dateRanges['toDateCurrent'];
+        $fromDatePrevious = $dateRanges['fromDatePrevious'];
+        $toDatePrevious = $dateRanges['toDatePrevious'];
+
         $newVisitors = DB::table($etlDataTable)
         ->whereIn('stream_id', $streamIds)
         ->whereBetween('date', [$fromDate, $toDate])
@@ -1739,13 +1746,23 @@ private function getDateRange($fromDate, $toDate, $duration)
             break;
 
         case 'yearly':
-            $fromDateCurrent = (new \DateTime($fromDate))->modify('first day of January this year')->format('Y-m-d 00:00:00');
-            $toDateCurrent = (new \DateTime($fromDate))->modify('last day of December this year')->format('Y-m-d 23:59:59');
+            $fromDateCurrent = (new \DateTime($fromDate))->modify('first day of January')->format('Y-m-d 00:00:00');
+            $toDateCurrent = (new \DateTime($toDate))->modify('last day of December')->format('Y-m-d 23:59:59');
 
-            $dateInterval = (new \DateTime($fromDate))->diff(new \DateTime($toDate))->days + 1;
+            $yearDifference = (new \DateTime($toDate))->format('Y') - (new \DateTime($fromDate))->format('Y') + 1;
 
-            $fromDatePrevious = (new \DateTime($fromDate))->modify("-$dateInterval days")->format('Y-m-d 00:00:00');
-            $toDatePrevious = (new \DateTime($fromDate))->modify("-1 day")->format('Y-m-d 23:59:59');
+            $fromDatePrevious = (new \DateTime($fromDate))->modify("-$yearDifference years")->modify('first day of January')->format('Y-m-d 00:00:00');
+            $toDatePrevious = (new \DateTime($toDate))->modify("-$yearDifference years")->modify('last day of December')->format('Y-m-d 23:59:59');
+
+            // dd([
+            //     'Case' => 'Yearly',
+            //     'fromDateCurrent' => $fromDateCurrent,
+            //     'toDateCurrent' => $toDateCurrent,
+            //     'yearDifference' => $yearDifference,
+            //     'fromDatePrevious' => $fromDatePrevious,
+            //     'toDatePrevious' => $toDatePrevious,
+            // ]);
+
             break;
 
         default:
