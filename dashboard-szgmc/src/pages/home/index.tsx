@@ -21,7 +21,8 @@ const Home = () => {
   const [totalStatistics, setTotalStatistics] = useState({
     number: dataJSON?.totalVisitorsCard?.number,
     percent: dataJSON?.totalVisitorsCard?.percent,
-    cumulativeSeriesData: dataJSON?.totalVisitorsCard?.cumulativeSeriesData
+    cumulativeSeriesData: dataJSON?.totalVisitorsCard?.cumulativeSeriesData,
+    xAxis: []
   })
   const [uniqueStatistics, setUniqueStatistics] = useState({
     number: dataJSON?.totalUniqueVisitorsCard?.number,
@@ -114,7 +115,8 @@ const Home = () => {
       setTotalStatistics({
         number: visitorsData.number,
         percent: visitorsData.percent,
-        cumulativeSeriesData: visitorsData.cumulativeSeriesData
+        cumulativeSeriesData: visitorsData.cumulativeSeriesData,
+        xAxis: visitorsData.xAxis
       })
       setUniqueStatistics({
         number: uniqueVisitors.number,
@@ -192,10 +194,11 @@ const Home = () => {
     <Grid container spacing={4}>
       <VerseCard verseCardTextKey={'verseCardTextKey'} />
       <StatisticBlock
-        number={totalStatistics.number || dataJSON?.totalVisitorsCard.number}
+        number={totalStatistics.number}
         percent={totalStatistics.percent}
         title={t('totalVisitors')}
-        seriesData={totalStatistics.cumulativeSeriesData || dataJSON?.totalVisitorsCard?.cumulativeSeriesData}
+        seriesData={totalStatistics.cumulativeSeriesData}
+        xAxis={totalStatistics.xAxis}
       />
       <StatisticBlock
         number={uniqueStatistics.number}

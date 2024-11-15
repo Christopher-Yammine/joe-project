@@ -10,6 +10,7 @@ interface IStatisticBlock {
   percent?: string
   title: string
   seriesData?: any[]
+  xAxis?: any[]
 }
 
 export const StatisticBlock: React.FC<IStatisticBlock> = ({
@@ -18,7 +19,8 @@ export const StatisticBlock: React.FC<IStatisticBlock> = ({
   title,
   seriesData = [
     0, 20, 30, 35, 40, 45, 50, 100, 100, 100, 110, 120, 130, 140, 190, 200, 212, 222, 232, 245, 246, 246, 261, 281, 300
-  ]
+  ],
+  xAxis
 }: IStatisticBlock) => {
   const theme = useTheme()
   const [isChartLoaded, setIsChartLoaded] = useState(false)
@@ -67,33 +69,35 @@ export const StatisticBlock: React.FC<IStatisticBlock> = ({
       axisBorder: { show: false },
 
       tickAmount: 12,
-      categories: [
-        '00:00',
-        '01:00',
-        '02:00',
-        '03:00',
-        '04:00',
-        '05:00',
-        '06:00',
-        '07:00',
-        '08:00',
-        '09:00',
-        '10:00',
-        '11:00',
-        '12:00',
-        '13:00',
-        '14:00',
-        '15:00',
-        '16:00',
-        '17:00',
-        '18:00',
-        '19:00',
-        '20:00',
-        '21:00',
-        '22:00',
-        '23:00',
-        '24:00'
-      ],
+      categories: xAxis
+        ? xAxis
+        : [
+            '00:00',
+            '01:00',
+            '02:00',
+            '03:00',
+            '04:00',
+            '05:00',
+            '06:00',
+            '07:00',
+            '08:00',
+            '09:00',
+            '10:00',
+            '11:00',
+            '12:00',
+            '13:00',
+            '14:00',
+            '15:00',
+            '16:00',
+            '17:00',
+            '18:00',
+            '19:00',
+            '20:00',
+            '21:00',
+            '22:00',
+            '23:00',
+            '24:00'
+          ],
 
       crosshairs: {
         stroke: { color: `rgba(${theme.palette.customColors.main}, 0.2)` }

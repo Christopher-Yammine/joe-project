@@ -18,63 +18,58 @@ class StatisticsService
     $startOfYesterday = now()->subDay()->startOfDay();
     $endOfYesterday = now()->subDay()->endOfDay();
 
-
     $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-    ->whereBetween('date', [$startOfToday, $endOfToday])
-    ->select(
-        DB::raw('DATE(date) as day'),
-        DB::raw('HOUR(date) as hour'),
-        DB::raw('SUM(value) as total')
-    )
-    ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-    ->get();
+        ->whereBetween('date', [$startOfToday, $endOfToday])
+        ->select(DB::raw('HOUR(date) as hour'), DB::raw('SUM(value) as total'))
+        ->groupBy(DB::raw('HOUR(date)'))
+        ->get();
 
     $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-    ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
-    ->select(
-        DB::raw('DATE(date) as day'),
-        DB::raw('HOUR(date) as hour'),
-        DB::raw('SUM(value) as total')
-    )
-    ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-    ->get();
+        ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
+        ->select(DB::raw('HOUR(date) as hour'), DB::raw('SUM(value) as total'))
+        ->groupBy(DB::raw('HOUR(date)'))
+        ->get();
 
-    $todaySeriesData = array_fill(0, 24, 0);
-    $yesterdaySeriesData = array_fill(0, 24, 0);
-    $totalVisitorsToday = 0;
-    $totalVisitorsYesterday = 0;
-
-    $latestHourWithData = 0;
-    foreach ($todayData as $entry) {
-        if ($entry->hour > $latestHourWithData) {
-            $latestHourWithData = $entry->hour;
-        }
-    }
+    $originalTotalVisitorsToday = $originalTotalVisitorsYesterday = 0;
+    $todaySeriesData = $yesterdaySeriesData = [];
+    $latestHourWithData = 9;
 
     foreach ($todayData as $entry) {
-        if ($entry->hour <= $latestHourWithData) {
+        if ($entry->hour >= 9) {
             $todaySeriesData[$entry->hour] = $entry->total;
-            $totalVisitorsToday += $entry->total;
+            $originalTotalVisitorsToday += $entry->total;
+            $latestHourWithData = max($latestHourWithData, $entry->hour);
         }
     }
 
     foreach ($yesterdayData as $entry) {
-        if ($entry->hour <= $latestHourWithData) {
+        if ($entry->hour >= 9) {
             $yesterdaySeriesData[$entry->hour] = $entry->total;
-            $totalVisitorsYesterday += $entry->total;
+            $originalTotalVisitorsYesterday += $entry->total;
         }
     }
 
-    $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
-
-    $percentChange = $this->calculatePercentChange($totalVisitorsToday, $totalVisitorsYesterday);
+    $percentChange = $this->calculatePercentChange($originalTotalVisitorsToday, $originalTotalVisitorsYesterday);
     $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
 
+    $xAxisCategories = [];
+    for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
+        $xAxisCategories[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
+    }
+
+    $seriesData = [];
+    for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
+        $seriesData[] = $todaySeriesData[$hour] ?? 0;
+    }
+
+    $todayCumulativeSeriesData = $this->calculateCumulativeSeries($seriesData);
+
     return [
-        'number' => number_format($totalVisitorsToday),
+        'number' => number_format($originalTotalVisitorsToday),
         'percent' => $percentFormatted,
-        'seriesData' => $todaySeriesData,
+        'seriesData' => $seriesData,
         'cumulativeSeriesData' => $todayCumulativeSeriesData,
+        'xAxis' => $xAxisCategories,
     ];
 }
 
