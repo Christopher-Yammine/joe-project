@@ -218,7 +218,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     dynamicRanges && (
       <Grid item xs={12}>
         <Card>
-          <CardHeader title={t('peakEngagement')} sx={{ borderBottom: '1px solid #cacccf' }} />
+          <CardHeader title={t('avgPeakEngagement')} sx={{ borderBottom: '1px solid #cacccf' }} />
           <Box
             sx={{
               display: 'flex',

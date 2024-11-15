@@ -169,6 +169,7 @@
   "OCCUPANCY": "OCCUPANCY",
   "staff": "Staff",
   "peakEngagement": "Peak Engagement",
+  "avgPeakEngagement": "Average Peak Engagement",
   "new": "New",
   "Returning": "New",
   "female": "New",
