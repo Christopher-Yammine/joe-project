@@ -638,24 +638,41 @@ class StatisticsService
             ->get();
 
         $visitorsChartSeries = [];
+        $latestHourWithData = 8;
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
                     'name_ar' => $this->getArabicName($row->name),
-                    'data' => array_fill(0, 24, 0),
+                    'data' => array_fill(0, 16, 0),
                 ];
             }
-            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+            $hourIndex = $row->hour - 8;
+
+            if ($hourIndex >= 0 && $hourIndex < 17) {
+                $visitorsChartSeries[$row->name]['data'][$hourIndex] += $row->total_value;
+            }
+
+            $latestHourWithData = max($latestHourWithData, $row->hour);
+        }
+
+        foreach ($visitorsChartSeries as &$series) {
+            $series['data'] = array_values($series['data']);
         }
 
         usort($visitorsChartSeries, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
 
+        $xAxis = [];
+            for ($hour = 8; $hour <= $latestHourWithData + 1; $hour++) {
+                $xAxis[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
+            }
+
         return [
-            'staffChartSeries' => $visitorsChartSeries
+            'xAxis' => $xAxis,
+            'staffChartSeries' => $visitorsChartSeries,
         ];
     }
 
