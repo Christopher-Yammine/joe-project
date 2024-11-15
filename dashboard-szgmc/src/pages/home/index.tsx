@@ -192,9 +192,9 @@ const Home = () => {
     }
   }
 
-  useEffect(() => {
-    console.log('visitorsChartXAxis', visitorsChartXAxis)
-  }, [visitorsChartXAxis])
+  // useEffect(() => {
+  //   console.log('visitorsChartXAxis', visitorsChartXAxis)
+  // }, [visitorsChartXAxis])
 
   if (loading) {
     return <SkeletonLoading />

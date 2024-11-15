@@ -295,9 +295,6 @@ const VisitorsChart: React.FC<Props> = ({
     }
   }, [settings.mode, value])
 
-  useEffect(() => {
-    console.log('visitorsChartXAxis', xAxis)
-  }, [xAxis])
   // @ts-ignore
   const data = statsValues?.[value]
 
