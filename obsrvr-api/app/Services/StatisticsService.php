@@ -914,7 +914,7 @@ class StatisticsService
                 DB::raw('DAYOFWEEK(etl.date) as day_of_week'),
                 DB::raw('HOUR(etl.date) as hour'),
                 DB::raw('MAX(etl.value) as value'),
-                DB::raw('SUM(etl.value) as total')
+                DB::raw('ROUND(AVG(etl.value), 2) as total')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->whereIn('etl.stream_id', $streamIds)
@@ -1001,7 +1001,7 @@ class StatisticsService
             }
 
             return [
-                'series' => $formattedData,
+                'series' => array_reverse($formattedData),
                 'topHourlyData' => $this->formatTopHourlyData($topHourlyData),
             ];
         }

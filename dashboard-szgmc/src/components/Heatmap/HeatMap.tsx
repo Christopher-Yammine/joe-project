@@ -15,7 +15,7 @@ import { Grid, Theme, Typography, useMediaQuery } from '@mui/material'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { Box } from '@mui/system'
 
-import { FC } from 'react'
+import { FC, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 type HeatmapChartProps = {
@@ -50,31 +50,36 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     const minY = Math.min(...allYValues)
     const maxY = Math.max(...allYValues)
 
-    const rangeCount = 9
-    const step = Math.ceil((maxY - minY) / rangeCount)
+    const rangeCount = 6
+    const step = (maxY - minY) / rangeCount
 
     const staticColors = [
       'rgba(174, 158, 133, 0.10)',
-      'rgba(174, 158, 133, 0.20)',
-      'rgba(174, 158, 133, 0.30)',
+      'rgba(174, 158, 133, 0.25)',
       'rgba(174, 158, 133, 0.40)',
-      'rgba(174, 158, 133, 0.50)',
-      'rgba(174, 158, 133, 0.60)',
+      'rgba(174, 158, 133, 0.55)',
       'rgba(174, 158, 133, 0.70)',
-      'rgba(174, 158, 133, 0.80)',
-      'rgba(174, 158, 133, 0.90)'
+      'rgba(174, 158, 133, 0.85)'
     ]
 
     const dynamicRanges = []
     for (let i = 0; i < rangeCount; i++) {
-      const from = minY + i * step
-      const to = i === rangeCount - 1 ? maxY : from + step
+      let from = minY + i * step
+      let to = from + step
+
+      from = Math.floor(from)
+
+      if (i === rangeCount - 1) {
+        to = Math.ceil(maxY)
+      } else {
+        to = Math.floor(to)
+      }
+
       const name = `${from}-${to}`
       const color = staticColors[i]
 
       dynamicRanges.push({ from, to, name, color })
     }
-
     return dynamicRanges
   }
 
@@ -213,6 +218,10 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     name: isAR ? item?.name_ar : item?.name,
     data: isRTL ? item.data?.reverse() : item?.data
   }))
+
+  useEffect(() => {
+    console.log(dynamicRanges)
+  }, [dynamicRanges])
 
   return (
     dynamicRanges && (
