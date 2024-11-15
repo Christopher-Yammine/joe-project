@@ -53,7 +53,7 @@ class StatisticsService
     $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
 
     $xAxisCategories = [];
-    for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
+    for ($hour = 8; $hour <= $latestHourWithData; $hour++) {
         $xAxisCategories[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
     }
 
