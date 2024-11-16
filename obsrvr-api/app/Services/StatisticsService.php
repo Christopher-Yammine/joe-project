@@ -402,32 +402,36 @@ class StatisticsService
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->whereIn('etl.stream_id', $streamIds)
-            ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+            ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderBy('hour')
             ->get();
 
             $visitorsChartSeries = [];
-            $latestHourWithData = 8;
-
+            $latestHourWithData = 9;
+        
             foreach ($todayResults as $row) {
                 if (!isset($visitorsChartSeries[$row->name])) {
                     $visitorsChartSeries[$row->name] = [
                         'name' => $row->name,
                         'name_ar' => $this->getArabicName($row->name),
-                        'data' => array_fill(8, 24 - 8, 0),
+                        'data' => [],
                     ];
                 }
-                $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+                $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
                 $latestHourWithData = max($latestHourWithData, $row->hour);
             }
-
+        
             foreach ($visitorsChartSeries as &$series) {
-                $series['data'] = array_values($series['data']);
+                $filledData = [];
+                for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
+                    $filledData[] = $series['data'][$hour] ?? null;
+                }
+                $series['data'] = $filledData;
             }
-
+        
             $xAxis = [];
-            for ($hour = 8; $hour <= $latestHourWithData + 1; $hour++) {
+            for ($hour = 9; $hour <= $latestHourWithData + 1; $hour++) {
                 $xAxis[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
             }
 
@@ -460,34 +464,33 @@ class StatisticsService
             ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
             ->whereIn('etl.stream_id', $streamIds)
             ->where('metrics.name', 'Unique')
-            ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+            ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderBy('hour')
             ->get();
 
         $visitorsChartSeries = [];
-        $latestHourWithData = 8;
+        $latestHourWithData = 9;
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
                     'name_ar' => $this->getArabicName($row->name),
-                    'data' => array_fill(0, 16, 0),
+                    'data' => [],
                 ];
             }
 
-            $hourIndex = $row->hour - 8;
-
-            if ($hourIndex >= 0 && $hourIndex < 17) {
-                $visitorsChartSeries[$row->name]['data'][$hourIndex] += $row->total_value;
-            }
-
+            $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
             $latestHourWithData = max($latestHourWithData, $row->hour);
         }
 
         foreach ($visitorsChartSeries as &$series) {
-            $series['data'] = array_values($series['data']);
+            $filledData = [];
+            for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
+                $filledData[] = $series['data'][$hour] ?? null;
+            }
+            $series['data'] = $filledData;
         }
 
         $firstReturnTitle = 'avgUniqueVisitors';
@@ -518,33 +521,32 @@ class StatisticsService
         ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
         ->whereIn('etl.stream_id', $streamIds)
         ->where('person_types.name', 'Returning')
-        ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+        ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
         ->groupBy('streams.id', 'hour', 'streams.name')
         ->orderBy('hour')
         ->get();
 
         $visitorsChartSeries = [];
-        $latestHourWithData = 8;
+        $latestHourWithData = 9;
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
                     'name_ar' => $this->getArabicName($row->name),
-                    'data' => array_fill(0, 16, 0),
+                    'data' => [],
                 ];
             }
-            $hourIndex = $row->hour - 8;
-
-            if ($hourIndex >= 0 && $hourIndex < 17) {
-                $visitorsChartSeries[$row->name]['data'][$hourIndex] += $row->total_value;
-            }
-
+            $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
             $latestHourWithData = max($latestHourWithData, $row->hour);
         }
 
         foreach ($visitorsChartSeries as &$series) {
-            $series['data'] = array_values($series['data']);
+            $filledData = [];
+            for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
+                $filledData[] = $series['data'][$hour] ?? null;
+            }
+            $series['data'] = $filledData;
         }
 
         $personType = 'returning';
@@ -576,33 +578,32 @@ class StatisticsService
         ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
         ->whereIn('etl.stream_id', $streamIds)
         ->where('metrics.name', 'Occupancy')
-        ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+        ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
         ->groupBy('streams.id', 'hour', 'streams.name')
         ->orderBy('hour')
         ->get();
 
         $visitorsChartSeries = [];
-        $latestHourWithData = 8;
+        $latestHourWithData = 9;
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
                     'name_ar' => $this->getArabicName($row->name),
-                    'data' => array_fill(0, 16, 0),
+                    'data' => [],
                 ];
             }
-            $hourIndex = $row->hour - 8;
-
-            if ($hourIndex >= 0 && $hourIndex < 17) {
-                $visitorsChartSeries[$row->name]['data'][$hourIndex] += $row->total_value;
-            }
-
+            $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
             $latestHourWithData = max($latestHourWithData, $row->hour);
         }
 
         foreach ($visitorsChartSeries as &$series) {
-            $series['data'] = array_values($series['data']);
+            $filledData = [];
+            for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
+                $filledData[] = $series['data'][$hour] ?? null;
+            }
+            $series['data'] = $filledData;
         }
 
         $firstReturnTitle = 'avgOccupancyVisitors';
@@ -632,13 +633,13 @@ class StatisticsService
             ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->whereIn('etl.stream_id', $streamIds)
             ->where('person_types.name', 'staff')
-            ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
+            ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderBy('hour')
             ->get();
 
         $visitorsChartSeries = [];
-        $latestHourWithData = 8;
+        $latestHourWithData = 9;
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
@@ -648,17 +649,16 @@ class StatisticsService
                     'data' => array_fill(0, 16, 0),
                 ];
             }
-            $hourIndex = $row->hour - 8;
-
-            if ($hourIndex >= 0 && $hourIndex < 17) {
-                $visitorsChartSeries[$row->name]['data'][$hourIndex] += $row->total_value;
-            }
-
+            $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
             $latestHourWithData = max($latestHourWithData, $row->hour);
         }
 
         foreach ($visitorsChartSeries as &$series) {
-            $series['data'] = array_values($series['data']);
+            $filledData = [];
+            for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
+                $filledData[] = $series['data'][$hour] ?? null;
+            }
+            $series['data'] = $filledData;
         }
 
         usort($visitorsChartSeries, function ($a, $b) {
@@ -666,7 +666,7 @@ class StatisticsService
         });
 
         $xAxis = [];
-            for ($hour = 8; $hour <= $latestHourWithData + 1; $hour++) {
+            for ($hour = 9; $hour <= $latestHourWithData + 1; $hour++) {
                 $xAxis[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
             }
 

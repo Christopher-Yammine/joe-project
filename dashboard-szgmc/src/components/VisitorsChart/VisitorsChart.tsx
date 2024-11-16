@@ -16,7 +16,6 @@ import { styled, useTheme } from '@mui/system'
 import React, { SyntheticEvent, useState, useEffect } from 'react'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
-import dataJSON from '../../db/data.json'
 import { useTranslation } from 'react-i18next'
 
 const TabList = styled(MuiTabList)<TabListProps>(({ theme }) => ({
