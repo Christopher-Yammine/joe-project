@@ -54,7 +54,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     const step = (maxY - minY) / rangeCount
 
     const staticColors = [
-      'rgba(174, 158, 133, 0.10)',
+      'rgba(174, 158, 133, 0)',
       'rgba(174, 158, 133, 0.25)',
       'rgba(174, 158, 133, 0.40)',
       'rgba(174, 158, 133, 0.55)',
