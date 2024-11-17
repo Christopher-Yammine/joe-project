@@ -8,7 +8,6 @@ import VerseCard from 'src/components/VerseCard'
 import VisitorsChart from 'src/components/VisitorsChart/VisitorsChart'
 import useStore from 'src/store/store'
 import dataJSON from '../../db/data.json'
-import { Box, Skeleton } from '@mui/material'
 import SkeletonLoading from 'src/@core/layouts/components/skeleton-loading'
 
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL
@@ -51,6 +50,7 @@ const Home = () => {
   const [visitorsChartSeries4Daily, setVisitorsChartSeries4Daily] = useState(dataJSON?.visitorsChartSeries4Daily)
   const [visitorsChartSeries4Dailycomparisons, setVisitorsChartSeries4Dailycomparisons] = useState<any[]>([])
   const [staffChartSeries, setStaffChartSeries] = useState(dataJSON?.staffChartSeriesDaily)
+  const [staffChartDailyXAxis, setStaffChartDailyXAxis] = useState([])
   const [ageMinValue, setAgeMinValue] = useState(-1000)
   const [ageMaxValue, setAgeMaxValue] = useState(1000)
   const [sentimentMinValue, setSentimentMinValue] = useState(-2000)
@@ -158,7 +158,8 @@ const Home = () => {
       )
 
       setVisitorsChartSeries4Daily(data.visitorsChartSeries4Daily)
-      setStaffChartSeries(data.staffChartSeries)
+      setStaffChartSeries(data.staffChartDaily.staffChartSeries)
+      setStaffChartDailyXAxis(data.staffChartDaily.xAxis)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
     } finally {
@@ -250,7 +251,12 @@ const Home = () => {
         visitorsChartSeries4Comparisons={visitorsChartSeries4Dailycomparisons}
         xAxis={visitorsChartXAxis}
       />
-      <MultiLineChart title={t('staffToday')} isDaily={true} staffChartSeries={staffChartSeries} />
+      <MultiLineChart
+        title={t('staffToday')}
+        isDaily={true}
+        staffChartSeries={staffChartSeries}
+        xAxis={staffChartDailyXAxis}
+      />
     </Grid>
   )
 }

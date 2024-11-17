@@ -31,20 +31,20 @@ class StatisticsService
         ->get();
 
     $originalTotalVisitorsToday = $originalTotalVisitorsYesterday = 0;
-    $todaySeriesData = $yesterdaySeriesData = [];
-    $latestHourWithData = 8;
+    $todaySeriesData = [];
+    $xAxisCategories = [];
 
     foreach ($todayData as $entry) {
-        if ($entry->hour >= 8) {
-            $todaySeriesData[$entry->hour] = $entry->total;
+        if ($entry->total > 0) {
+            $hourLabel = str_pad($entry->hour, 2, '0', STR_PAD_LEFT) . ':00';
+            $todaySeriesData[] = $entry->total;
+            $xAxisCategories[] = $hourLabel;
             $originalTotalVisitorsToday += $entry->total;
-            $latestHourWithData = max($latestHourWithData, $entry->hour);
         }
     }
 
     foreach ($yesterdayData as $entry) {
-        if ($entry->hour >= 8) {
-            $yesterdaySeriesData[$entry->hour] = $entry->total;
+        if ($entry->total > 0) {
             $originalTotalVisitorsYesterday += $entry->total;
         }
     }
@@ -52,22 +52,12 @@ class StatisticsService
     $percentChange = $this->calculatePercentChange($originalTotalVisitorsToday, $originalTotalVisitorsYesterday);
     $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
 
-    $xAxisCategories = [];
-    for ($hour = 8; $hour <= $latestHourWithData; $hour++) {
-        $xAxisCategories[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
-    }
-
-    $seriesData = [];
-    for ($hour = 8; $hour <= $latestHourWithData; $hour++) {
-        $seriesData[] = $todaySeriesData[$hour] ?? 0;
-    }
-
-    $todayCumulativeSeriesData = $this->calculateCumulativeSeries($seriesData);
+    $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
 
     return [
         'number' => number_format($originalTotalVisitorsToday),
         'percent' => $percentFormatted,
-        'seriesData' => $seriesData,
+        'seriesData' => $todaySeriesData,
         'cumulativeSeriesData' => $todayCumulativeSeriesData,
         'xAxis' => $xAxisCategories,
     ];
@@ -105,20 +95,20 @@ class StatisticsService
         ->get();
 
         $originalTotalVisitorsToday = $originalTotalVisitorsYesterday = 0;
-        $todaySeriesData = $yesterdaySeriesData = [];
-        $latestHourWithData = 8;
+        $todaySeriesData = [];
+        $xAxisCategories = [];
 
         foreach ($todayData as $entry) {
-            if ($entry->hour >= 8) {
-                $todaySeriesData[$entry->hour] = $entry->total;
+            if ($entry->total > 0) {
+                $hourLabel = str_pad($entry->hour, 2, '0', STR_PAD_LEFT) . ':00';
+                $todaySeriesData[] = $entry->total;
+                $xAxisCategories[] = $hourLabel;
                 $originalTotalVisitorsToday += $entry->total;
-                $latestHourWithData = max($latestHourWithData, $entry->hour);
             }
         }
 
         foreach ($yesterdayData as $entry) {
-            if ($entry->hour >= 8) {
-                $yesterdaySeriesData[$entry->hour] = $entry->total;
+            if ($entry->total > 0) {
                 $originalTotalVisitorsYesterday += $entry->total;
             }
         }
@@ -126,60 +116,12 @@ class StatisticsService
         $percentChange = $this->calculatePercentChange($originalTotalVisitorsToday, $originalTotalVisitorsYesterday);
         $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
 
-        $xAxisCategories = [];
-        for ($hour = 8; $hour <= $latestHourWithData; $hour++) {
-            $xAxisCategories[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
-        }
-
-        $seriesData = [];
-        for ($hour = 8; $hour <= $latestHourWithData; $hour++) {
-            $seriesData[] = $todaySeriesData[$hour] ?? 0;
-        }
-
-        $todayCumulativeSeriesData = $this->calculateCumulativeSeries($seriesData);
-
-        // $todaySeriesData = array_fill(0, 24, 0);
-        // $yesterdaySeriesData = array_fill(0, 24, 0);
-        // $totalVisitorsToday = 0;
-        // $totalVisitorsYesterday = 0;
-
-        // $latestHourWithData = 0;
-        // foreach ($todayData as $entry) {
-        //     if ($entry->hour > $latestHourWithData) {
-        //         $latestHourWithData = $entry->hour;
-        //     }
-        // }
-
-        // foreach ($todayData as $entry) {
-        //     if ($entry->day == $startOfToday->toDateString() && $entry->hour <= $latestHourWithData) {
-        //         $todaySeriesData[$entry->hour] = $entry->total;
-        //         $totalVisitorsToday += $entry->total;
-        //     }
-        // }
-
-        // foreach ($yesterdayData as $entry) {
-        //     if ($entry->day == $startOfYesterday->toDateString() && $entry->hour <= $latestHourWithData) {
-        //         $yesterdaySeriesData[$entry->hour] = $entry->total;
-        //         $totalVisitorsYesterday += $entry->total;
-        //     }
-        // }
-
-        // $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
-
-        // $percentChange = $this->calculatePercentChange($totalVisitorsToday, $totalVisitorsYesterday);
-        // $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
-
-        // return [
-        //     'number' => number_format($totalVisitorsToday),
-        //     'percent' => $percentFormatted,
-        //     'seriesData' => $todaySeriesData,
-        //     'cumulativeSeriesData' => $todayCumulativeSeriesData,
-        // ];
+        $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
 
         return [
             'number' => number_format($originalTotalVisitorsToday),
             'percent' => $percentFormatted,
-            'seriesData' => $seriesData,
+            'seriesData' => $todaySeriesData,
             'cumulativeSeriesData' => $todayCumulativeSeriesData,
             'xAxis' => $xAxisCategories,
         ];
@@ -192,7 +134,7 @@ class StatisticsService
         $startOfYesterday = now()->subDay()->startOfDay();
         $endOfYesterday = now()->subDay()->endOfDay();
 
-        $todayOccupancyData = EtlDataHourly::whereIn('stream_id', $streamIds)
+        $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
         ->whereBetween('date', [$startOfToday, $endOfToday])
         ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
         ->where('metrics.name', 'Occupancy')
@@ -204,7 +146,7 @@ class StatisticsService
         ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
         ->get();
 
-        $yesterdayOccupancyData = EtlDataHourly::whereIn('stream_id', $streamIds)
+        $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
             ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
             ->where('metrics.name', 'Occupancy')
@@ -217,50 +159,21 @@ class StatisticsService
         ->get();
 
 
-        // $todaySeriesData = array_fill(0, 24, 0);
-        // $yesterdaySeriesData = array_fill(0, 24, 0);
-        // $totalOccupancyToday = 0;
-        // $totalOccupancyYesterday = 0;
-
-        // $latestHourWithData = 0;
-        // foreach ($todayOccupancyData as $entry) {
-        //     if ($entry->hour > $latestHourWithData) {
-        //         $latestHourWithData = $entry->hour;
-        //     }
-        // }
-
-        // foreach ($todayOccupancyData as $entry) {
-        //     if ($entry->hour <= $latestHourWithData) {
-        //         $todaySeriesData[$entry->hour] = $entry->total;
-        //         $totalOccupancyToday += $entry->total;
-        //     }
-        // }
-
-        // foreach ($yesterdayOccupancyData as $entry) {
-        //     if ($entry->hour <= $latestHourWithData) {
-        //         $yesterdaySeriesData[$entry->hour] = $entry->total;
-        //         $totalOccupancyYesterday += $entry->total;
-        //     }
-        // }
-
-        // $percentChange = $this->calculatePercentChange($totalOccupancyToday, $totalOccupancyYesterday);
-        // $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
-
         $originalTotalVisitorsToday = $originalTotalVisitorsYesterday = 0;
-        $todaySeriesData = $yesterdaySeriesData = [];
-        $latestHourWithData = 8;
+        $todaySeriesData = [];
+        $xAxisCategories = [];
 
-        foreach ($todayOccupancyData as $entry) {
-            if ($entry->hour >= 8) {
-                $todaySeriesData[$entry->hour] = $entry->total;
+        foreach ($todayData as $entry) {
+            if ($entry->total > 0) {
+                $hourLabel = str_pad($entry->hour, 2, '0', STR_PAD_LEFT) . ':00';
+                $todaySeriesData[] = $entry->total;
+                $xAxisCategories[] = $hourLabel;
                 $originalTotalVisitorsToday += $entry->total;
-                $latestHourWithData = max($latestHourWithData, $entry->hour);
             }
         }
 
-        foreach ($yesterdayOccupancyData as $entry) {
-            if ($entry->hour >= 8) {
-                $yesterdaySeriesData[$entry->hour] = $entry->total;
+        foreach ($yesterdayData as $entry) {
+            if ($entry->total > 0) {
                 $originalTotalVisitorsYesterday += $entry->total;
             }
         }
@@ -268,20 +181,11 @@ class StatisticsService
         $percentChange = $this->calculatePercentChange($originalTotalVisitorsToday, $originalTotalVisitorsYesterday);
         $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
 
-        $xAxisCategories = [];
-        for ($hour = 8; $hour <= $latestHourWithData; $hour++) {
-            $xAxisCategories[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
-        }
-
-        $seriesData = [];
-        for ($hour = 8; $hour <= $latestHourWithData; $hour++) {
-            $seriesData[] = $todaySeriesData[$hour] ?? 0;
-        }
 
         return [
             'number' => number_format($originalTotalVisitorsToday),
             'percent' => $percentFormatted,
-            'seriesData' => $seriesData,
+            'seriesData' => $todaySeriesData,
             'xAxis' => $xAxisCategories,
         ];
     }
@@ -655,8 +559,8 @@ class StatisticsService
             }
 
         return [
-            'xAxis' => $xAxis,
             'staffChartSeries' => $visitorsChartSeries,
+            'xAxis' => $xAxis,
         ];
     }
 

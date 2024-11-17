@@ -41,6 +41,9 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSer
 
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
 
+  const maxYValue = Math.max(...staffChartSeries.flatMap(series => series.data))
+  const adjustedMax = Math.ceil((maxYValue * 1.2) / 20) * 20
+
   const options: ApexOptions = {
     colors: [theme.palette.primary.main, '#70A9A1', '#9EC1A3', '#CFE0C3'],
     chart: {
@@ -73,12 +76,13 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSer
       axisBorder: { show: false },
 
       tickAmount: isMobile ? 12 : isDaily ? 24 : 12,
-      categories: !isDaily
-        ? xAxis
+      categories: xAxis
+        ? isRTL
+          ? xAxis.reverse()
+          : xAxis
         : isRTL
         ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23].reverse()
         : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
-
       crosshairs: {
         stroke: { color: `rgba(${theme.palette.customColors.main}, 0.2)` }
       },
@@ -104,14 +108,17 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSer
     },
     yaxis: {
       opposite: isRTL,
+      min: 0,
+      max: adjustedMax,
       labels: {
         padding: isRTL ? 4 : 4,
-        formatter: value => `${value}`,
+        formatter: value => `${Math.ceil(value / 20) * 20}`,
         style: {
           fontSize: '14px',
           colors: theme.palette.text.disabled
         }
-      }
+      },
+      tickAmount: 5
     },
     tooltip: {
       theme: settings?.mode,

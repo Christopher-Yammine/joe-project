@@ -196,7 +196,7 @@ class ETLController extends Controller
             ...$totalUniqueVisitorsPerStream,
             ...$totalRepeatedVisitorsPerStream,
             ...$totalOccupancyVisitorsPerStream,
-            ...$staffChartSeries
+            'staffChartDaily' => $staffChartSeries
         ], 200);
     }
 
