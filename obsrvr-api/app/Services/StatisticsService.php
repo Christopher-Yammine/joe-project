@@ -327,24 +327,24 @@ class StatisticsService
                 }
 
                 if ($entry->sentiment === 'Happy') {
-                    $ageSentimentBarChartSeries['Happy Visitors'][$entry->group_name] = $entry->total;
+                    $ageSentimentBarChartSeries['Happy Visitors'][$entry->group_name] = -abs($entry->total);
                     $happyMax = max($happyMax, $entry->total);
                 } elseif ($entry->sentiment === 'Sad' || $entry->sentiment === 'Neutral') {
                     if (!isset($ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name])) {
                         $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] = 0;
                     }
-                    $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] -= abs($entry->total);
+                    $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] += abs($entry->total);
                     $sadMax = max($sadMax, abs($ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name]));
                 }
             }
 
             $maxOverall = max($maleMax, $femaleMax);
-            $maxWithIncrease = round($maxOverall * 1.1);
+            $maxWithIncrease = ceil($maxOverall * 1.1 / 100)* 100;
             $maleMaxWithIncrease = -abs($maxWithIncrease);
             $femaleMaxWithIncrease = abs($maxWithIncrease);
 
             $sentimentMaxOverall = max($happyMax, $sadMax);
-            $sentimentMaxWithIncrease = round($sentimentMaxOverall * 1.1);
+            $sentimentMaxWithIncrease = ceil($sentimentMaxOverall * 1.1 / 100) * 100;
             $happyMaxWithIncrease = -abs($sentimentMaxWithIncrease);
             $sadMaxWithDecrease = abs($sentimentMaxWithIncrease);
 
