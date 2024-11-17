@@ -82,21 +82,6 @@ const LineChart: React.FC<Props> = ({
       axisBorder: { show: false },
       tickAmount: isMobile ? 2 : 6,
       categories: xAxis,
-      // categories: [
-      //   'Oct 2023 (W40)',
-      //   'Oct 2023 (W41)',
-      //   'Oct 2023 (W42)',
-      //   'Oct 2023 (W43)',
-      //   'Oct 2023 (W44)',
-      //   'Nov 2023 (W45)',
-      //   'Nov 2023 (W46)',
-      //   'Nov 2023 (W47)',
-      //   'Nov 2023 (W48)',
-      //   'Dec 2023 (W49)',
-      //   'Dec 2023 (W50)',
-      //   'Dec 2023 (W51)'
-      // ],
-
       crosshairs: {
         stroke: { color: `rgba(${theme.palette.customColors.main}, 0.2)` }
       },

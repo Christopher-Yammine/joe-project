@@ -565,16 +565,10 @@ class StatisticsService
     }
 
     public function getNewReturningHistoricalVisitors (array $streamIds, $fromDate, $toDate, $duration) {
+
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
 
         $groupByFormat = $this->getGroupByFormat($duration);
-        $dateRanges = $this->getDateRange($fromDate, $toDate, $duration);
-
-        $fromDateCurrent = $dateRanges['fromDateCurrent'];
-        $toDateCurrent = $dateRanges['toDateCurrent'];
-        $fromDatePrevious = $dateRanges['fromDatePrevious'];
-        $toDatePrevious = $dateRanges['toDatePrevious'];
-
         $newVisitors = DB::table($etlDataTable)
         ->whereIn('stream_id', $streamIds)
         ->whereBetween('date', [$fromDate, $toDate])
@@ -605,7 +599,7 @@ class StatisticsService
 
         $previousNewVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$previousFromDate, $previousToDate])
+            ->whereBetween('date', [$previousToDate, $previousFromDate])
             ->join('metrics', $etlDataTable . '.metric_id', '=', 'metrics.id')
             ->where('metrics.name', '=', 'Unique')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
@@ -615,7 +609,7 @@ class StatisticsService
 
         $previousReturningVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$previousFromDate, $previousToDate])
+            ->whereBetween('date', [$previousToDate, $previousFromDate])
             ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
             ->where('person_types.name', '=', 'Returning')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($groupByFormat . ' as period'))
@@ -1627,8 +1621,8 @@ class StatisticsService
 
                 $dateInterval = (new \DateTime($fromDate))->diff(new \DateTime($toDate))->days + 1;
 
-                $fromDatePrevious = (new \DateTime($fromDate))->modify("-$dateInterval days")->format('Y-m-d 00:00:00');
-                $toDatePrevious = (new \DateTime($fromDate))->modify("-1 day")->format('Y-m-d 23:59:59');
+                $fromDatePrevious = (new \DateTime($toDateCurrent))->modify("-$dateInterval days")->format('Y-m-d 00:00:00');
+                $toDatePrevious = (new \DateTime($toDateCurrent))->modify("-1 day")->format('Y-m-d 23:59:59');
 
                 break;
 
@@ -1638,36 +1632,18 @@ class StatisticsService
 
                 $dateInterval = (new \DateTime($fromDate))->diff(new \DateTime($toDate))->days + 1;
 
-                $fromDatePrevious = (new \DateTime($fromDate))->modify("-$dateInterval days")->format('Y-m-d 00:00:00');
-                $toDatePrevious = (new \DateTime($fromDate))->modify("-1 day")->format('Y-m-d 23:59:59');
+                $fromDatePrevious = (new \DateTime($fromDateCurrent))->modify("-$dateInterval days")->format('Y-m-d 00:00:00');
+                $toDatePrevious = (new \DateTime($toDateCurrent))->modify("-1 day")->format('Y-m-d 23:59:59');
                 break;
 
-            // case 'yearly':
-            //     $fromDateCurrent = (new \DateTime($fromDate))->modify('first day of January')->format('Y-m-d 00:00:00');
-            //     $toDateCurrent = (new \DateTime($toDate))->modify('last day of December')->format('Y-m-d 23:59:59');
-
-            //     $yearDifference = (new \DateTime($toDate))->format('Y') - (new \DateTime($fromDate))->format('Y') + 1;
-
-            //     $fromDatePrevious = (new \DateTime($fromDate))->modify("-$yearDifference years")->modify('first day of January')->format('Y-m-d 00:00:00');
-            //     $toDatePrevious = (new \DateTime($toDate))->modify("-$yearDifference years")->modify('last day of December')->format('Y-m-d 23:59:59');
-
             case 'yearly':
-                $fromDateCurrent = (new \DateTime($fromDate))->modify('first day of January this year')->format('Y-m-d 00:00:00');
-                $toDateCurrent = (new \DateTime($fromDate))->modify('last day of December this year')->format('Y-m-d 23:59:59');
+                $fromDateCurrent = (new \DateTime($fromDate))->modify('first day of January')->format('Y-m-d 00:00:00');
+                $toDateCurrent = (new \DateTime($toDate))->modify('last day of December')->format('Y-m-d 23:59:59');
 
-                $dateInterval = (new \DateTime($fromDate))->diff(new \DateTime($toDate))->days + 1;
+                $yearDifference = (new \DateTime($toDate))->format('Y') - (new \DateTime($fromDate))->format('Y') + 1;
 
-                $fromDatePrevious = (new \DateTime($fromDate))->modify("-$dateInterval days")->format('Y-m-d 00:00:00');
-                $toDatePrevious = (new \DateTime($fromDate))->modify("-1 day")->format('Y-m-d 23:59:59');
-
-                // dd([
-                //     'Case' => 'Yearly',
-                //     'fromDateCurrent' => $fromDateCurrent,
-                //     'toDateCurrent' => $toDateCurrent,
-                //     'yearDifference' => $yearDifference,
-                //     'fromDatePrevious' => $fromDatePrevious,
-                //     'toDatePrevious' => $toDatePrevious,
-                // ]);
+                $fromDatePrevious = (new \DateTime($fromDateCurrent))->modify("-$yearDifference years")->format('Y-m-d 00:00:00');
+                $toDatePrevious = (new \DateTime($toDateCurrent))->modify("-$yearDifference years")->format('Y-m-d 23:59:59');
 
                 break;
 

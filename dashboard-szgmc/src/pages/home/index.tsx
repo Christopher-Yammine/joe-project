@@ -25,32 +25,30 @@ const Home = () => {
     xAxis: []
   })
   const [uniqueStatistics, setUniqueStatistics] = useState({
-    number: dataJSON?.totalUniqueVisitorsCard?.number,
-    percent: dataJSON?.totalUniqueVisitorsCard?.percent,
-    cumulativeSeriesData: dataJSON?.totalUniqueVisitorsCard?.cumulativeSeriesData,
+    number: 0,
+    percent: '',
+    cumulativeSeriesData: [],
     xAxis: []
   })
   const [occupancyStatistics, setOccupancyStatistics] = useState({
-    number: dataJSON?.totalOccupancyCard?.number,
-    percent: dataJSON?.totalOccupancyCard?.percent,
-    seriesData: dataJSON?.totalOccupancyCard?.seriesData,
+    number: 0,
+    percent: '',
+    seriesData: [],
     xAxis: []
   })
-  const [ageBarChartSeries, setAgeBarChartSeries] = useState(dataJSON?.ageBarChartSeries)
-  const [happyFacesRangeChartSeries, setHappyFacesRangeChartSeries] = useState(dataJSON?.ageSentimentBarChartSeries)
+  const [ageBarChartSeries, setAgeBarChartSeries] = useState([])
+  const [happyFacesRangeChartSeries, setHappyFacesRangeChartSeries] = useState([])
   const [demographicsYAxis, setDemographicsYAxis] = useState([])
-  const [visitorsChartSeries1Daily, setVisitorsChartSeries1Daily] = useState(dataJSON?.visitorsChartSeries1Daily)
-  const [visitorsChartSeries1Dailycomparisons, setVisitorsChartSeries1Dailycomparisons] = useState<any[]>(
-    dataJSON?.visitorsChartSeries1Dailycomparisons
-  )
+  const [visitorsChartSeries1Daily, setVisitorsChartSeries1Daily] = useState([])
+  const [visitorsChartSeries1Dailycomparisons, setVisitorsChartSeries1Dailycomparisons] = useState<any[]>([])
   const [visitorsChartXAxis, setVisitorChartXAxis] = useState([])
-  const [visitorsChartSeries2Daily, setVisitorsChartSeries2Daily] = useState(dataJSON?.visitorsChartSeries2Daily)
+  const [visitorsChartSeries2Daily, setVisitorsChartSeries2Daily] = useState([])
   const [visitorsChartSeries2Dailycomparisons, setVisitorsChartSeries2Dailycomparisons] = useState<any[]>([])
-  const [visitorsChartSeries3Daily, setVisitorsChartSeries3Daily] = useState(dataJSON?.visitorsChartSeries3Daily)
+  const [visitorsChartSeries3Daily, setVisitorsChartSeries3Daily] = useState([])
   const [visitorsChartSeries3Dailycomparisons, setVisitorsChartSeries3Dailycomparisons] = useState<any[]>([])
-  const [visitorsChartSeries4Daily, setVisitorsChartSeries4Daily] = useState(dataJSON?.visitorsChartSeries4Daily)
+  const [visitorsChartSeries4Daily, setVisitorsChartSeries4Daily] = useState([])
   const [visitorsChartSeries4Dailycomparisons, setVisitorsChartSeries4Dailycomparisons] = useState<any[]>([])
-  const [staffChartSeries, setStaffChartSeries] = useState(dataJSON?.staffChartSeriesDaily)
+  const [staffChartSeries, setStaffChartSeries] = useState([])
   const [staffChartDailyXAxis, setStaffChartDailyXAxis] = useState([])
   const [ageMinValue, setAgeMinValue] = useState(-1000)
   const [ageMaxValue, setAgeMaxValue] = useState(1000)

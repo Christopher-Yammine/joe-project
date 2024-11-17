@@ -11,36 +11,6 @@ const CameraSelect = () => {
 
   const streams = useStore(state => state.streams)
   const setSelectedStreams = useStore(state => state.setSelectedStream)
-  // const options = [
-  //   {
-  //     label: t('Mosque'),
-  //     value: 'mosque',
-  //     options: [
-  //       {
-  //         label: t('Mosque Entry 1'),
-  //         value: 'Mosque Entry 1'
-  //       },
-  //       {
-  //         label: t('Mosque Entry 2'),
-  //         value: 'Mosque Entry 2'
-  //       },
-  //       {
-  //         label: t('Mosque Entry 3'),
-  //         value: 'Mosque Entry 3'
-  //       }
-  //     ]
-  //   },
-  //   {
-  //     label: t('Souq'),
-  //     value: 'souq',
-  //     options: [
-  //       {
-  //         label: t('Souq Entry 1'),
-  //         value: 'Souq Entry 1'
-  //       }
-  //     ]
-  //   }
-  // ]
 
   const options = streams?.map(stream => ({
     label: t(stream.label),
@@ -163,34 +133,6 @@ const CameraSelect = () => {
     )
   }
 
-  // const selectRef = useRef(null)
-
-  // // @ts-ignore
-  // const handleClickOutside = event => {
-  //   // console.log('🚀 ~ CameraSelect ~ selectRef:', selectRef)
-  //   // console.log('🚀 ~ handleClickOutside ~ !selectRef.current:', !selectRef.current)
-
-  //   // console.log(
-  //   //   '🚀 ~ handleClickOutside ~ !selectRef.current.contains(event.target):',
-  //   //   // @ts-ignore
-  //   //   !selectRef.current.contains(event.target)
-  //   // )
-  //   // @ts-ignore
-  //   if (!selectRef.current && !selectRef.current.contains(event.target)) {
-  //     handleMenuClose()
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   console.log('Event listener added')
-  //   document.addEventListener('mousedown', handleClickOutside)
-
-  //   // return () => {
-  //   //   console.log('Event listener removed')
-  //   //   document.removeEventListener('mousedown', handleClickOutside)
-  //   // }
-  // }, [])
-
   const handleMenuClose = () => {
     const ids = selected.flatMap((item: any) => (item.options ? item.options.map(opt => opt.value) : item.value))
     console.log(ids)
@@ -199,7 +141,6 @@ const CameraSelect = () => {
 
   return (
     <Box
-      // ref={selectRef}
       style={{
         minWidth: '200px',
         backgroundColor: theme.palette.background.paper,
