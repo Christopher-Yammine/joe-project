@@ -222,15 +222,15 @@ class ETLController extends Controller
 
         return response()->json([
             'totalNewReturningHistoricalVisitors' => $totalNewReturningHistoricalVisitors,
-            // 'totalGendersHistoricalVisitors' => $totalGendersHistoricVisitors,
-            // 'totalSentimentsHistoricalVisitors' => $totalSentimentsHistoricalVisitors,
-            // 'totalMosqueSouqHistoricalVisitors' => $totalMosqueSouqHistoricalVisitors,
-            // ...$heatMapData,
-            // ...$totalVisitorsHistorical,
-            // ...$totalUniqueVisitorsHistorical,
-            // ...$totalRepeatedVisitorsHistorical,
-            // ...$totalOccupancyVisitorsHistorical,
-            // 'staffChartSeriesHistorical' => $staffChartSeriesHistorical
+            'totalGendersHistoricalVisitors' => $totalGendersHistoricVisitors,
+            'totalSentimentsHistoricalVisitors' => $totalSentimentsHistoricalVisitors,
+            'totalMosqueSouqHistoricalVisitors' => $totalMosqueSouqHistoricalVisitors,
+            ...$heatMapData,
+            ...$totalVisitorsHistorical,
+            ...$totalUniqueVisitorsHistorical,
+            ...$totalRepeatedVisitorsHistorical,
+            ...$totalOccupancyVisitorsHistorical,
+            'staffChartSeriesHistorical' => $staffChartSeriesHistorical
         ], 200);
     }
 }

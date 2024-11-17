@@ -67,12 +67,12 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
       let from = minY + i * step
       let to = from + step
 
-      from = Math.floor(from)
+      from = Math.floor(from / 5) * 5
 
       if (i === rangeCount - 1) {
-        to = Math.ceil(maxY)
+        to = Math.ceil(maxY / 5) * 5
       } else {
-        to = Math.floor(to)
+        to = Math.floor(to / 5) * 5
       }
 
       const name = `${from}-${to}`
