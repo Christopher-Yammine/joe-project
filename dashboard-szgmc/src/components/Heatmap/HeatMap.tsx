@@ -219,13 +219,6 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     data: isRTL ? item.data?.reverse() : item?.data
   }))
 
-  useEffect(() => {
-    console.log(
-      'xAxix',
-      series[0]?.data.map(dataPoint => dataPoint.x)
-    )
-  }, [dynamicRanges])
-
   return (
     dynamicRanges && (
       <Grid item xs={12}>

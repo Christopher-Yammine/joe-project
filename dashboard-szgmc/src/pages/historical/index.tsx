@@ -165,11 +165,9 @@ const HistoricalPage = () => {
     }
   }, [fromDate, toDate, durationSelect, streams, selectedStreams])
 
-  if (loading) {
-    return <SkeletonLoading />
-  }
-
-  return (
+  return loading ? (
+    <SkeletonLoading pageType='historical' />
+  ) : (
     <Grid container spacing={4}>
       <LineChart
         firstTitle={

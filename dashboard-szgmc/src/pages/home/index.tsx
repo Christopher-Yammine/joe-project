@@ -193,15 +193,9 @@ const Home = () => {
     }
   }
 
-  // useEffect(() => {
-  //   console.log('visitorsChartXAxis', visitorsChartXAxis)
-  // }, [visitorsChartXAxis])
-
-  if (loading) {
-    return <SkeletonLoading />
-  }
-
-  return (
+  return loading ? (
+    <SkeletonLoading pageType='overview' />
+  ) : (
     <Grid container spacing={4}>
       <VerseCard verseCardTextKey={'verseCardTextKey'} />
       <StatisticBlock
