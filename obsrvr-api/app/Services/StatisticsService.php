@@ -408,31 +408,30 @@ class StatisticsService
             ->get();
 
             $visitorsChartSeries = [];
-            $latestHourWithData = 9;
-        
+            $uniqueHours = [];
+
             foreach ($todayResults as $row) {
                 if (!isset($visitorsChartSeries[$row->name])) {
                     $visitorsChartSeries[$row->name] = [
                         'name' => $row->name,
                         'name_ar' => $this->getArabicName($row->name),
                         'data' => [],
+                        'data' => [],
                     ];
                 }
                 $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
-                $latestHourWithData = max($latestHourWithData, $row->hour);
+                $uniqueHours[$row->hour] = true;
             }
-        
+
+            $uniqueHours = array_keys($uniqueHours);
+            sort($uniqueHours);
+            $xAxis = array_map(function ($hour) {
+                return str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
+            }, $uniqueHours);
+
             foreach ($visitorsChartSeries as &$series) {
-                $filledData = [];
-                for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
-                    $filledData[] = $series['data'][$hour] ?? null;
-                }
-                $series['data'] = $filledData;
-            }
-        
-            $xAxis = [];
-            for ($hour = 9; $hour <= $latestHourWithData + 1; $hour++) {
-                $xAxis[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
+                ksort($series['data']);
+                $series['data'] = array_values($series['data']);
             }
 
         $firstReturnTitle = 'avgFootfall';
@@ -469,29 +468,23 @@ class StatisticsService
             ->orderBy('hour')
             ->get();
 
-        $visitorsChartSeries = [];
-        $latestHourWithData = 9;
+            $visitorsChartSeries = [];
 
-        foreach ($todayResults as $row) {
-            if (!isset($visitorsChartSeries[$row->name])) {
-                $visitorsChartSeries[$row->name] = [
-                    'name' => $row->name,
-                    'name_ar' => $this->getArabicName($row->name),
-                    'data' => [],
-                ];
+            foreach ($todayResults as $row) {
+                if (!isset($visitorsChartSeries[$row->name])) {
+                    $visitorsChartSeries[$row->name] = [
+                        'name' => $row->name,
+                        'name_ar' => $this->getArabicName($row->name),
+                        'data' => [],
+                    ];
+                }
+                $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
             }
 
-            $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
-            $latestHourWithData = max($latestHourWithData, $row->hour);
-        }
-
-        foreach ($visitorsChartSeries as &$series) {
-            $filledData = [];
-            for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
-                $filledData[] = $series['data'][$hour] ?? null;
+            foreach ($visitorsChartSeries as &$series) {
+                ksort($series['data']);
+                $series['data'] = array_values($series['data']);
             }
-            $series['data'] = $filledData;
-        }
 
         $firstReturnTitle = 'avgUniqueVisitors';
         $fourthReturnTitle = 'totalUniqueVisitors';
@@ -527,27 +520,22 @@ class StatisticsService
         ->get();
 
         $visitorsChartSeries = [];
-        $latestHourWithData = 9;
 
-        foreach ($todayResults as $row) {
-            if (!isset($visitorsChartSeries[$row->name])) {
-                $visitorsChartSeries[$row->name] = [
-                    'name' => $row->name,
-                    'name_ar' => $this->getArabicName($row->name),
-                    'data' => [],
-                ];
+            foreach ($todayResults as $row) {
+                if (!isset($visitorsChartSeries[$row->name])) {
+                    $visitorsChartSeries[$row->name] = [
+                        'name' => $row->name,
+                        'name_ar' => $this->getArabicName($row->name),
+                        'data' => [],
+                    ];
+                }
+                $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
             }
-            $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
-            $latestHourWithData = max($latestHourWithData, $row->hour);
-        }
 
-        foreach ($visitorsChartSeries as &$series) {
-            $filledData = [];
-            for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
-                $filledData[] = $series['data'][$hour] ?? null;
+            foreach ($visitorsChartSeries as &$series) {
+                ksort($series['data']);
+                $series['data'] = array_values($series['data']);
             }
-            $series['data'] = $filledData;
-        }
 
         $personType = 'returning';
         $firstReturnTitle = 'avgRepeatedVisitors';
@@ -584,27 +572,23 @@ class StatisticsService
         ->get();
 
         $visitorsChartSeries = [];
-        $latestHourWithData = 9;
 
-        foreach ($todayResults as $row) {
-            if (!isset($visitorsChartSeries[$row->name])) {
-                $visitorsChartSeries[$row->name] = [
-                    'name' => $row->name,
-                    'name_ar' => $this->getArabicName($row->name),
-                    'data' => [],
-                ];
+            foreach ($todayResults as $row) {
+                if (!isset($visitorsChartSeries[$row->name])) {
+                    $visitorsChartSeries[$row->name] = [
+                        'name' => $row->name,
+                        'name_ar' => $this->getArabicName($row->name),
+                        'data' => [],
+                    ];
+                }
+                $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
             }
-            $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
-            $latestHourWithData = max($latestHourWithData, $row->hour);
-        }
 
-        foreach ($visitorsChartSeries as &$series) {
-            $filledData = [];
-            for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
-                $filledData[] = $series['data'][$hour] ?? null;
+            foreach ($visitorsChartSeries as &$series) {
+                ksort($series['data']);
+                $series['data'] = array_values($series['data']);
             }
-            $series['data'] = $filledData;
-        }
+
 
         $firstReturnTitle = 'avgOccupancyVisitors';
         $fourthReturnTitle = 'totalOccupancy';

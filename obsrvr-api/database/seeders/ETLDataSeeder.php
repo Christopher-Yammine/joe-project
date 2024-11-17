@@ -57,11 +57,6 @@ class ETLDataSeeder extends Seeder
         $date = $startDate->copy();
 
         while ($date <= $endDate) {
-            if ($date->isSunday()) {
-                $this->incrementDate($date, $interval);
-                continue;
-            }
-
             if ($interval === 'hour') {
                 $startHour = 9;
                 $endHour = ($date->isSaturday()) ? 14 : (rand(21, 22));
