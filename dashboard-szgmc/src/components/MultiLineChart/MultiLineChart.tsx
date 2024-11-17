@@ -42,7 +42,7 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSer
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
 
   const maxYValue = Math.max(...staffChartSeries.flatMap(series => series.data))
-  const adjustedMax = Math.ceil((maxYValue * 1.2) / 20) * 20
+  const adjustedMax = Math.ceil((maxYValue * 1.2) / 100) * 100
 
   const options: ApexOptions = {
     colors: [theme.palette.primary.main, '#70A9A1', '#9EC1A3', '#CFE0C3'],
@@ -112,7 +112,7 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSer
       max: adjustedMax,
       labels: {
         padding: isRTL ? 4 : 4,
-        formatter: value => `${Math.ceil(value / 20) * 20}`,
+        formatter: value => `${Math.ceil(value)}`,
         style: {
           fontSize: '14px',
           colors: theme.palette.text.disabled
