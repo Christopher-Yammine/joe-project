@@ -1,28 +1,5 @@
+import { StreamStore } from 'src/configs/types'
 import { create } from 'zustand'
-
-type StreamStore = {
-  streams: Stream[]
-  selectedStreams: Stream[]
-  setStreams: (streams: Stream[]) => void
-  setSelectedStream: (selectedStream: Stream[]) => void
-  fromDate: Date | null
-  setFromDate: (date: Date) => void
-  toDate: Date | null
-  setToDate: (date: Date) => void
-  durationSelect: string
-  setDurationSelect: (duration: string) => void
-}
-
-export type Option = {
-  label: string
-  value: string
-}
-
-export type Stream = {
-  label: string
-  value: string
-  options: Option[]
-}
 
 const now = new Date()
 const oneWeekAgo = new Date()
