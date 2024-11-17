@@ -14,7 +14,7 @@ import { useTheme } from '@mui/system'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
 import { useEffect, useState } from 'react'
-import { StaffChartSeriesData } from 'src/pages/historical/types'
+import { StaffChartSeriesData } from 'src/configs/types'
 
 interface Props {
   title: string

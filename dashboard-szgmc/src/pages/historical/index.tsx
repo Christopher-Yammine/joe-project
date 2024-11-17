@@ -12,10 +12,11 @@ import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import useStore from 'src/store/store'
 import { useSettings } from 'src/@core/hooks/useSettings'
-import { chartData, StaffChartHistorical } from './types'
 import SkeletonLoading from 'src/@core/layouts/components/skeleton-loading'
+import { chartData, StaffChartHistoricalData } from 'src/configs/types'
+import { config } from 'src/configs/config'
 
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL
+const API_URL = config.NEXT_PUBLIC_BASE_URL
 
 const HistoricalPage = () => {
   const { t } = useTranslation()
@@ -53,7 +54,7 @@ const HistoricalPage = () => {
   const [visitorsChartSeries4, setVisitorsChartSeries4] = useState([])
   const [visitorsChartSeries4Comparisons, setVisitorsChartSeries4Comparisons] = useState<any[]>([])
   const [visitorsChartXAxis, setVisitorsChartXAxix] = useState([])
-  const [staffChartSeriesHistorical, setStaffChartSeriesHistorical] = useState<StaffChartHistorical>({
+  const [staffChartSeriesHistorical, setStaffChartSeriesHistorical] = useState<StaffChartHistoricalData>({
     staffChartSeries: dataJSON?.staffChartSeriesTotal,
     xAxis: []
   })

@@ -9,8 +9,9 @@ import VisitorsChart from 'src/components/VisitorsChart/VisitorsChart'
 import useStore from 'src/store/store'
 import dataJSON from '../../db/data.json'
 import SkeletonLoading from 'src/@core/layouts/components/skeleton-loading'
+import { config } from 'src/configs/config'
 
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL
+const API_URL = config.NEXT_PUBLIC_BASE_URL
 
 const Home = () => {
   const { t } = useTranslation()
