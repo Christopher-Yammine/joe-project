@@ -113,16 +113,6 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     plotOptions: {
       heatmap: {
         enableShades: false,
-        // colorScale: {
-        //   ranges: [
-        //     { to: 10, from: 0, name: '0-10', color: 'rgba(174, 158, 133, 0.19)' },
-        //     { to: 20, from: 11, name: '10-20', color: 'rgba(174, 158, 133, 0.33)' },
-        //     { to: 30, from: 21, name: '20-30', color: 'rgba(174, 158, 133, 0.52)' },
-        //     { to: 40, from: 31, name: '30-40', color: 'rgba(174, 158, 133, 0.65)' },
-        //     { to: 50, from: 41, name: '40-50', color: 'rgba(174, 158, 133, 0.78)' },
-        //     { to: 60, from: 51, name: '50-60', color: '#ae9e85' }
-        //   ]
-        // }
         colorScale: {
           ranges: dynamicRanges
         }
@@ -132,31 +122,6 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
       padding: { top: -20 }
     },
     tooltip: {
-      // custom: function ({ series, seriesIndex, dataPointIndex, w }) {
-      //   const day = w.globals.seriesNames[seriesIndex]
-      //   const hour = dataPointIndex
-      //   const value = series[seriesIndex][dataPointIndex]
-      //   const hourFormatted = hour > 12 ? `${hour - 12}PM` : `${hour}AM`
-
-      //   const ranges = options.plotOptions?.heatmap?.colorScale?.ranges || []
-
-      //   const matchingRange = ranges.find(
-      //     range => range?.from && value >= range?.from && range?.to && value <= range?.to
-      //   )
-      //   const cellColor = matchingRange?.color || '#4C4B56'
-
-      //   const date = `${day}, ${hourFormatted}`
-
-      //   return `<div class='heatmap-tooltip'>
-      //             <div class='date'>${date}</div>
-      //             <div class='label'>Viewers</div>
-      //             <div class='value'>
-      //               <div style='background-color: ${cellColor}'></div>
-      //               <span>${value}</span>
-      //             </div>
-      //           </div>
-      //         `
-      // },
       custom: function ({ series, seriesIndex, dataPointIndex, w }) {
         const day = w.globals.seriesNames[seriesIndex]
 
