@@ -54,7 +54,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     const step = (maxY - minY) / rangeCount
 
     const staticColors = [
-      'rgba(174, 158, 133, 0)',
+      'rgba(174, 158, 133, 0.10)',
       'rgba(174, 158, 133, 0.25)',
       'rgba(174, 158, 133, 0.40)',
       'rgba(174, 158, 133, 0.55)',
@@ -67,12 +67,12 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
       let from = minY + i * step
       let to = from + step
 
-      from = Math.floor(from)
+      from = Math.floor(from / 5) * 5
 
       if (i === rangeCount - 1) {
-        to = Math.ceil(maxY)
+        to = Math.ceil(maxY / 5) * 5
       } else {
-        to = Math.floor(to)
+        to = Math.floor(to / 5) * 5
       }
 
       const name = `${from}-${to}`
@@ -132,14 +132,49 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
       padding: { top: -20 }
     },
     tooltip: {
+      // custom: function ({ series, seriesIndex, dataPointIndex, w }) {
+      //   const day = w.globals.seriesNames[seriesIndex]
+      //   const hour = dataPointIndex
+      //   const value = series[seriesIndex][dataPointIndex]
+      //   const hourFormatted = hour > 12 ? `${hour - 12}PM` : `${hour}AM`
+
+      //   const ranges = options.plotOptions?.heatmap?.colorScale?.ranges || []
+
+      //   const matchingRange = ranges.find(
+      //     range => range?.from && value >= range?.from && range?.to && value <= range?.to
+      //   )
+      //   const cellColor = matchingRange?.color || '#4C4B56'
+
+      //   const date = `${day}, ${hourFormatted}`
+
+      //   return `<div class='heatmap-tooltip'>
+      //             <div class='date'>${date}</div>
+      //             <div class='label'>Viewers</div>
+      //             <div class='value'>
+      //               <div style='background-color: ${cellColor}'></div>
+      //               <span>${value}</span>
+      //             </div>
+      //           </div>
+      //         `
+      // },
       custom: function ({ series, seriesIndex, dataPointIndex, w }) {
         const day = w.globals.seriesNames[seriesIndex]
-        const hour = dataPointIndex
+
+        const hour = parseInt(w.globals.initialSeries[seriesIndex].data[dataPointIndex].x, 10)
         const value = series[seriesIndex][dataPointIndex]
-        const hourFormatted = hour > 12 ? `${hour - 12}PM` : `${hour}AM`
+
+        let hourFormatted
+        if (hour === 0) {
+          hourFormatted = '12AM'
+        } else if (hour < 12) {
+          hourFormatted = `${hour}AM`
+        } else if (hour === 12) {
+          hourFormatted = '12PM'
+        } else {
+          hourFormatted = `${hour - 12}PM`
+        }
 
         const ranges = options.plotOptions?.heatmap?.colorScale?.ranges || []
-
         const matchingRange = ranges.find(
           range => range?.from && value >= range?.from && range?.to && value <= range?.to
         )
@@ -154,8 +189,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
                     <div style='background-color: ${cellColor}'></div>
                     <span>${value}</span>
                   </div>
-                </div>
-              `
+                </div>`
       },
       theme: settings.mode
     },
@@ -172,6 +206,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
       }
     },
     xaxis: {
+      categories: [...new Set(series.flatMap(s => s.data.map(dataPoint => dataPoint.x)))],
       labels: {
         show: true,
         style: {
@@ -220,7 +255,10 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
   }))
 
   useEffect(() => {
-    console.log(dynamicRanges)
+    console.log(
+      'xAxix',
+      series[0]?.data.map(dataPoint => dataPoint.x)
+    )
   }, [dynamicRanges])
 
   return (

@@ -923,6 +923,108 @@ class StatisticsService
         return $response;
     }
 
+    // public function getHeatMapChartData(array $streamIds, $fromDate = null, $toDate = null) {
+    //     $startDate = "$fromDate 00:00:00";
+    //     $endDate = "$toDate 23:59:59";
+
+    //     $results = DB::table('etl_data_hourly as etl')
+    //         ->select(
+    //             'streams.name',
+    //             DB::raw('DAYOFWEEK(etl.date) as day_of_week'),
+    //             DB::raw('HOUR(etl.date) as hour'),
+    //             DB::raw('MAX(etl.value) as value'),
+    //             DB::raw('ROUND(AVG(etl.value), 2) as total')
+    //         )
+    //         ->join('streams', 'etl.stream_id', '=', 'streams.id')
+    //         ->whereIn('etl.stream_id', $streamIds)
+    //         ->whereBetween('etl.date', [$startDate, $endDate])
+    //         ->groupBy('streams.name', DB::raw('HOUR(etl.date)'), DB::raw('DAYOFWEEK(etl.date)'))
+    //         ->orderBy('day_of_week', 'asc')
+    //         ->orderBy('hour', 'asc')
+    //         ->get();
+
+    //         $dayNamesAr = [
+    //             1 => 'الأحد',
+    //             2 => 'الإثنين',
+    //             3 => 'الثلاثاء',
+    //             4 => 'الأربعاء',
+    //             5 => 'الخميس',
+    //             6 => 'الجمعة',
+    //             7 => 'السبت',
+    //         ];
+
+    //         $dayNames = [
+    //             1 => 'Sunday',
+    //             2 => 'Monday',
+    //             3 => 'Tuesday',
+    //             4 => 'Wednesday',
+    //             5 => 'Thursday',
+    //             6 => 'Friday',
+    //             7 => 'Saturday',
+    //         ];
+
+    //         $heatMapData = [];
+    //         $seen = [];
+
+    //         foreach (range(1, 7) as $dayOfWeek) {
+    //             foreach (range(0, 23) as $hour) {
+    //                 $heatMapData[$dayOfWeek][$hour] = 0;
+    //             }
+    //         }
+
+    //         foreach ($results as $result) {
+    //             $dayOfWeek = $result->day_of_week;
+    //             $hour = $result->hour;
+    //             $total = $result->total;
+    //             $value = $result->value;
+
+    //             $heatMapData[$dayOfWeek][$hour] = $total;
+
+    //             $key = "{$dayOfWeek}_{$hour}";
+    //             if (!isset($seen[$key]) || $seen[$key]['value'] < $value) {
+    //                 $seen[$key] = [
+    //                     'day_of_week' => $dayOfWeek,
+    //                     'hour' => $hour,
+    //                     'value' => $value,
+    //                     'title' => "{$dayNames[$dayOfWeek]}, " . $this->formatHour($hour),
+    //                 ];
+    //             }
+    //         }
+
+    //         $topHourlyData = array_values($seen);
+    //         usort($topHourlyData, function ($a, $b) {
+    //             return $b['value'] - $a['value'];
+    //         });
+
+    //         $topHourlyData = array_slice($topHourlyData, 0, 4);
+
+    //         $formattedData = [];
+    //         foreach ($heatMapData as $dayOfWeek => $hoursData) {
+    //             $dayName = $dayNames[$dayOfWeek];
+    //             $dayNameAr = $dayNamesAr[$dayOfWeek];
+
+    //             $dayData = [
+    //                 'name' => $dayName,
+    //                 'name_ar' => $dayNameAr,
+    //                 'data' => [],
+    //             ];
+
+    //             foreach (range(0, 23) as $hour) {
+    //                 $dayData['data'][] = [
+    //                     'x' => (string) $hour,
+    //                     'y' => $hoursData[$hour] ?? 0,
+    //                 ];
+    //             }
+
+    //             $formattedData[] = $dayData;
+    //         }
+
+    //         return [
+    //             'series' => array_reverse($formattedData),
+    //             'topHourlyData' => $this->formatTopHourlyData($topHourlyData),
+    //         ];
+    //     }
+
     public function getHeatMapChartData(array $streamIds, $fromDate = null, $toDate = null) {
         $startDate = "$fromDate 00:00:00";
         $endDate = "$toDate 23:59:59";
@@ -930,100 +1032,113 @@ class StatisticsService
         $results = DB::table('etl_data_hourly as etl')
             ->select(
                 'streams.name',
+                DB::raw('WEEK(etl.date) as week_number'),
                 DB::raw('DAYOFWEEK(etl.date) as day_of_week'),
                 DB::raw('HOUR(etl.date) as hour'),
-                DB::raw('MAX(etl.value) as value'),
-                DB::raw('ROUND(AVG(etl.value), 2) as total')
+                DB::raw('SUM(etl.value) as total_value'),
+                DB::raw('ROUND(AVG(SUM(etl.value)) OVER (PARTITION BY streams.name, DAYOFWEEK(etl.date)), 0) as average_total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->whereIn('etl.stream_id', $streamIds)
             ->whereBetween('etl.date', [$startDate, $endDate])
-            ->groupBy('streams.name', DB::raw('HOUR(etl.date)'), DB::raw('DAYOFWEEK(etl.date)'))
+            ->groupBy(
+                'streams.name',
+                DB::raw('WEEK(etl.date)'),
+                DB::raw('DAYOFWEEK(etl.date)'),
+                DB::raw('HOUR(etl.date)')
+            )
+            ->orderBy('week_number', 'asc')
             ->orderBy('day_of_week', 'asc')
             ->orderBy('hour', 'asc')
             ->get();
 
-            $dayNamesAr = [
-                1 => 'الأحد',
-                2 => 'الإثنين',
-                3 => 'الثلاثاء',
-                4 => 'الأربعاء',
-                5 => 'الخميس',
-                6 => 'الجمعة',
-                7 => 'السبت',
-            ];
+        $dayNamesAr = [
+            1 => 'الأحد',
+            2 => 'الإثنين',
+            3 => 'الثلاثاء',
+            4 => 'الأربعاء',
+            5 => 'الخميس',
+            6 => 'الجمعة',
+            7 => 'السبت',
+        ];
 
-            $dayNames = [
-                1 => 'Sunday',
-                2 => 'Monday',
-                3 => 'Tuesday',
-                4 => 'Wednesday',
-                5 => 'Thursday',
-                6 => 'Friday',
-                7 => 'Saturday',
-            ];
+        $dayNames = [
+            1 => 'Sunday',
+            2 => 'Monday',
+            3 => 'Tuesday',
+            4 => 'Wednesday',
+            5 => 'Thursday',
+            6 => 'Friday',
+            7 => 'Saturday',
+        ];
 
-            $heatMapData = [];
-            $seen = [];
+        $heatMapData = [];
+        $seen = [];
 
-            foreach (range(1, 7) as $dayOfWeek) {
-                foreach (range(0, 23) as $hour) {
-                    $heatMapData[$dayOfWeek][$hour] = 0;
-                }
+        foreach (range(1, 7) as $dayOfWeek) {
+            $heatMapData[$dayOfWeek] = [];
+        }
+
+        foreach ($results as $result) {
+            $dayOfWeek = $result->day_of_week;
+            $hour = $result->hour;
+            $totalValue = $result->total_value;
+            $averageTotalValue = $result->average_total_value;
+
+            if ($averageTotalValue > 0) {
+                $heatMapData[$dayOfWeek][$hour] = $averageTotalValue;
             }
 
-            foreach ($results as $result) {
-                $dayOfWeek = $result->day_of_week;
-                $hour = $result->hour;
-                $total = $result->total;
-                $value = $result->value;
-
-                $heatMapData[$dayOfWeek][$hour] = $total;
-
-                $key = "{$dayOfWeek}_{$hour}";
-                if (!isset($seen[$key]) || $seen[$key]['value'] < $value) {
-                    $seen[$key] = [
-                        'day_of_week' => $dayOfWeek,
-                        'hour' => $hour,
-                        'value' => $value,
-                        'title' => "{$dayNames[$dayOfWeek]}, " . $this->formatHour($hour),
-                    ];
-                }
-            }
-
-            $topHourlyData = array_values($seen);
-            usort($topHourlyData, function ($a, $b) {
-                return $b['value'] - $a['value'];
-            });
-
-            $topHourlyData = array_slice($topHourlyData, 0, 4);
-
-            $formattedData = [];
-            foreach ($heatMapData as $dayOfWeek => $hoursData) {
-                $dayName = $dayNames[$dayOfWeek];
-                $dayNameAr = $dayNamesAr[$dayOfWeek];
-
-                $dayData = [
-                    'name' => $dayName,
-                    'name_ar' => $dayNameAr,
-                    'data' => [],
+            $key = "{$dayOfWeek}_{$hour}";
+            if (!isset($seen[$key]) || $seen[$key]['value'] < $totalValue) {
+                $seen[$key] = [
+                    'day_of_week' => $dayOfWeek,
+                    'hour' => $hour,
+                    'value' => $totalValue,
+                    'title' => "{$dayNames[$dayOfWeek]}, " . $this->formatHour($hour),
                 ];
+            }
+        }
 
-                foreach (range(0, 23) as $hour) {
+        $topHourlyData = array_values($seen);
+        usort($topHourlyData, function ($a, $b) {
+            return $b['value'] - $a['value'];
+        });
+
+        $topHourlyData = array_slice($topHourlyData, 0, 4);
+
+        $formattedData = [];
+        foreach ($heatMapData as $dayOfWeek => $hoursData) {
+            $dayName = $dayNames[$dayOfWeek];
+            $dayNameAr = $dayNamesAr[$dayOfWeek];
+
+            $dayData = [
+                'name' => $dayName,
+                'name_ar' => $dayNameAr,
+                'data' => [],
+            ];
+
+            foreach (range(0, 23) as $hour) {
+                // Only add entries where y-value is greater than 0
+                if (isset($hoursData[$hour]) && $hoursData[$hour] > 0) {
                     $dayData['data'][] = [
                         'x' => (string) $hour,
-                        'y' => $hoursData[$hour] ?? 0,
+                        'y' => $hoursData[$hour],
                     ];
                 }
-
-                $formattedData[] = $dayData;
             }
 
-            return [
-                'series' => array_reverse($formattedData),
-                'topHourlyData' => $this->formatTopHourlyData($topHourlyData),
-            ];
+            // Only add dayData if it has non-zero entries
+            if (!empty($dayData['data'])) {
+                $formattedData[] = $dayData;
+            }
         }
+
+        return [
+            'series' => array_reverse($formattedData),
+            'topHourlyData' => $this->formatTopHourlyData($topHourlyData),
+        ];
+    }
 
 
         private function formatHour($hour) {
@@ -1070,7 +1185,7 @@ class StatisticsService
             ->orderBy('hour')
             ->get();
 
-            $visitorsChartSeries = [];
+        $visitorsChartSeries = [];
         $xAxis = [];
 
         foreach ($todayResults as $row) {
