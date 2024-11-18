@@ -15,7 +15,7 @@ import { Grid, Theme, Typography, useMediaQuery } from '@mui/material'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { Box } from '@mui/system'
 
-import { FC } from 'react'
+import { FC, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 type HeatmapChartProps = {
@@ -44,7 +44,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
 
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
 
-  const getDynamicRanges = () => {
+  const getDynamicRanges = useMemo(() => {
     const allYValues = series.flatMap(item => item.data.map(d => d.y))
 
     const minY = Math.min(...allYValues)
@@ -82,9 +82,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     }
 
     return dynamicRanges
-  }
-
-  const dynamicRanges = getDynamicRanges()
+  }, [series])
 
   const options: ApexOptions = {
     chart: {
@@ -115,7 +113,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
       heatmap: {
         enableShades: false,
         colorScale: {
-          ranges: dynamicRanges
+          ranges: getDynamicRanges
         }
       }
     },
@@ -197,7 +195,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
   }))
 
   return (
-    dynamicRanges && (
+    getDynamicRanges && (
       <Grid item xs={12}>
         <Card>
           <CardHeader title={t('avgPeakEngagement')} sx={{ borderBottom: '1px solid #cacccf' }} />
