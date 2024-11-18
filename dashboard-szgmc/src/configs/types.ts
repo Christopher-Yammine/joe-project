@@ -15,14 +15,14 @@ export type chartData = {
   commonChartSeries: ChartSeriesData[]
 }
 
-export type StaffChartSeriesData = {
+export type staffMultilineChartData = {
   name: string
   name_ar: string
   data: number[]
 }[]
 
 export type StaffChartHistoricalData = {
-  staffChartSeries: StaffChartSeriesData
+  staffMultilineChartData: staffMultilineChartData
   xAxis: string[]
 }
 

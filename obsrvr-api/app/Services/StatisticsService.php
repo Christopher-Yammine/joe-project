@@ -254,37 +254,44 @@ class StatisticsService
 
             $ageBarChartSeriesFormatted = [];
             foreach (['Males', 'Females'] as $gender) {
-                if (isset($ageBarChartSeries[$gender])) {
-                    $data = array_fill_keys($yAxis, 0);
-                    foreach ($ageBarChartSeries[$gender] as $group => $value) {
-                        $data[$group] = $value;
-                    }
-                    $total = array_sum(array_values($data));
-                    $ageBarChartSeriesFormatted[] = [
-                        'name' => "{$gender} [" . abs($total) . "]",
-                        'name_ar' => $this->getArabicName($gender) . " [" . abs($total) . "]",
-                        'data' => array_values($data),
-                        'maxWithIncrease' => $gender === 'Males' ? $maleMaxWithIncrease : $femaleMaxWithIncrease
-                    ];
+                if (!isset($ageBarChartSeries[$gender])) {
+                    $ageBarChartSeries[$gender] = array_fill_keys($yAxis, 0);
                 }
+
+                $data = array_fill_keys($yAxis, 0);
+                foreach ($ageBarChartSeries[$gender] as $group => $value) {
+                    $data[$group] = $value;
+                }
+
+                $total = array_sum(array_values($data));
+                $ageBarChartSeriesFormatted[] = [
+                    'name' => "{$gender} [" . abs($total) . "]",
+                    'name_ar' => $this->getArabicName($gender) . " [" . abs($total) . "]",
+                    'data' => array_values($data),
+                    'maxWithIncrease' => $gender === 'Males' ? $maleMaxWithIncrease : $femaleMaxWithIncrease
+                ];
             }
+
 
             $ageSentimentBarChartSeriesFormatted = [];
             foreach (['Happy Visitors', 'Unhappy Visitors'] as $sentiment) {
-                if (isset($ageSentimentBarChartSeries[$sentiment])) {
-                    $data = array_fill_keys($yAxis, 0);
-                    foreach ($ageSentimentBarChartSeries[$sentiment] as $group => $value) {
-                        $data[$group] = $value;
-                    }
-                    $total = array_sum(array_values($data));
-                    $maxWithIncrease = $sentiment === 'Happy Visitors' ? $happyMaxWithIncrease : $sadMaxWithDecrease;
-                    $ageSentimentBarChartSeriesFormatted[] = [
-                        'name' => "{$sentiment} [" . abs($total) . "]",
-                        'name_ar' => $this->getArabicName($sentiment) . " [" . abs($total) . "]",
-                        'data' => array_values($data),
-                        'maxWithIncrease' => $maxWithIncrease
-                    ];
+                if (!isset($ageSentimentBarChartSeries[$sentiment])) {
+                    $ageSentimentBarChartSeries[$sentiment] = array_fill_keys($yAxis, 0);
                 }
+
+                $data = array_fill_keys($yAxis, 0);
+                foreach ($ageSentimentBarChartSeries[$sentiment] as $group => $value) {
+                    $data[$group] = $value;
+                }
+
+                $total = array_sum(array_values($data));
+                $maxWithIncrease = $sentiment === 'Happy Visitors' ? $happyMaxWithIncrease : $sadMaxWithDecrease;
+                $ageSentimentBarChartSeriesFormatted[] = [
+                    'name' => "{$sentiment} [" . abs($total) . "]",
+                    'name_ar' => $this->getArabicName($sentiment) . " [" . abs($total) . "]",
+                    'data' => array_values($data),
+                    'maxWithIncrease' => $maxWithIncrease
+                ];
             }
 
             return [
@@ -559,7 +566,7 @@ class StatisticsService
             }
 
         return [
-            'staffChartSeries' => $visitorsChartSeries,
+            'staffMultilineChartData' => $visitorsChartSeries,
             'xAxis' => $xAxis,
         ];
     }
@@ -1397,7 +1404,7 @@ class StatisticsService
         $xAxis = array_values(array_unique($xAxis));
 
         return [
-            'staffChartSeries' => $staffChartSeries,
+            'staffMultilineChartData' => $staffChartSeries,
             'xAxis' => $xAxis,
         ];
     }

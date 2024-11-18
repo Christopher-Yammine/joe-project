@@ -14,16 +14,16 @@ import { useTheme } from '@mui/system'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
 import { useEffect, useState } from 'react'
-import { StaffChartSeriesData } from 'src/configs/types'
+import { staffMultilineChartData } from 'src/configs/types'
 
 interface Props {
   title: string
   isDaily?: boolean
-  staffChartSeries: StaffChartSeriesData
+  staffMultilineChartData: staffMultilineChartData
   xAxis?: string[]
 }
 
-const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSeries, xAxis }) => {
+const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffMultilineChartData, xAxis }) => {
   const theme = useTheme()
 
   const { settings } = useSettings()
@@ -34,14 +34,14 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSer
 
   const [isChartLoaded, setIsChartLoaded] = useState(false)
 
-  const series = staffChartSeries?.map(item => ({
+  const series = staffMultilineChartData?.map(item => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
 
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
 
-  const maxYValue = Math.max(...staffChartSeries.flatMap(series => series.data))
+  const maxYValue = Math.max(...staffMultilineChartData.flatMap(series => series.data))
   const adjustedMax = Math.ceil((maxYValue * 1.2) / 100) * 100
 
   const options: ApexOptions = {
@@ -76,13 +76,7 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSer
       axisBorder: { show: false },
 
       tickAmount: isMobile ? 12 : isDaily ? 24 : 12,
-      categories: xAxis
-        ? isRTL
-          ? xAxis.reverse()
-          : xAxis
-        : isRTL
-        ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23].reverse()
-        : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+      categories: xAxis ? (isRTL ? xAxis.reverse() : xAxis) : [],
       crosshairs: {
         stroke: { color: `rgba(${theme.palette.customColors.main}, 0.2)` }
       },
@@ -93,8 +87,6 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffChartSer
         style: {
           fontSize: isDaily ? '12px' : '8px',
           colors: theme.palette.text.disabled
-
-          // fontFamily: theme.typography.fontFamily
         }
       }
     },

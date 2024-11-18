@@ -19,19 +19,19 @@ const Home = () => {
   const setStreams = useStore(state => state.setStreams)
   const selectedStreams = useStore(state => state.selectedStreams)
   const [totalStatistics, setTotalStatistics] = useState({
-    number: dataJSON?.totalVisitorsCard?.number,
-    percent: dataJSON?.totalVisitorsCard?.percent,
+    number: '',
+    percent: '',
     cumulativeSeriesData: dataJSON?.totalVisitorsCard?.cumulativeSeriesData,
     xAxis: []
   })
   const [uniqueStatistics, setUniqueStatistics] = useState({
-    number: 0,
+    number: '',
     percent: '',
     cumulativeSeriesData: [],
     xAxis: []
   })
   const [occupancyStatistics, setOccupancyStatistics] = useState({
-    number: 0,
+    number: '',
     percent: '',
     seriesData: [],
     xAxis: []
@@ -48,8 +48,8 @@ const Home = () => {
   const [visitorsChartSeries3Dailycomparisons, setVisitorsChartSeries3Dailycomparisons] = useState<any[]>([])
   const [visitorsChartSeries4Daily, setVisitorsChartSeries4Daily] = useState([])
   const [visitorsChartSeries4Dailycomparisons, setVisitorsChartSeries4Dailycomparisons] = useState<any[]>([])
-  const [staffChartSeries, setStaffChartSeries] = useState([])
-  const [staffChartDailyXAxis, setStaffChartDailyXAxis] = useState([])
+  const [staffMultilineChartData, setStaffMultilineChartData] = useState([])
+  const [staffMultilineChartXAxis, setStaffMultilineChartXAxis] = useState([])
   const [ageMinValue, setAgeMinValue] = useState(-1000)
   const [ageMaxValue, setAgeMaxValue] = useState(1000)
   const [sentimentMinValue, setSentimentMinValue] = useState(-2000)
@@ -157,8 +157,8 @@ const Home = () => {
       )
 
       setVisitorsChartSeries4Daily(data.visitorsChartSeries4Daily)
-      setStaffChartSeries(data.staffChartDaily.staffChartSeries)
-      setStaffChartDailyXAxis(data.staffChartDaily.xAxis)
+      setStaffMultilineChartData(data.staffChartDaily.staffMultilineChartData)
+      setStaffMultilineChartXAxis(data.staffChartDaily.xAxis)
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error)
     } finally {
@@ -247,8 +247,8 @@ const Home = () => {
       <MultiLineChart
         title={t('staffToday')}
         isDaily={true}
-        staffChartSeries={staffChartSeries}
-        xAxis={staffChartDailyXAxis}
+        staffMultilineChartData={staffMultilineChartData}
+        xAxis={staffMultilineChartXAxis}
       />
     </Grid>
   )

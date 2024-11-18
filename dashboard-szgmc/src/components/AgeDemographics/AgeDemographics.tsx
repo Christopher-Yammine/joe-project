@@ -101,24 +101,7 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title, maxVa
       theme: settings?.mode
     },
     xaxis: {
-      categories: yAxis
-        ? yAxis
-        : [
-            '85+',
-            '80-84',
-            '75-79',
-            '70-74',
-            '65-69',
-            '60-64',
-            '55-59',
-            '50-54',
-            '45-49',
-            '40-44',
-            '35-39',
-            '30-34',
-            '25-29',
-            '19-24'
-          ],
+      categories: yAxis,
       title: {
         text: t('totalVisitors'),
         style: {

@@ -104,8 +104,6 @@ const LineChart: React.FC<Props> = ({
         style: {
           fontSize: '14px',
           colors: theme.palette.text.disabled
-
-          // fontFamily: theme.typography.fontFamily
         }
       },
       opposite: isRTL
