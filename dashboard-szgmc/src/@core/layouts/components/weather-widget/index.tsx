@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Typography, useTheme } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
 const WeatherWidget = () => {
-  const { palette } = useTheme()
   const { t } = useTranslation()
 
   const [weatherData, setWeatherData] = useState(null)
@@ -13,7 +12,7 @@ const WeatherWidget = () => {
 
   const isRTL = settings.direction === 'rtl'
 
-  const getWeatherImage = (code, isDaytime) => {
+  const getWeatherImage = (code: number, isDaytime: boolean) => {
     if (!isDaytime) {
       switch (code) {
         case 0:

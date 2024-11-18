@@ -1,5 +1,5 @@
 import { Box } from '@mui/system'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 
 import Select, { OptionProps, components } from 'react-select'
 import { useTheme } from '@mui/material/styles'
@@ -45,8 +45,10 @@ const CameraSelect = () => {
 
         // @ts-ignore
         const ids = uniqueItems.flatMap((item: any) => (item.options ? item.option.map(opt => opt.value) : item.value))
+
         // @ts-ignore
         setSelectedStreams(prevSelected.concat(ids))
+
         // @ts-ignore
         return prevSelected.concat(uniqueItems)
       })
@@ -134,7 +136,7 @@ const CameraSelect = () => {
   }
 
   const handleMenuClose = () => {
-    const ids = selected.flatMap((item: any) => (item.options ? item.options.map(opt => opt.value) : item.value))
+    const ids = selected.flatMap((item: any) => (item.options ? item.options.map((opt: any) => opt.value) : item.value))
     console.log(ids)
     setSelectedStreams(ids)
   }

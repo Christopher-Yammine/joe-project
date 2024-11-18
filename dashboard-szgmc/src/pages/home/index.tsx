@@ -79,7 +79,7 @@ const Home = () => {
       const uniqueVisitors = data.totalUniqueVisitorsCard
       const occupancy = data.totalOccupancyCard
       setVisitorsChartSeries1Dailycomparisons(
-        (data?.visitorsChartSeries1Dailycomparisons || []).map(item => ({
+        (data?.visitorsChartSeries1Dailycomparisons || []).map((item: any) => ({
           ...item,
           title: t(item.title)
         }))
@@ -91,7 +91,7 @@ const Home = () => {
       setAgeBarChartSeries(data.ageBarChartSeries)
 
       const ageValues = data.ageBarChartSeries
-        ? data.ageBarChartSeries.map(item => item.maxWithIncrease).filter(value => value !== undefined)
+        ? data.ageBarChartSeries.map((item: any) => item.maxWithIncrease).filter((value: any) => value !== undefined)
         : []
 
       const minAge = ageValues.length > 0 ? Math.min(...ageValues) : 0
@@ -100,7 +100,9 @@ const Home = () => {
       setAgeMaxValue(maxAge)
 
       const sentimentValues = data.ageSentimentBarChartSeries
-        ? data.ageSentimentBarChartSeries.map(item => item.maxWithIncrease).filter(value => value !== undefined)
+        ? data.ageSentimentBarChartSeries
+            .map((item: any) => item.maxWithIncrease)
+            .filter((value: any) => value !== undefined)
         : []
 
       const minSentiment = sentimentValues.length > 0 ? Math.min(...sentimentValues) : 0
@@ -134,7 +136,7 @@ const Home = () => {
         xAxis: occupancy.xAxis
       })
       setVisitorsChartSeries2Dailycomparisons(
-        (data?.visitorsChartSeries2Dailycomparisons || []).map(item => ({
+        (data?.visitorsChartSeries2Dailycomparisons || []).map((item: any) => ({
           ...item,
           title: t(item.title)
         }))
@@ -142,7 +144,7 @@ const Home = () => {
 
       setVisitorsChartSeries2Daily(data.visitorsChartSeries2Daily)
       setVisitorsChartSeries3Dailycomparisons(
-        (data?.visitorsChartSeries3Dailycomparisons || []).map(item => ({
+        (data?.visitorsChartSeries3Dailycomparisons || []).map((item: any) => ({
           ...item,
           title: t(item.title)
         }))
@@ -150,7 +152,7 @@ const Home = () => {
 
       setVisitorsChartSeries3Daily(data.visitorsChartSeries3Daily)
       setVisitorsChartSeries4Dailycomparisons(
-        (data?.visitorsChartSeries4Dailycomparisons || []).map(item => ({
+        (data?.visitorsChartSeries4Dailycomparisons || []).map((item: any) => ({
           ...item,
           title: t(item.title)
         }))

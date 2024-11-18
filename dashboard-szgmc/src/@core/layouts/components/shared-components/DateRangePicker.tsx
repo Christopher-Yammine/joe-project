@@ -47,7 +47,7 @@ export default function DatePickerRange() {
     if ((isDarkModeApplied && settings.mode !== 'dark') || (!isDarkModeApplied && settings.mode === 'dark')) {
       rangePickerClassList?.toggle('dark-mode')
     }
-  }, [settings.mode, settings?.language, window.location.pathname])
+  }, [settings.mode, settings?.language])
 
   // @ts-ignore
   const handleEvent = (event, picker: any) => {

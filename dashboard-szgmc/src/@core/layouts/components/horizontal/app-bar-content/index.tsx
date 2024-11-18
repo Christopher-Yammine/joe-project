@@ -4,7 +4,7 @@ import Link from 'next/link'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 
 // ** Type Import
 import { LayoutProps } from 'src/@core/layouts/types'
@@ -31,15 +31,13 @@ const LinkStyled = styled(Link)(({ theme }) => ({
 }))
 
 const AppBarContent = (props: Props) => {
-  const { palette } = useTheme()
-
   const { t } = useTranslation()
 
   // ** Props
   const { appBarContent: userAppBarContent, appBarBranding: userAppBarBranding } = props
 
   const date = new Date()
-  const options = {
+  const options: Intl.DateTimeFormatOptions = {
     weekday: 'short',
     day: '2-digit',
     month: 'short',

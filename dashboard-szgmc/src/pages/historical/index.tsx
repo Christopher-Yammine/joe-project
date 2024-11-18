@@ -7,7 +7,6 @@ import HeatmapChart from 'src/components/Heatmap/HeatMap'
 import VisitorsChart from 'src/components/VisitorsChart/VisitorsChart'
 import MultiLineChart from 'src/components/MultiLineChart/MultiLineChart'
 
-import dataJSON from '../../db/data.json'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import useStore from 'src/store/store'
@@ -29,10 +28,46 @@ const HistoricalPage = () => {
   const toDate = useStore(state => state.toDate)
   const durationSelect = useStore(state => state.durationSelect)
 
-  const [totalNewReturningHistoricalVisitors, setTotalNewReturningHistoricalVisitors] = useState<chartData>([])
-  const [totalGendersHistoricalVisitors, setTotalGendersHistoricalVisitors] = useState<chartData>([])
-  const [totalSentimentsHistoricalVisitors, setTotalSentimentsHistoricalVisitors] = useState<chartData>([])
-  const [totalMosqueSouqHistoricalVisitors, setTotalMosqueSouqHistoricalVisitors] = useState<chartData>([])
+  const [totalNewReturningHistoricalVisitors, setTotalNewReturningHistoricalVisitors] = useState<chartData>({
+    firstTitle: '',
+    firstGeneralNumber: '',
+    firstTrendNumber: '',
+    secondTitle: '',
+    secondGeneralNumber: '',
+    secondTrendNumber: '',
+    xAxis: [],
+    commonChartSeries: []
+  })
+  const [totalGendersHistoricalVisitors, setTotalGendersHistoricalVisitors] = useState<chartData>({
+    firstTitle: '',
+    firstGeneralNumber: '',
+    firstTrendNumber: '',
+    secondTitle: '',
+    secondGeneralNumber: '',
+    secondTrendNumber: '',
+    xAxis: [],
+    commonChartSeries: []
+  })
+  const [totalSentimentsHistoricalVisitors, setTotalSentimentsHistoricalVisitors] = useState<chartData>({
+    firstTitle: '',
+    firstGeneralNumber: '',
+    firstTrendNumber: '',
+    secondTitle: '',
+    secondGeneralNumber: '',
+    secondTrendNumber: '',
+    xAxis: [],
+    commonChartSeries: []
+  })
+  const [totalMosqueSouqHistoricalVisitors, setTotalMosqueSouqHistoricalVisitors] = useState<chartData>({
+    firstTitle: '',
+    firstGeneralNumber: '',
+    firstTrendNumber: '',
+    secondTitle: '',
+    secondGeneralNumber: '',
+    secondTrendNumber: '',
+    xAxis: [],
+    commonChartSeries: []
+  })
   const [heatMapData, setHeatMapData] = useState([])
   const [topHourlyData, setTopHourlyData] = useState([])
   const [visitorsChartSeries1, setVisitorsChartSeries1] = useState([])
@@ -45,7 +80,7 @@ const HistoricalPage = () => {
   const [visitorsChartSeries4Comparisons, setVisitorsChartSeries4Comparisons] = useState<any[]>([])
   const [visitorsChartXAxis, setVisitorsChartXAxix] = useState([])
   const [staffChartSeriesHistorical, setStaffChartSeriesHistorical] = useState<StaffChartHistoricalData>({
-    staffChartSeries: [],
+    staffMultilineChartData: [],
     xAxis: []
   })
   const [loading, setLoading] = useState(false)
@@ -110,7 +145,7 @@ const HistoricalPage = () => {
       setTopHourlyData(data?.topHourlyData)
       setVisitorsChartSeries1(data.visitorsChartSeries1)
       setVisitorsChartSeries1Comparisons(
-        (data?.visitorsChartSeries1Comparisons || []).map(item => ({
+        (data?.visitorsChartSeries1Comparisons || []).map((item: any) => ({
           ...item,
           title: t(item.title)
         }))
@@ -118,21 +153,21 @@ const HistoricalPage = () => {
       setVisitorsChartXAxix(data.xAxis)
       setVisitorsChartSeries2(data.visitorsChartSeries2)
       setVisitorsChartSeries2Comparisons(
-        (data?.visitorsChartSeries2Comparisons || []).map(item => ({
+        (data?.visitorsChartSeries2Comparisons || []).map((item: any) => ({
           ...item,
           title: t(item.title)
         }))
       )
       setVisitorsChartSeries3(data.visitorsChartSeries3)
       setVisitorsChartSeries3Comparisons(
-        (data?.visitorsChartSeries3Comparisons || []).map(item => ({
+        (data?.visitorsChartSeries3Comparisons || []).map((item: any) => ({
           ...item,
           title: t(item.title)
         }))
       )
       setVisitorsChartSeries4(data.visitorsChartSeries4)
       setVisitorsChartSeries4Comparisons(
-        (data?.visitorsChartSeries4Comparisons || []).map(item => ({
+        (data?.visitorsChartSeries4Comparisons || []).map((item: any) => ({
           ...item,
           title: t(item.title)
         }))
@@ -259,7 +294,7 @@ const HistoricalPage = () => {
 
       <MultiLineChart
         title={t('staff')}
-        staffChartSeries={staffChartSeriesHistorical?.staffChartSeries}
+        staffMultilineChartData={staffChartSeriesHistorical?.staffMultilineChartData}
         xAxis={staffChartSeriesHistorical?.xAxis}
       />
     </Grid>

@@ -42,7 +42,8 @@
           "{}": false
         }
       }
-    ]
+    ],
+    "react-hooks/exhaustive-deps": "off"
   },
   "plugins": [
     "import"

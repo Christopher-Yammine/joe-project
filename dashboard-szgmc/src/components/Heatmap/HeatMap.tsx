@@ -15,7 +15,7 @@ import { Grid, Theme, Typography, useMediaQuery } from '@mui/material'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { Box } from '@mui/system'
 
-import { FC, useEffect } from 'react'
+import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 
 type HeatmapChartProps = {
@@ -80,6 +80,7 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
 
       dynamicRanges.push({ from, to, name, color })
     }
+
     return dynamicRanges
   }
 
@@ -189,30 +190,6 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
       tickAmount: isMobile ? 8 : undefined
     }
   }
-
-  const data: any = [
-    {
-      title: `${t('saturday')}, 2 PM`,
-      stats: '60',
-      trendNumber: 1.16
-    },
-    {
-      title: `${t('friday')}, 1 PM`,
-      stats: '60',
-      trend: 'negative',
-      trendNumber: 1.15
-    },
-    {
-      title: `${t('thursday')}, 4 PM`,
-      stats: '60',
-      trendNumber: 11.53
-    },
-    {
-      title: `${t('wednesday')}, 3 PM`,
-      stats: '60',
-      trendNumber: 1.53
-    }
-  ]
 
   const mappedSeries = series?.map(item => ({
     name: isAR ? item?.name_ar : item?.name,

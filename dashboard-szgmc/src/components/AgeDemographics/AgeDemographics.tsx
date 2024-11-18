@@ -1,5 +1,5 @@
 import { Card, CardHeader, Grid, Theme, useMediaQuery, useTheme } from '@mui/material'
-import React, { FC, useEffect } from 'react'
+import React, { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { useSettings } from 'src/@core/hooks/useSettings'

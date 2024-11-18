@@ -81,7 +81,6 @@ export const DurationSelect = () => {
           horizontal: 'right'
         }}
       >
-        {/* <Box sx={{ padding: '6px 8px', border: '1px solid #ae9e85', borderRadius: '8px' }}>{value}</Box> */}
         <button
           className='custom-button'
           style={{
@@ -90,7 +89,7 @@ export const DurationSelect = () => {
             borderColor: theme.palette.divider
           }}
         >
-          <span className='button-text'>{t(value)}</span>
+          <span className='button-text'>{t(value ?? '')}</span>
           <span className={isAR ? 'button-arrow-rtl' : 'button-arrow'}></span>
         </button>
       </Badge>

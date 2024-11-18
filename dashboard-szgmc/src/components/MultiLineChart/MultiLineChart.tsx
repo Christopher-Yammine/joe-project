@@ -16,7 +16,7 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 import { useEffect, useState } from 'react'
 import { staffMultilineChartData } from 'src/configs/types'
 
-interface Props {
+type Props = {
   title: string
   isDaily?: boolean
   staffMultilineChartData: staffMultilineChartData
@@ -41,7 +41,7 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffMultilin
 
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
 
-  const maxYValue = Math.max(...staffMultilineChartData.flatMap(series => series.data))
+  const maxYValue = Math.max(...(staffMultilineChartData?.flatMap(series => series.data) || []))
   const adjustedMax = Math.ceil((maxYValue * 1.2) / 100) * 100
 
   const options: ApexOptions = {

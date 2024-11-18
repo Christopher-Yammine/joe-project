@@ -5,10 +5,11 @@ const now = new Date()
 const oneWeekAgo = new Date()
 oneWeekAgo.setDate(now.getDate() - 7)
 
+/* eslint-disable */
 const useStore = create<StreamStore>()(set => ({
   streams: [],
   selectedStreams: [],
-  setStreams: (index: any) => set(state => ({ streams: index })),
+  setStreams: (index: any) => set(_state => ({ streams: index })),
   setSelectedStream: (index: any) => set(state => ({ selectedStreams: index })),
   fromDate: oneWeekAgo,
   setFromDate: (index: any) => set(state => ({ fromDate: index })),
@@ -17,5 +18,6 @@ const useStore = create<StreamStore>()(set => ({
   durationSelect: 'Daily',
   setDurationSelect: (index: any) => set(state => ({ durationSelect: index }))
 }))
+/* eslint-disable */
 
 export default useStore

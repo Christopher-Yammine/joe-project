@@ -145,25 +145,25 @@ const VisitorsChart: React.FC<Props> = ({
   }
 
   const visitorsData = visitorsChartSeries1
-  const visitorsChartSeries1Data = visitorsData?.map(item => ({
+  const visitorsChartSeries1Data = visitorsData?.map((item: any) => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? t(item?.name_ar) : item?.name
   }))
 
   const uniqueVisitorsData = visitorsChartSeries2
-  const visitorsChartSeries2Data = uniqueVisitorsData?.map(item => ({
+  const visitorsChartSeries2Data = uniqueVisitorsData?.map((item: any) => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
 
   const repeatedVisitorsData = visitorsChartSeries3
-  const visitorsChartSeries3Data = repeatedVisitorsData?.map(item => ({
+  const visitorsChartSeries3Data = repeatedVisitorsData?.map((item: any) => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
 
   const occupancyVisitorsData = visitorsChartSeries4
-  const visitorsChartSeries4Data = occupancyVisitorsData?.map(item => ({
+  const visitorsChartSeries4Data = occupancyVisitorsData?.map((item: any) => ({
     data: isRTL ? item.data?.reverse() : item.data,
     name: isAR ? item?.name_ar : item?.name
   }))
@@ -177,101 +177,6 @@ const VisitorsChart: React.FC<Props> = ({
 
   // @ts-ignore
   const series = chartValues?.[value]
-  const data1: any = [
-    {
-      title: t('totalFootfall'),
-      stats: '12,598',
-      trendNumber: 1.16
-    },
-    {
-      title: t('avgFootfall'),
-      stats: '663.05',
-      trend: 'negative',
-      trendNumber: 1.15
-    },
-    {
-      title: t('newVisitors'),
-      stats: '1519',
-      trendNumber: 11.53
-    },
-    {
-      title: t('visitorsToSouq'),
-      stats: '257',
-      trendNumber: 1.53
-    }
-  ]
-
-  const data2: any = [
-    {
-      title: t('totalUniqueVisitors'),
-      stats: '2,558',
-      trendNumber: 5.99
-    },
-    {
-      title: t('avgUniqueVisitors'),
-      stats: '110',
-      trend: 'negative',
-      trendNumber: 0.33
-    },
-    {
-      title: t('newVisitors'),
-      stats: '1519',
-      trendNumber: 11.53
-    },
-    {
-      title: t('visitorsToSouq'),
-      stats: '257',
-      trendNumber: 1.53
-    }
-  ]
-
-  const data3: any = [
-    {
-      title: t('totalRepeatedVisitors'),
-      stats: '12,598',
-      trendNumber: 1.16
-    },
-    {
-      title: t('avgRepeatedVisitors'),
-      stats: '663.05',
-      trend: 'negative',
-      trendNumber: 3.15
-    },
-    {
-      title: t('newVisitors'),
-      stats: '1519',
-      trendNumber: 11.53
-    },
-    {
-      title: t('visitorsToSouq'),
-      stats: '257',
-      trendNumber: 1.53
-    }
-  ]
-
-  const data4: any = [
-    {
-      title: t('totalOccupancy'),
-      stats: '12,598',
-      trendNumber: 1.16
-    },
-    {
-      title: t('avgOccupancyVisitors'),
-      stats: '663.05',
-      trend: 'negative',
-      trendNumber: 1.15
-    },
-    {
-      title: t('newVisitors'),
-      stats: '1519',
-      trendNumber: 11.53
-    },
-    {
-      title: t('visitorsToSouq'),
-      stats: '257',
-      trendNumber: 1.53
-    }
-  ]
 
   const statsValues = {
     ['FOOTFALL']: visitorsChartSeries1Comparisons,
