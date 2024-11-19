@@ -15,7 +15,7 @@ import { Grid, Theme, Typography, useMediaQuery } from '@mui/material'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { Box } from '@mui/system'
 
-import { FC, useEffect, useMemo, useState } from 'react'
+import { FC, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 type HeatmapChartProps = {
