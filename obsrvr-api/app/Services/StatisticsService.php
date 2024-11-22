@@ -625,38 +625,54 @@ class StatisticsService
             ->orderBy(DB::raw($groupByFormat))
             ->get();
 
-            $totalPreviousNewVisitors = $previousUniqueVisitors->sum('total');
-            $totalPreviousReturningVisitors = $previousReturningVisitors->sum('total');
-        
-            $newVisitorsPercent = $this->calculatePercentChange($totalNewVisitors, $totalPreviousNewVisitors);
-            $formattedNewVisitorsPercent = $newVisitorsPercent > 0 ? "+$newVisitorsPercent%" : "$newVisitorsPercent%";
-        
-            $returningVisitorsPercent = $this->calculatePercentChange($totalReturningVisitors, $totalPreviousReturningVisitors);
-            $formattedReturningVisitorsPercent = $returningVisitorsPercent > 0 ? "+$returningVisitorsPercent%" : "$returningVisitorsPercent%";
-        
-            $response = [
-                'firstTitle' => 'New',
-                'firstGeneralNumber' => strval($totalNewVisitors),
-                'firstTrendNumber' => strval($formattedNewVisitorsPercent),
-                'secondTitle' => 'Returning',
-                'secondGeneralNumber' => strval($totalReturningVisitors),
-                'secondTrendNumber' => strval($formattedReturningVisitorsPercent),
-                'xAxis' => $uniqueVisitors->isEmpty() ? $returningVisitors->pluck('period')->toArray() : $uniqueVisitors->pluck('period')->toArray(),
-                'commonChartSeries' => [
-                    [
-                        'name' => 'New',
-                        'name_ar' => 'جديد',
-                        'data' => $uniqueVisitors->pluck('total')->toArray(),
-                    ],
-                    [
-                        'name' => 'Returning',
-                        'name_ar' => 'عودة',
-                        'data' => $returningVisitors->pluck('total')->toArray(),
-                    ]
+        $totalPreviousNewVisitors = $previousUniqueVisitors->sum('total');
+        $totalPreviousReturningVisitors = $previousReturningVisitors->sum('total');
+
+        $newVisitorsPercent = $this->calculatePercentChange($totalNewVisitors, $totalPreviousNewVisitors);
+        $formattedNewVisitorsPercent = $newVisitorsPercent > 0 ? "+$newVisitorsPercent%" : "$newVisitorsPercent%";
+
+        $returningVisitorsPercent = $this->calculatePercentChange($totalReturningVisitors, $totalPreviousReturningVisitors);
+        $formattedReturningVisitorsPercent = $returningVisitorsPercent > 0 ? "+$returningVisitorsPercent%" : "$returningVisitorsPercent%";
+
+        $xAxis = $uniqueVisitors->isEmpty() ? $returningVisitors->pluck('period')->toArray() : $uniqueVisitors->pluck('period')->toArray();
+        $uniqueData = $uniqueVisitors->pluck('total')->toArray();
+        $returningData = $returningVisitors->pluck('total')->toArray();
+
+        if (count($xAxis) === 1) {
+            $xAxis[] = $xAxis[0];
+        }
+
+        if (count($uniqueData) === 1) {
+            $uniqueData[] = $uniqueData[0];
+        }
+
+        if (count($returningData) === 1) {
+            $returningData[] = $returningData[0];
+        }
+
+        $response = [
+            'firstTitle' => 'New',
+            'firstGeneralNumber' => strval($totalNewVisitors),
+            'firstTrendNumber' => strval($formattedNewVisitorsPercent),
+            'secondTitle' => 'Returning',
+            'secondGeneralNumber' => strval($totalReturningVisitors),
+            'secondTrendNumber' => strval($formattedReturningVisitorsPercent),
+            'xAxis' => $xAxis,
+            'commonChartSeries' => [
+                [
+                    'name' => 'New',
+                    'name_ar' => 'جديد',
+                    'data' => $uniqueData,
+                ],
+                [
+                    'name' => 'Returning',
+                    'name_ar' => 'عودة',
+                    'data' => $returningData,
                 ]
-            ];
-        
-            return $response;
+            ]
+        ];
+
+        return $response;
     }
 
     public function getGenderHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration) {
@@ -726,6 +742,22 @@ class StatisticsService
         $femaleVisitorsPercent = $this->calculatePercentChange($totalFemaleVisitors, $totalPreviousFemaleVisitors);
         $formattedFemaleVisitorsPercent = $femaleVisitorsPercent > 0 ? "+$femaleVisitorsPercent%" : "$femaleVisitorsPercent%";
 
+        $xAxis = $maleVisitors->isEmpty() ? $femaleVisitors->pluck('period')->toArray() : $maleVisitors->pluck('period')->toArray();
+        $maleData = $maleVisitors->pluck('total')->toArray();
+        $femaleData = $femaleVisitors->pluck('total')->toArray();
+
+        if (count($xAxis) === 1) {
+            $xAxis[] = $xAxis[0];
+        }
+
+        if (count($maleData) === 1) {
+            $maleData[] = $maleData[0];
+        }
+
+        if (count($femaleData) === 1) {
+            $femaleData[] = $femaleData[0];
+        }
+
         $response = [
             'firstTitle' => 'Male',
             'firstGeneralNumber' => strval($totalMaleVisitors),
@@ -733,17 +765,17 @@ class StatisticsService
             'secondTitle' => 'Female',
             'secondGeneralNumber' => strval($totalFemaleVisitors),
             'secondTrendNumber' => strval($formattedFemaleVisitorsPercent),
-            'xAxis' => $maleVisitors->isEmpty() ? $femaleVisitors->pluck('period')->toArray() : $maleVisitors->pluck('period')->toArray(),
+            'xAxis' => $xAxis,
             'commonChartSeries' => [
                 [
                     'name' => 'Male',
                     'name_ar' => 'ذكر',
-                    'data' => $maleVisitors->pluck('total')->toArray(),
+                    'data' => $maleData
                 ],
                 [
                     'name' => 'Female',
                     'name_ar' => 'أنثى',
-                    'data' => $femaleVisitors->pluck('total')->toArray(),
+                    'data' => $femaleData
                 ]
             ]
         ];
@@ -755,18 +787,18 @@ class StatisticsService
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
         $selectFields = $this->getSelectFieldsByDuration($duration);
-
+    
         $happyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
             ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
             ->where('sentiments.sentiment', '=', 'Happy')
-                        ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
+            ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
-
+    
         $unhappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
@@ -777,15 +809,15 @@ class StatisticsService
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
-
+    
         $totalHappyVisitors = $happyVisitors->sum('total');
         $totalUnhappyVisitors = $unhappyVisitors->sum('total');
-
+    
         $daysRange = $this->getDateRange($fromDate, $toDate, $duration);
-
+    
         $previousFromDate = $daysRange['fromDatePrevious'];
         $previousToDate = $daysRange['toDatePrevious'];
-
+    
         $previousHappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
@@ -796,7 +828,7 @@ class StatisticsService
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
-
+    
         $previousUnhappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
@@ -807,16 +839,32 @@ class StatisticsService
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
-
+    
         $totalPreviousHappyVisitors = $previousHappyVisitors->sum('total');
         $totalPreviousUnhappyVisitors = $previousUnhappyVisitors->sum('total');
-
+    
         $happyVisitorsPercent = $this->calculatePercentChange($totalHappyVisitors, $totalPreviousHappyVisitors);
         $formattedHappyVisitorsPercent = $happyVisitorsPercent > 0 ? "+$happyVisitorsPercent%" : "$happyVisitorsPercent%";
-
+    
         $unhappyVisitorsPercent = $this->calculatePercentChange($totalUnhappyVisitors, $totalPreviousUnhappyVisitors);
         $formattedUnhappyVisitorsPercent = $unhappyVisitorsPercent > 0 ? "+$unhappyVisitorsPercent%" : "$unhappyVisitorsPercent%";
-
+    
+        $xAxis = $happyVisitors->isEmpty() ? $unhappyVisitors->pluck('period')->toArray() : $happyVisitors->pluck('period')->toArray();
+        $happyData = $happyVisitors->pluck('total')->toArray();
+        $unhappyData = $unhappyVisitors->pluck('total')->toArray();
+    
+        if (count($xAxis) === 1) {
+            $xAxis[] = $xAxis[0];
+        }
+    
+        if (count($happyData) === 1) {
+            $happyData[] = $happyData[0];
+        }
+    
+        if (count($unhappyData) === 1) {
+            $unhappyData[] = $unhappyData[0];
+        }
+    
         $response = [
             'firstTitle' => 'Happy',
             'firstGeneralNumber' => strval($totalHappyVisitors),
@@ -824,23 +872,23 @@ class StatisticsService
             'secondTitle' => 'Unhappy',
             'secondGeneralNumber' => strval($totalUnhappyVisitors),
             'secondTrendNumber' => strval($formattedUnhappyVisitorsPercent),
-            'xAxis' => $happyVisitors->isEmpty() ? $unhappyVisitors->pluck('period')->toArray() : $happyVisitors->pluck('period')->toArray(),
+            'xAxis' => $xAxis,
             'commonChartSeries' => [
                 [
                     'name' => 'Happy Visitors',
                     'name_ar' => 'سعيد',
-                    'data' => $happyVisitors->pluck('total')->toArray(),
+                    'data' => $happyData,
                 ],
                 [
                     'name' => 'Unhappy Visitors',
                     'name_ar' => 'غير سعيد',
-                    'data' => $unhappyVisitors->pluck('total')->toArray(),
+                    'data' => $unhappyData,
                 ]
             ]
         ];
-
+    
         return $response;
-    }
+    }    
 
     public function getMosqueSouqHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
@@ -904,6 +952,22 @@ class StatisticsService
         $souqVisitorsPercent = $this->calculatePercentChange($totalSouqVisitors, $totalPreviousSouqVisitors);
         $formattedSouqVisitorsPercent = $souqVisitorsPercent > 0 ? "+$souqVisitorsPercent%" : "$souqVisitorsPercent%";
 
+        $xAxis = $mosqueVisitors->isEmpty() ? $souqVisitors->pluck('period')->toArray() : $mosqueVisitors->pluck('period')->toArray();
+        $mosqueVisitors = $mosqueVisitors->pluck('total')->toArray();
+        $souqVisitors = $souqVisitors->pluck('total')->toArray();
+
+        if (count($xAxis) === 1) {
+            $xAxis[] = $xAxis[0];
+        }
+
+        if (count($mosqueVisitors) === 1) {
+            $mosqueVisitors[] = $mosqueVisitors[0];
+        }
+
+        if (count($souqVisitors) === 1) {
+            $souqVisitors[] = $souqVisitors[0];
+        }
+
         $response = [
             'firstTitle' => 'Mosque Visitors',
             'firstGeneralNumber' => strval($totalMosqueVisitors),
@@ -911,17 +975,17 @@ class StatisticsService
             'secondTitle' => 'Souq Visitors',
             'secondGeneralNumber' => strval($totalSouqVisitors),
             'secondTrendNumber' => strval($formattedSouqVisitorsPercent),
-            'xAxis' => $mosqueVisitors->isEmpty() ? $souqVisitors->pluck('period')->toArray() : $mosqueVisitors->pluck('period')->toArray(),
+            'xAxis' => $xAxis,
             'commonChartSeries' => [
                 [
                     'name' => 'Mosque Visitors',
                     'name_ar' => 'زوار المسجد',
-                    'data' => $mosqueVisitors->pluck('total')->toArray(),
+                    'data' => $mosqueVisitors,
                 ],
                 [
                     'name' => 'Souq Visitors',
                     'name_ar' => 'زوار السوق',
-                    'data' => $souqVisitors->pluck('total')->toArray(),
+                    'data' => $souqVisitors,
                 ]
             ]
         ];
@@ -1113,6 +1177,16 @@ class StatisticsService
             $series['data'] = array_values($series['data']);
         }
 
+        foreach ($visitorsChartSeries as &$series) {
+            $series['data'] = array_values($series['data']);
+            if (count($series['data']) === 1) {
+                $series['data'][] = $series['data'][0];
+            }
+        }
+    
+        if (count($xAxis) === 1) {
+            $xAxis[] = $xAxis[0];
+        }
 
         $firstReturnTitle = 'avgFootfall';
         $fourthReturnTitle = 'totalFootfall';
@@ -1184,6 +1258,12 @@ class StatisticsService
             $series['data'] = array_values($series['data']);
         }
 
+         foreach ($visitorsChartSeries as &$series) {
+            $series['data'] = array_values($series['data']);
+            if (count($series['data']) === 1) {
+                $series['data'][] = $series['data'][0];
+            }
+        }
 
         $firstReturnTitle = 'avgUniqueVisitors';
         $fourthReturnTitle = 'totalUniqueVisitors';
@@ -1252,6 +1332,13 @@ class StatisticsService
 
         foreach ($visitorsChartSeries as &$series) {
             $series['data'] = array_values($series['data']);
+        }
+
+        foreach ($visitorsChartSeries as &$series) {
+            $series['data'] = array_values($series['data']);
+            if (count($series['data']) === 1) {
+                $series['data'][] = $series['data'][0];
+            }
         }
 
 
@@ -1325,6 +1412,12 @@ class StatisticsService
             $series['data'] = array_values($series['data']);
         }
 
+        foreach ($visitorsChartSeries as &$series) {
+            $series['data'] = array_values($series['data']);
+            if (count($series['data']) === 1) {
+                $series['data'][] = $series['data'][0];
+            }
+        }
 
         $firstReturnTitle = 'avgOccupancyVisitors';
         $fourthReturnTitle = 'totalOccupancy';
@@ -1354,10 +1447,10 @@ class StatisticsService
     public function getTotalStaffDailyHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
-
+    
         $startDate = "$fromDate 00:00:00";
         $endDate = "$toDate 23:59:59";
-
+    
         $results = DB::table("$etlDataTable as etl")
             ->select(
                 'streams.name',
@@ -1372,9 +1465,9 @@ class StatisticsService
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderBy('hour')
             ->get();
-
+    
         $visitorsChartSeries = [];
-
+    
         foreach ($results as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
@@ -1383,37 +1476,48 @@ class StatisticsService
                     'data' => [],
                 ];
             }
-
+    
             if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
                 $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
             }
-
+    
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
-
+    
         $staffChartSeries = [];
         $xAxis = [];
-
+    
         foreach ($visitorsChartSeries as $series) {
             $staffChartSeries[] = [
                 'name' => $series['name'],
                 'name_ar' => $series['name_ar'],
-                'data' => array_values($series['data'])
+                'data' => array_values($series['data']),
             ];
             $xAxis = array_merge($xAxis, array_keys($series['data']));
         }
-
+    
+        foreach ($staffChartSeries as &$series) {
+            if (count($series['data']) === 1) {
+                $series['data'][] = $series['data'][0];
+            }
+        }
+    
+        if (count($xAxis) === 1) {
+            $xAxis[] = $xAxis[0];
+        }
+    
         usort($staffChartSeries, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
+    
         $xAxis = array_values(array_unique($xAxis));
-
+    
         return [
             'staffMultilineChartData' => $staffChartSeries,
             'xAxis' => $xAxis,
         ];
     }
-
+    
     private function getEtlDataTableByDuration($duration)
     {
         return match (strtolower($duration)) {
