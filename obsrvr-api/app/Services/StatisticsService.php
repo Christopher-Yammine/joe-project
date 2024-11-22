@@ -641,7 +641,7 @@ class StatisticsService
                 'secondTitle' => 'Returning',
                 'secondGeneralNumber' => strval($totalReturningVisitors),
                 'secondTrendNumber' => strval($formattedReturningVisitorsPercent),
-                'xAxis' => $uniqueVisitors->pluck('period')->toArray(),
+                'xAxis' => $uniqueVisitors->isEmpty() ? $returningVisitors->pluck('period')->toArray() : $uniqueVisitors->pluck('period')->toArray(),
                 'commonChartSeries' => [
                     [
                         'name' => 'New',
@@ -733,7 +733,7 @@ class StatisticsService
             'secondTitle' => 'Female',
             'secondGeneralNumber' => strval($totalFemaleVisitors),
             'secondTrendNumber' => strval($formattedFemaleVisitorsPercent),
-            'xAxis' => $maleVisitors->pluck('period')->toArray(),
+            'xAxis' => $maleVisitors->isEmpty() ? $femaleVisitors->pluck('period')->toArray() : $maleVisitors->pluck('period')->toArray(),
             'commonChartSeries' => [
                 [
                     'name' => 'Male',
@@ -824,7 +824,7 @@ class StatisticsService
             'secondTitle' => 'Unhappy',
             'secondGeneralNumber' => strval($totalUnhappyVisitors),
             'secondTrendNumber' => strval($formattedUnhappyVisitorsPercent),
-            'xAxis' => $happyVisitors->pluck('period')->toArray(),
+            'xAxis' => $happyVisitors->isEmpty() ? $unhappyVisitors->pluck('period')->toArray() : $happyVisitors->pluck('period')->toArray(),
             'commonChartSeries' => [
                 [
                     'name' => 'Happy Visitors',
@@ -911,7 +911,7 @@ class StatisticsService
             'secondTitle' => 'Souq Visitors',
             'secondGeneralNumber' => strval($totalSouqVisitors),
             'secondTrendNumber' => strval($formattedSouqVisitorsPercent),
-            'xAxis' => $mosqueVisitors->pluck('period')->toArray(),
+            'xAxis' => $mosqueVisitors->isEmpty() ? $souqVisitors->pluck('period')->toArray() : $mosqueVisitors->pluck('period')->toArray(),
             'commonChartSeries' => [
                 [
                     'name' => 'Mosque Visitors',
