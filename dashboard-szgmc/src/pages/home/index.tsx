@@ -21,7 +21,7 @@ const Home = () => {
   const [totalStatistics, setTotalStatistics] = useState({
     number: '',
     percent: '',
-    cumulativeSeriesData: dataJSON?.totalVisitorsCard?.cumulativeSeriesData,
+    cumulativeSeriesData: [],
     xAxis: []
   })
   const [uniqueStatistics, setUniqueStatistics] = useState({
