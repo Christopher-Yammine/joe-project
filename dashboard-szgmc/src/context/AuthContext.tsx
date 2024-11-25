@@ -9,6 +9,7 @@ import axios from 'axios'
 
 // ** Config
 import authConfig from 'src/configs/auth'
+import { config } from 'src/configs/config'
 
 // ** Types
 import { AuthValuesType, LoginParams, ErrCallbackType, UserDataType } from './types'
@@ -36,6 +37,7 @@ const AuthProvider = ({ children }: Props) => {
 
   // ** Hooks
   const router = useRouter()
+  const API_URL = config.NEXT_PUBLIC_BASE_URL
 
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
@@ -71,26 +73,83 @@ const AuthProvider = ({ children }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
-    axios
-      .post(authConfig.loginEndpoint, params)
-      .then(async response => {
-        params.rememberMe
-          ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
-          : null
-        const returnUrl = router.query.returnUrl
+  // const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
+  //   console.log('entered')
+  //   console.log('🚀 ~ handleLogin ~ authConfig.loginEndpoint:', `${API_URL}/login`)
+  //   console.log('🚀 ~ handleLogin ~ params:', params)
 
-        setUser({ ...response.data.userData })
-        params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
+  //   axios
+  //     .post(`${API_URL}/login`, params)
+  //     .then(async response => {
+  //       console.log('🚀 ~ handleLogin ~ response:', response)
+  //       params.rememberMe
+  //         ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
+  //         : null
+  // const returnUrl = router.query.returnUrl
 
-        const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+  // console.log('🚀 ~ handleLogin ~ returnUrl:', returnUrl)
+  // setUser({ ...response.data.userData })
+  // params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
 
-        router.replace(redirectURL as string)
+  // const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+
+  // router.replace(redirectURL as string)
+  // })
+
+  //     .catch(err => {
+  //       if (errorCallback) errorCallback(err)
+  //     })
+  // }
+
+  const handleLogin = async (params: LoginParams, errorCallback?: ErrCallbackType): Promise<void> => {
+    console.log('🚀 Entered handleLogin')
+    console.log('🚀 ~ Login params:', params)
+
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(params)
       })
 
-      .catch(err => {
-        if (errorCallback) errorCallback(err)
-      })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      console.log('🚀 ~ Login successful, data:', data)
+
+      if (params.rememberMe) {
+        console.log('🚀 ~ handleLogin ~ data.authorization:', data.authorisation.token)
+        window.localStorage.setItem(authConfig.storageTokenKeyName, data.authorisation.token)
+        window.localStorage.setItem('userData', JSON.stringify(data.user))
+      }
+
+      const returnUrl = router.query.returnUrl
+
+      console.log('🚀 ~ handleLogin ~ returnUrl:', returnUrl)
+      setUser(data.user)
+      params.rememberMe ? window.localStorage.setItem('user', JSON.stringify(data.user)) : null
+
+      const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/home'
+
+      router.replace(redirectURL as string)
+    } catch (error: unknown) {
+      console.error('🚨 Error during login:', error)
+
+      if (error instanceof Error) {
+        console.error('🚨 Error details:', error.message)
+
+        if (errorCallback) {
+          errorCallback({ message: error.message })
+        }
+      } else {
+        console.error('🚨 An unexpected error occurred.')
+      }
+    }
   }
 
   const handleLogout = () => {

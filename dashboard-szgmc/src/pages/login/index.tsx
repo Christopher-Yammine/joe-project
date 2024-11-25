@@ -76,9 +76,14 @@ const schema = yup.object().shape({
   password: yup.string().min(5).required()
 })
 
+// const defaultValues = {
+//   password: 'admin',
+//   email: 'admin@szgmc.gov.ae'
+// }
+
 const defaultValues = {
-  password: 'admin',
-  email: 'admin@szgmc.gov.ae'
+  password: '',
+  email: ''
 }
 
 interface FormData {
@@ -153,11 +158,11 @@ const LoginPage = () => {
             </Typography>
           </Box>
           <Typography sx={{ mb: 6, color: 'text.secondary' }}>{t('signInTitle')}</Typography>
-          <Alert icon={false} sx={{ py: 3, mb: 6, ...bgColors.primaryLight, '& .MuiAlert-message': { p: 0 } }}>
+          {/* <Alert icon={false} sx={{ py: 3, mb: 6, ...bgColors.primaryLight, '& .MuiAlert-message': { p: 0 } }}>
             <Typography variant='caption' sx={{ mb: 2, display: 'block', color: 'primary.main' }}>
               Admin: <strong>admin@szgmc.gov.ae</strong> / Pass: <strong>admin</strong>
             </Typography>
-          </Alert>
+          </Alert> */}
           <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
@@ -172,7 +177,8 @@ const LoginPage = () => {
                     onBlur={onBlur}
                     onChange={onChange}
                     error={Boolean(errors.email)}
-                    placeholder='admin@szgmc.gov.ae'
+                    // placeholder='admin@szgmc.gov.ae'
+                    placeholder='Email'
                   />
                 )}
               />
