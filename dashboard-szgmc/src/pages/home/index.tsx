@@ -56,36 +56,43 @@ const Home = () => {
   const [loading, setLoading] = useState(false)
 
   const fetchStatistics = async () => {
+    console.log('fetstatistics')
     try {
       setLoading(true)
       let response
 
-      const token = window.localStorage.getItem('token')
+      // const token = window.localStorage.getItem('token')
 
-      if (!token) {
-        throw new Error('JWT token is missing. Please log in.')
-      }
+      // if (!token) {
+      //   throw new Error('JWT token is missing. Please log in.')
+      // }
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+      // const headers = {
+      //   Authorization: `Bearer ${token}`,
+      //   'Content-Type': 'application/json'
+      // }
 
       if (streams.length > 0 && selectedStreams.length === 0) {
         const streamIds = streams
           .flatMap(stream => (stream.options ? stream.options.map(option => option.value) : [stream.value]))
           .join(',')
 
-        response = await fetch(`${API_URL}/statistics/hourly?stream_id=${streamIds}`, {
-          method: 'GET',
-          headers
-        })
+        response = await fetch(
+          `${API_URL}/statistics/hourly?stream_id=${streamIds}`
+          // , {
+          // method: 'GET'
+          // headers
+          // }
+        )
       } else {
         const selectedStreamIds = selectedStreams.join(',')
-        response = await fetch(`${API_URL}/statistics/hourly?stream_id=${selectedStreamIds}`, {
-          method: 'GET',
-          headers
-        })
+        response = await fetch(
+          `${API_URL}/statistics/hourly?stream_id=${selectedStreamIds}`
+          //   , {
+          //   method: 'GET'
+          //   // headers
+          // }
+        )
       }
       if (!response.ok) {
         throw new Error('Network response was not ok')
@@ -195,23 +202,28 @@ const Home = () => {
   }, [streams, selectedStreams])
 
   const getAllStreams = async () => {
+    console.log('streams')
     try {
       setLoading(true)
-      const token = window.localStorage.getItem('token')
 
-      if (!token) {
-        throw new Error('JWT token is missing. Please log in.')
-      }
+      // const token = window.localStorage.getItem('token')
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+      // if (!token) {
+      //   throw new Error('JWT token is missing. Please log in.')
+      // }
 
-      const response = await fetch(`${API_URL}/streams`, {
-        method: 'GET',
-        headers
-      })
+      // const headers = {
+      //   Authorization: `Bearer ${token}`,
+      //   'Content-Type': 'application/json'
+      // }
+
+      const response = await fetch(
+        `${API_URL}/streams`
+        //   , {
+        //   method: 'GET'
+        //   // headers
+        // }
+      )
       if (!response.ok) {
         throw new Error('Network response was not ok')
       }

@@ -41,9 +41,23 @@ const AuthProvider = ({ children }: Props) => {
 
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
+      console.log('entered')
       const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
+      console.log('🚀 ~ initAuth ~ storedToken:', storedToken)
+      console.log('🚀 ~ initAuth ~ authConfig.meEndpoint:', authConfig.meEndpoint)
       if (storedToken) {
         setLoading(true)
+        // await fetch(`${API_URL}/me`, {
+        //   method: 'GET',
+        //   headers: {
+        //     Authorization: `Bearer ${storedToken}`
+        //   }
+        // })
+        //   .then(async response => {
+        //     const data = await response.json()
+        //     console.log('🚀 ~ .then ~ data:', data)
+        //     setUser(data.user)
+        //   })
         await axios
           .get(authConfig.meEndpoint, {
             headers: {
@@ -51,6 +65,7 @@ const AuthProvider = ({ children }: Props) => {
             }
           })
           .then(async response => {
+            console.log('🚀 ~ initAuth ~ response:', response)
             setLoading(false)
             setUser({ ...response.data.userData })
           })
@@ -73,84 +88,125 @@ const AuthProvider = ({ children }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
-  //   console.log('entered')
-  //   console.log('🚀 ~ handleLogin ~ authConfig.loginEndpoint:', `${API_URL}/login`)
-  //   console.log('🚀 ~ handleLogin ~ params:', params)
+  // useEffect(() => {
+  //   const initAuth = async (): Promise<void> => {
+  //     const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
+  //     console.log('🚀 ~ initAuth ~ storedToken:', storedToken)
+  //     if (storedToken) {
+  //       setLoading(true)
+  //       try {
+  //         const response = await fetch(`${API_URL}/me`, {
+  //           method: 'GET',
+  //           headers: {
+  //             Authorization: `Bearer ${storedToken}`
+  //           }
+  //         })
 
-  //   axios
-  //     .post(`${API_URL}/login`, params)
-  //     .then(async response => {
-  //       console.log('🚀 ~ handleLogin ~ response:', response)
-  //       params.rememberMe
-  //         ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
-  //         : null
-  // const returnUrl = router.query.returnUrl
+  //         if (!response.ok) {
+  //           throw new Error('Failed to fetch user data')
+  //         }
 
-  // console.log('🚀 ~ handleLogin ~ returnUrl:', returnUrl)
-  // setUser({ ...response.data.userData })
-  // params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
+  //         const data = await response.json()
+  //         console.log('🚀 ~ initAuth ~ response:', data)
+  //         setUser(data.user)
+  //       } catch (error) {
+  //         console.error('Error in initAuth:', error)
+  //         localStorage.removeItem('userData')
+  //         localStorage.removeItem('refreshToken')
+  //         localStorage.removeItem('accessToken')
+  //         setUser(null)
+  //         if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
+  //           router.replace('/login')
+  //         }
+  //       } finally {
+  //         setLoading(false)
+  //       }
+  //     } else {
+  //       setLoading(false)
+  //     }
+  //   }
 
-  // const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+  //   initAuth()
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
 
-  // router.replace(redirectURL as string)
-  // })
+  const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
+    console.log('entered')
+    console.log('🚀 ~ handleLogin ~ authConfig.loginEndpoint:', `${API_URL}/login`)
+    console.log('🚀 ~ handleLogin ~ params:', params)
 
-  //     .catch(err => {
-  //       if (errorCallback) errorCallback(err)
-  //     })
-  // }
+    axios
+      .post(authConfig.loginEndpoint, params)
+      .then(async response => {
+        console.log('🚀 ~ handleLogin ~ response:', response)
+        params.rememberMe
+          ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
+          : null
+        const returnUrl = router.query.returnUrl
 
-  const handleLogin = async (params: LoginParams, errorCallback?: ErrCallbackType): Promise<void> => {
-    console.log('🚀 Entered handleLogin')
-    console.log('🚀 ~ Login params:', params)
+        console.log('🚀 ~ handleLogin ~ returnUrl:', returnUrl)
+        setUser({ ...response.data.userData })
+        params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
 
-    try {
-      const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(params)
+        const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+
+        router.replace(redirectURL as string)
       })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      console.log('🚀 ~ Login successful, data:', data)
-
-      if (params.rememberMe) {
-        console.log('🚀 ~ handleLogin ~ data.authorization:', data.authorisation.token)
-        window.localStorage.setItem(authConfig.storageTokenKeyName, data.authorisation.token)
-        window.localStorage.setItem('userData', JSON.stringify(data.user))
-      }
-
-      const returnUrl = router.query.returnUrl
-
-      console.log('🚀 ~ handleLogin ~ returnUrl:', returnUrl)
-      setUser(data.user)
-      params.rememberMe ? window.localStorage.setItem('user', JSON.stringify(data.user)) : null
-
-      const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/home'
-
-      router.replace(redirectURL as string)
-    } catch (error: unknown) {
-      console.error('🚨 Error during login:', error)
-
-      if (error instanceof Error) {
-        console.error('🚨 Error details:', error.message)
-
-        if (errorCallback) {
-          errorCallback({ message: error.message })
-        }
-      } else {
-        console.error('🚨 An unexpected error occurred.')
-      }
-    }
+      .catch(err => {
+        if (errorCallback) errorCallback(err)
+      })
   }
+
+  // const handleLogin = async (params: LoginParams, errorCallback?: ErrCallbackType): Promise<void> => {
+  //   console.log('🚀 ~ Login params:', params)
+
+  //   try {
+  //     const response = await fetch(`${API_URL}/login`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify(params)
+  //     })
+
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`)
+  //     }
+
+  //     const data = await response.json()
+
+  //     console.log('🚀 ~ Login successful, data:', data)
+
+  //     if (params.rememberMe) {
+  //       console.log('🚀 ~ handleLogin ~ data.authorization:', data.accessToken)
+  //       window.localStorage.setItem(authConfig.storageTokenKeyName, data.accessToken)
+  //       window.localStorage.setItem('userData', JSON.stringify(data.userData))
+  //     }
+
+  //     const returnUrl = router.query.returnUrl
+
+  //     console.log('🚀 ~ handleLogin ~ returnUrl:', returnUrl)
+  //     setUser(data.userData)
+  //     params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(data.userData)) : null
+
+  //     const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/home'
+
+  //     router.replace(redirectURL as string)
+  //   } catch (error: unknown) {
+  //     console.error('🚨 Error during login:', error)
+
+  //     if (error instanceof Error) {
+  //       console.error('🚨 Error details:', error.message)
+
+  //       if (errorCallback) {
+  //         errorCallback({ message: error.message })
+  //       }
+  //     } else {
+  //       console.error('🚨 An unexpected error occurred.')
+  //     }
+  //   }
+  // }
 
   const handleLogout = () => {
     setUser(null)

@@ -76,15 +76,15 @@ const schema = yup.object().shape({
   password: yup.string().min(5).required()
 })
 
-// const defaultValues = {
-//   password: 'admin',
-//   email: 'admin@szgmc.gov.ae'
-// }
-
 const defaultValues = {
-  password: '',
-  email: ''
+  password: 'admin',
+  email: 'admin@szgmc.gov.ae'
 }
+
+// const defaultValues = {
+//   password: '',
+//   email: ''
+// }
 
 interface FormData {
   email: string
