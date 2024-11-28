@@ -13,7 +13,7 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'checkToken']]);
     }
 
     public function login(Request $request)
@@ -45,11 +45,8 @@ class AuthController extends Controller
         $token = Auth::login($user);
         return response()->json([
             'status' => 'success',
-            'user' => $user,
-            'authorisation' => [
-                'token' => $token,
-                'type' => 'bearer',
-            ]
+            'userData' => $user,
+            'accessToken'=> $token,
         ]);
     }
     
@@ -105,4 +102,32 @@ class AuthController extends Controller
             ]
         ]);
     }
+
+    public function checkToken(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            if ($user) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Token is valid',
+                    'user' => $user,
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid or expired token',
+            ], 401);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while verifying the token',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }

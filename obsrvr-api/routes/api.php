@@ -21,11 +21,11 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('logout', 'logout');
     Route::post('refresh', 'refresh');
+    Route::get('me','checkToken');
 });
 
-
-Route::group(["middleware" => 'auth:api'], function() {
+// Route::group(["middleware" => 'auth:api'], function() {
     Route::get('/statistics/hourly', [ETLController::class, 'getHourlyStatistics']);
     Route::get('/statistics/historical', [ETLController::class, 'getHistoricalStatistics']);
     Route::get('/streams', [StreamController::class, 'getAllStreams']);
-});
+// });
