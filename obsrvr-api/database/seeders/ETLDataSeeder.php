@@ -71,13 +71,27 @@ class ETLDataSeeder extends Seeder
                 foreach ($demographics as $demographic) {
                     foreach ($streams as $stream) {
                         foreach ($metrics as $metric) {
+                            
+                            $baseValue = match ($interval) {
+                                'hour' => rand(1, 5),
+                                'day' => rand(10, 50),
+                                'week' => rand(100, 300),
+                                'month' => rand(500, 1500),
+                                'quarter' => rand(2000, 5000),
+                                'year' => rand(5000, 20000),
+                                default => rand(0, 10),
+                            };
+
+                            $variation = rand(-2, 2);
+                            $finalValue = max(0, $baseValue + $variation);
+
                             $data[] = [
                                 'stream_id' => $stream,
                                 'person_type_id' => $footfall,
                                 'demographics_id' => $demographic,
                                 'metric_id' => $metric,
                                 'date' => $date->format('Y-m-d H:i:s'),
-                                'value' => rand(0, 10),
+                                'value' => $finalValue,
                             ];
 
                             if (count($data) >= 1000) {
@@ -88,6 +102,7 @@ class ETLDataSeeder extends Seeder
                     }
                 }
             }
+
 
             $this->incrementDate($date, $interval);
         }
