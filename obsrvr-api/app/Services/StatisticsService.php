@@ -787,7 +787,7 @@ class StatisticsService
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
         $selectFields = $this->getSelectFieldsByDuration($duration);
-    
+
         $happyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
@@ -798,7 +798,7 @@ class StatisticsService
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
-    
+
         $unhappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
@@ -809,15 +809,15 @@ class StatisticsService
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
-    
+
         $totalHappyVisitors = $happyVisitors->sum('total');
         $totalUnhappyVisitors = $unhappyVisitors->sum('total');
-    
+
         $daysRange = $this->getDateRange($fromDate, $toDate, $duration);
-    
+
         $previousFromDate = $daysRange['fromDatePrevious'];
         $previousToDate = $daysRange['toDatePrevious'];
-    
+
         $previousHappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
@@ -828,7 +828,7 @@ class StatisticsService
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
-    
+
         $previousUnhappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
@@ -839,32 +839,32 @@ class StatisticsService
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
             ->get();
-    
+
         $totalPreviousHappyVisitors = $previousHappyVisitors->sum('total');
         $totalPreviousUnhappyVisitors = $previousUnhappyVisitors->sum('total');
-    
+
         $happyVisitorsPercent = $this->calculatePercentChange($totalHappyVisitors, $totalPreviousHappyVisitors);
         $formattedHappyVisitorsPercent = $happyVisitorsPercent > 0 ? "+$happyVisitorsPercent%" : "$happyVisitorsPercent%";
-    
+
         $unhappyVisitorsPercent = $this->calculatePercentChange($totalUnhappyVisitors, $totalPreviousUnhappyVisitors);
         $formattedUnhappyVisitorsPercent = $unhappyVisitorsPercent > 0 ? "+$unhappyVisitorsPercent%" : "$unhappyVisitorsPercent%";
-    
+
         $xAxis = $happyVisitors->isEmpty() ? $unhappyVisitors->pluck('period')->toArray() : $happyVisitors->pluck('period')->toArray();
         $happyData = $happyVisitors->pluck('total')->toArray();
         $unhappyData = $unhappyVisitors->pluck('total')->toArray();
-    
+
         if (count($xAxis) === 1) {
             $xAxis[] = $xAxis[0];
         }
-    
+
         if (count($happyData) === 1) {
             $happyData[] = $happyData[0];
         }
-    
+
         if (count($unhappyData) === 1) {
             $unhappyData[] = $unhappyData[0];
         }
-    
+
         $response = [
             'firstTitle' => 'Happy',
             'firstGeneralNumber' => strval($totalHappyVisitors),
@@ -886,9 +886,9 @@ class StatisticsService
                 ]
             ]
         ];
-    
+
         return $response;
-    }    
+    }
 
     public function getMosqueSouqHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
@@ -1183,7 +1183,7 @@ class StatisticsService
                 $series['data'][] = $series['data'][0];
             }
         }
-    
+
         if (count($xAxis) === 1) {
             $xAxis[] = $xAxis[0];
         }
@@ -1447,10 +1447,10 @@ class StatisticsService
     public function getTotalStaffDailyHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
-    
+
         $startDate = "$fromDate 00:00:00";
         $endDate = "$toDate 23:59:59";
-    
+
         $results = DB::table("$etlDataTable as etl")
             ->select(
                 'streams.name',
@@ -1465,9 +1465,9 @@ class StatisticsService
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderBy('hour')
             ->get();
-    
+
         $visitorsChartSeries = [];
-    
+
         foreach ($results as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
@@ -1476,17 +1476,17 @@ class StatisticsService
                     'data' => [],
                 ];
             }
-    
+
             if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
                 $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
             }
-    
+
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
-    
+
         $staffChartSeries = [];
         $xAxis = [];
-    
+
         foreach ($visitorsChartSeries as $series) {
             $staffChartSeries[] = [
                 'name' => $series['name'],
@@ -1495,29 +1495,29 @@ class StatisticsService
             ];
             $xAxis = array_merge($xAxis, array_keys($series['data']));
         }
-    
+
         foreach ($staffChartSeries as &$series) {
             if (count($series['data']) === 1) {
                 $series['data'][] = $series['data'][0];
             }
         }
-    
+
         if (count($xAxis) === 1) {
             $xAxis[] = $xAxis[0];
         }
-    
+
         usort($staffChartSeries, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
-    
+
         $xAxis = array_values(array_unique($xAxis));
-    
+
         return [
             'staffMultilineChartData' => $staffChartSeries,
             'xAxis' => $xAxis,
         ];
     }
-    
+
     private function getEtlDataTableByDuration($duration)
     {
         return match (strtolower($duration)) {
@@ -1545,7 +1545,7 @@ class StatisticsService
             'daily' => 'DATE_FORMAT(date, "%b %d, %Y") as period',
             'weekly' =>'CONCAT(DATE_FORMAT(date, "%b %Y"), " (W", WEEK(date, 4), ")") as period',
             'monthly' => 'CONCAT(DATE_FORMAT(date, "%b %Y"), " (M", MONTH(date), ")") as period',
-            'yearly' => 'YEAR(date) AS period', 
+            'yearly' => 'YEAR(date) AS period',
             default => 'DATE_FORMAT(date, "%b %d, %Y") as period',
         };
     }
@@ -1582,9 +1582,9 @@ class StatisticsService
     ) {
         if ($duration === 'hourly') {
             $lastHourWithData = DB::table("$etlDataTable")
-                ->where('date', '>=', "$fromDate 00:00:00")
-                ->where('date', '<=', "$fromDate 23:59:59")
-                ->max(DB::raw('HOUR(date)'));
+            ->where('date', '>=', "$fromDate 00:00:00")
+            ->where('date', '<=', "$fromDate 23:59:59")
+            ->max(DB::raw('HOUR(date)'));
 
             $currentHour = $lastHourWithData !== null ? $lastHourWithData : date('G');
 
@@ -1595,7 +1595,7 @@ class StatisticsService
 
             $query = $this->getDailyQuery($etlDataTable, $streamIds, $fromDateStart, $fromDateEnd, $toDateStart, $toDateEnd);
         } else {
-           $dateRanges = $this->getDateRange($fromDate, $toDate, $duration);
+            $dateRanges = $this->getDateRange($fromDate, $toDate, $duration);
 
             $fromDateCurrent = $dateRanges['fromDateCurrent'];
             $toDateCurrent = $dateRanges['toDateCurrent'];
@@ -1605,6 +1605,11 @@ class StatisticsService
             $query = $this->getNonDailyQuery($etlDataTable, $streamIds, $fromDateCurrent, $toDateCurrent, $fromDatePrevious, $toDatePrevious);
         }
 
+        if ($personType) {
+            $query->where('person_types.name', $personType)
+                ->whereIn('etl.stream_id', $streamIds)
+                ->first();
+        }
 
         if ($isUniqueMetric) {
             $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
@@ -1621,32 +1626,16 @@ class StatisticsService
             ->first();
         }
 
-        if ($personType) {
-            $results->today_new_visitors = DB::table("$etlDataTable as etl")
-            ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', $personType)
-            ->whereBetween('etl.date', ["$fromDate 00:00:00", "$fromDate 23:59:59"])
-            ->whereIn('etl.stream_id', $streamIds)
-            ->sum('etl.value');
+            $todayAverageFootfall = $results->current_total_value / $this->calculateDurationAverage($duration, $fromDate, $toDate);
+            $yesterdayAverageFootfall = $results->previous_total_value / $this->calculateDurationAverage($duration, $fromDate, $toDate);
 
-            $results->yesterday_new_visitors = DB::table("$etlDataTable as etl")
-            ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', $personType)
-            ->whereBetween('etl.date', ["$toDate 00:00:00", "$toDate 23:59:59"])
-            ->whereIn('etl.stream_id', $streamIds)
-            ->sum('etl.value');
-        }
+            $footfallPercentageDifference = $yesterdayAverageFootfall > 0
+                ? (($todayAverageFootfall - $yesterdayAverageFootfall) / $yesterdayAverageFootfall) * 100
+                : 0;
 
-        $todayAverageFootfall = $results->current_total_value / $this->calculateDurationAverage($duration, $fromDate, $toDate);
-        $yesterdayAverageFootfall = $results->previous_total_value / $this->calculateDurationAverage($duration, $fromDate, $toDate);
-
-        $footfallPercentageDifference = $yesterdayAverageFootfall > 0
-        ? (($todayAverageFootfall - $yesterdayAverageFootfall) / $yesterdayAverageFootfall) * 100
-        : 0;
-
-        $souqVisitorsPercentageDifference = $results->previous_souq_visitors > 0
-        ? (($results->current_souq_visitors - $results->previous_souq_visitors) / $results->previous_souq_visitors) * 100
-        : 0;
+            $souqVisitorsPercentageDifference = $results->previous_souq_visitors > 0
+                ? (($results->current_souq_visitors - $results->previous_souq_visitors) / $results->previous_souq_visitors) * 100
+                : 0;
 
         $totalEntriesPercentageDifference = $results->previous_total_value > 0
         ? (($results->current_total_value - $results->previous_total_value) / $results->previous_total_value) * 100
@@ -1672,13 +1661,13 @@ class StatisticsService
         ];
 
         if ($isSouqStreamPresent) {
-            $metrics['souqVisitors'] = [
-                'title' => 'visitorsToSouq',
-                'stats' => $results->current_souq_visitors,
-                'trend' => $souqVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
-                'trendNumber' => round(abs($souqVisitorsPercentageDifference), 2),
-            ];
-        }
+                $metrics['souqVisitors'] = [
+                    'title' => 'visitorsToSouq',
+                    'stats' => $results->current_souq_visitors,
+                    'trend' => $souqVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
+                    'trendNumber' => round(abs($souqVisitorsPercentageDifference), 2),
+                ];
+            }
 
         return $metrics;
     }
@@ -1803,8 +1792,6 @@ class StatisticsService
                 COUNT(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN 1 END) AS current_total_entries,
                 SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_total_value,
                 COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN 1 END) AS previous_total_entries,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_new_visitors,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_new_visitors,
                 SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_souq_visitors,
                 SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_souq_visitors
             ");
@@ -1821,8 +1808,6 @@ class StatisticsService
                 COUNT(CASE WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN 1 END) AS current_total_entries,
                 SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_total_value,
                 COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN 1 END) AS previous_total_entries,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN etl.value ELSE 0 END) AS current_new_visitors,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_new_visitors,
                 SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN etl.value ELSE 0 END) AS current_souq_visitors,
                 SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_souq_visitors
             ");
