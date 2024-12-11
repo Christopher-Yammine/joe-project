@@ -12,87 +12,28 @@ class StatisticsService
 {
 
     public function getTotalVisitorsCard(array $streamIds)
-{
-    $startOfToday = now()->startOfDay();
-    $endOfToday = now()->endOfDay();
-    $startOfYesterday = now()->subDay()->startOfDay();
-    $endOfYesterday = now()->subDay()->endOfDay();
-
-    $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-        ->whereBetween('date', [$startOfToday, $endOfToday])
-        ->select(DB::raw('HOUR(date) as hour'), DB::raw('SUM(value) as total'))
-        ->groupBy(DB::raw('HOUR(date)'))
-        ->get();
-
-    $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-        ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
-        ->select(DB::raw('HOUR(date) as hour'), DB::raw('SUM(value) as total'))
-        ->groupBy(DB::raw('HOUR(date)'))
-        ->get();
-
-    $originalTotalVisitorsToday = $originalTotalVisitorsYesterday = 0;
-    $todaySeriesData = [];
-    $xAxisCategories = [];
-
-    foreach ($todayData as $entry) {
-        if ($entry->total > 0) {
-            $hourLabel = str_pad($entry->hour, 2, '0', STR_PAD_LEFT) . ':00';
-            $todaySeriesData[] = $entry->total;
-            $xAxisCategories[] = $hourLabel;
-            $originalTotalVisitorsToday += $entry->total;
-        }
-    }
-
-    foreach ($yesterdayData as $entry) {
-        if ($entry->total > 0) {
-            $originalTotalVisitorsYesterday += $entry->total;
-        }
-    }
-
-    $percentChange = $this->calculatePercentChange($originalTotalVisitorsToday, $originalTotalVisitorsYesterday);
-    $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
-
-    $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
-
-    return [
-        'number' => number_format($originalTotalVisitorsToday),
-        'percent' => $percentFormatted,
-        'seriesData' => $todaySeriesData,
-        'cumulativeSeriesData' => $todayCumulativeSeriesData,
-        'xAxis' => $xAxisCategories,
-    ];
-}
-
-    public function getTotalUniqueVisitorsCard(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
         $startOfYesterday = now()->subDay()->startOfDay();
         $endOfYesterday = now()->subDay()->endOfDay();
 
-        $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-        ->whereBetween('date', [$startOfToday, $endOfToday])
-        ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-        ->where('metrics.name', 'Unique')
-        ->select(
-            DB::raw('DATE(date) as day'),
-            DB::raw('HOUR(date) as hour'),
-            DB::raw('SUM(value) as total')
-        )
-        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-        ->get();
 
-        $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-        ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
-        ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-        ->where('metrics.name', 'Unique')
-        ->select(
-            DB::raw('DATE(date) as day'),
-            DB::raw('HOUR(date) as hour'),
-            DB::raw('SUM(value) as total')
-        )
-        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-        ->get();
+        $todayData = EtlDataHourly::join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
+            ->whereIn('etl_data_hourly.stream_id', $streamIds)
+            ->where('person_types.name', '!=', '')
+            ->whereBetween('etl_data_hourly.date', [$startOfToday, $endOfToday])
+            ->select(DB::raw('HOUR(etl_data_hourly.date) as hour'), DB::raw('SUM(etl_data_hourly.value) as total'))
+            ->groupBy(DB::raw('HOUR(etl_data_hourly.date)'))
+            ->get();
+
+        $yesterdayData = EtlDataHourly::join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
+            ->whereIn('etl_data_hourly.stream_id', $streamIds)
+            ->where('person_types.name', '!=', 'Staff')
+            ->whereBetween('etl_data_hourly.date', [$startOfYesterday, $endOfYesterday])
+            ->select(DB::raw('HOUR(etl_data_hourly.date) as hour'), DB::raw('SUM(etl_data_hourly.value) as total'))
+            ->groupBy(DB::raw('HOUR(etl_data_hourly.date)'))
+            ->get();
 
         $originalTotalVisitorsToday = $originalTotalVisitorsYesterday = 0;
         $todaySeriesData = [];
@@ -127,37 +68,41 @@ class StatisticsService
         ];
     }
 
-    public function getTotalOccupancyCard(array $streamIds)
+
+    public function getTotalUniqueVisitorsCard(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
         $startOfYesterday = now()->subDay()->startOfDay();
         $endOfYesterday = now()->subDay()->endOfDay();
 
-        $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-        ->whereBetween('date', [$startOfToday, $endOfToday])
-        ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-        ->where('metrics.name', 'Occupancy')
-        ->select(
-            DB::raw('DATE(date) as day'),
-            DB::raw('HOUR(date) as hour'),
-            DB::raw('SUM(value) as total')
-        )
-        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-        ->get();
-
-        $yesterdayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$startOfYesterday, $endOfYesterday])
-            ->join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-            ->where('metrics.name', 'Occupancy')
+        $todayData = EtlDataHourly::join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+            ->join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
+            ->whereIn('etl_data_hourly.stream_id', $streamIds)
+            ->where('metrics.name', 'Unique')
+            ->where('person_types.name', '!=', 'Staff')
+            ->whereBetween('etl_data_hourly.date', [$startOfToday, $endOfToday])
             ->select(
-                DB::raw('DATE(date) as day'),
-                DB::raw('HOUR(date) as hour'),
-                DB::raw('SUM(value) as total')
+                DB::raw('DATE(etl_data_hourly.date) as day'),
+                DB::raw('HOUR(etl_data_hourly.date) as hour'),
+                DB::raw('SUM(etl_data_hourly.value) as total')
             )
-        ->groupBy(DB::raw('DATE(date)'), DB::raw('HOUR(date)'))
-        ->get();
+            ->groupBy(DB::raw('DATE(etl_data_hourly.date)'), DB::raw('HOUR(etl_data_hourly.date)'))
+            ->get();
 
+        $yesterdayData = EtlDataHourly::join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+            ->join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
+            ->whereIn('etl_data_hourly.stream_id', $streamIds)
+            ->where('metrics.name', 'Unique')
+            ->where('person_types.name', '!=', 'Staff')
+            ->whereBetween('etl_data_hourly.date', [$startOfYesterday, $endOfYesterday])
+            ->select(
+                DB::raw('DATE(etl_data_hourly.date) as day'),
+                DB::raw('HOUR(etl_data_hourly.date) as hour'),
+                DB::raw('SUM(etl_data_hourly.value) as total')
+            )
+            ->groupBy(DB::raw('DATE(etl_data_hourly.date)'), DB::raw('HOUR(etl_data_hourly.date)'))
+            ->get();
 
         $originalTotalVisitorsToday = $originalTotalVisitorsYesterday = 0;
         $todaySeriesData = [];
@@ -181,25 +126,98 @@ class StatisticsService
         $percentChange = $this->calculatePercentChange($originalTotalVisitorsToday, $originalTotalVisitorsYesterday);
         $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
 
+        $todayCumulativeSeriesData = $this->calculateCumulativeSeries($todaySeriesData);
 
         return [
             'number' => number_format($originalTotalVisitorsToday),
+            'percent' => $percentFormatted,
+            'seriesData' => $todaySeriesData,
+            'cumulativeSeriesData' => $todayCumulativeSeriesData,
+            'xAxis' => $xAxisCategories,
+        ];
+    }
+
+
+    public function getTotalOccupancyCard(array $streamIds)
+    {
+        $startOfToday = now()->startOfDay();
+        $endOfToday = now()->endOfDay();
+        $startOfYesterday = now()->subDay()->startOfDay();
+        $endOfYesterday = now()->subDay()->endOfDay();
+
+        $todayData = EtlDataHourly::join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+            ->join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
+            ->whereIn('etl_data_hourly.stream_id', $streamIds)
+            ->where('metrics.name', 'Occupancy')
+            ->where('person_types.name', '!=', 'Staff')
+            ->whereBetween('etl_data_hourly.date', [$startOfToday, $endOfToday])
+            ->select(
+                DB::raw('DATE(etl_data_hourly.date) as day'),
+                DB::raw('HOUR(etl_data_hourly.date) as hour'),
+                DB::raw('SUM(etl_data_hourly.value) as total')
+            )
+            ->groupBy(DB::raw('DATE(etl_data_hourly.date)'), DB::raw('HOUR(etl_data_hourly.date)'))
+            ->get();
+
+        $yesterdayData = EtlDataHourly::join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
+            ->join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
+            ->whereIn('etl_data_hourly.stream_id', $streamIds)
+            ->where('metrics.name', 'Occupancy')
+            ->where('person_types.name', '!=', 'Staff')
+            ->whereBetween('etl_data_hourly.date', [$startOfYesterday, $endOfYesterday])
+            ->select(
+                DB::raw('DATE(etl_data_hourly.date) as day'),
+                DB::raw('HOUR(etl_data_hourly.date) as hour'),
+                DB::raw('SUM(etl_data_hourly.value) as total')
+            )
+            ->groupBy(DB::raw('DATE(etl_data_hourly.date)'), DB::raw('HOUR(etl_data_hourly.date)'))
+            ->get();
+
+        $originalTotalVisitorsToday = $originalTotalVisitorsYesterday = 0;
+        $todaySeriesData = [];
+        $xAxisCategories = [];
+
+        foreach ($todayData as $entry) {
+            if ($entry->total > 0) {
+                $hourLabel = str_pad($entry->hour, 2, '0', STR_PAD_LEFT) . ':00';
+                $todaySeriesData[] = $entry->total;
+                $xAxisCategories[] = $hourLabel;
+                $originalTotalVisitorsToday += $entry->total;
+            }
+        }
+
+        foreach ($yesterdayData as $entry) {
+            if ($entry->total > 0) {
+                $originalTotalVisitorsYesterday += $entry->total;
+            }
+        }
+
+        $percentChange = $this->calculatePercentChange($originalTotalVisitorsToday, $originalTotalVisitorsYesterday);
+        $percentFormatted = $percentChange > 0 ? "+$percentChange%" : "$percentChange%";
+
+        return [
+            'number' => number_format(end($todaySeriesData)),
             'percent' => $percentFormatted,
             'seriesData' => $todaySeriesData,
             'xAxis' => $xAxisCategories,
         ];
     }
 
-    public function getAgeGenderSentimentBarChartData(array $streamIds) {
+
+
+    public function getAgeGenderSentimentBarChartData(array $streamIds)
+    {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
 
         $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$startOfToday, $endOfToday])
             ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
+            ->join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
             ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
             ->join('genders', 'demographics.gender_id', '=', 'genders.id')
             ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->select(
                 'genders.gender',
                 'sentiments.sentiment',
@@ -209,99 +227,100 @@ class StatisticsService
             ->groupBy('genders.gender', 'sentiments.sentiment', 'age_groups.group_name')
             ->get();
 
-            $ageBarChartSeries = [];
-            $ageSentimentBarChartSeries = [];
-            $maleMax = 0;
-            $femaleMax = 0;
-            $happyMax = 0;
-            $sadMax = 0;
+        $ageBarChartSeries = [];
+        $ageSentimentBarChartSeries = [];
+        $maleMax = 0;
+        $femaleMax = 0;
+        $happyMax = 0;
+        $sadMax = 0;
 
-            $ageGroups = $todayData->pluck('group_name')->unique()->sort()->toArray();
-            $yAxis = array_reverse(array_values($ageGroups));
+        $ageGroups = $todayData->pluck('group_name')->unique()->sort()->toArray();
+        $yAxis = array_reverse(array_values($ageGroups));
 
-            foreach ($todayData as $entry) {
-                if ($entry->gender === 'Female') {
-                    $totalValue = abs($entry->total);
-                    $ageBarChartSeries['Females'][$entry->group_name] = $totalValue;
-                    $femaleMax = max($femaleMax, $entry->total);
-                } elseif ($entry->gender === 'Male') {
-                    $totalValue = -abs($entry->total);
-                    $ageBarChartSeries['Males'][$entry->group_name] = $totalValue;
-                    $maleMax = max($maleMax, abs($entry->total));
-                }
-
-                if ($entry->sentiment === 'Happy') {
-                    $ageSentimentBarChartSeries['Happy Visitors'][$entry->group_name] = -abs($entry->total);
-                    $happyMax = max($happyMax, $entry->total);
-                } elseif ($entry->sentiment === 'Sad' || $entry->sentiment === 'Neutral') {
-                    if (!isset($ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name])) {
-                        $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] = 0;
-                    }
-                    $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] += abs($entry->total);
-                    $sadMax = max($sadMax, abs($ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name]));
-                }
+        foreach ($todayData as $entry) {
+            if ($entry->gender === 'Female') {
+                $totalValue = abs($entry->total);
+                $ageBarChartSeries['Females'][$entry->group_name] = $totalValue;
+                $femaleMax = max($femaleMax, $entry->total);
+            } elseif ($entry->gender === 'Male') {
+                $totalValue = -abs($entry->total);
+                $ageBarChartSeries['Males'][$entry->group_name] = $totalValue;
+                $maleMax = max($maleMax, abs($entry->total));
             }
 
-            $maxOverall = max($maleMax, $femaleMax);
-            $maxWithIncrease = ceil($maxOverall * 1.1 / 100)* 100;
-            $maleMaxWithIncrease = -abs($maxWithIncrease);
-            $femaleMaxWithIncrease = abs($maxWithIncrease);
-
-            $sentimentMaxOverall = max($happyMax, $sadMax);
-            $sentimentMaxWithIncrease = ceil($sentimentMaxOverall * 1.1 / 100) * 100;
-            $happyMaxWithIncrease = -abs($sentimentMaxWithIncrease);
-            $sadMaxWithDecrease = abs($sentimentMaxWithIncrease);
-
-            $ageBarChartSeriesFormatted = [];
-            foreach (['Males', 'Females'] as $gender) {
-                if (!isset($ageBarChartSeries[$gender])) {
-                    $ageBarChartSeries[$gender] = array_fill_keys($yAxis, 0);
+            if ($entry->sentiment === 'Happy') {
+                $ageSentimentBarChartSeries['Happy Visitors'][$entry->group_name] = -abs($entry->total);
+                $happyMax = max($happyMax, $entry->total);
+            } elseif ($entry->sentiment === 'Sad' || $entry->sentiment === 'Neutral') {
+                if (!isset($ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name])) {
+                    $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] = 0;
                 }
+                $ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name] += abs($entry->total);
+                $sadMax = max($sadMax, abs($ageSentimentBarChartSeries['Unhappy Visitors'][$entry->group_name]));
+            }
+        }
 
-                $data = array_fill_keys($yAxis, 0);
-                foreach ($ageBarChartSeries[$gender] as $group => $value) {
-                    $data[$group] = $value;
-                }
+        $maxOverall = max($maleMax, $femaleMax);
+        $maxWithIncrease = ceil($maxOverall * 1.1 / 100) * 100;
+        $maleMaxWithIncrease = -abs($maxWithIncrease);
+        $femaleMaxWithIncrease = abs($maxWithIncrease);
 
-                $total = array_sum(array_values($data));
-                $ageBarChartSeriesFormatted[] = [
-                    'name' => "{$gender} [" . abs($total) . "]",
-                    'name_ar' => $this->getArabicName($gender) . " [" . abs($total) . "]",
-                    'data' => array_values($data),
-                    'maxWithIncrease' => $gender === 'Males' ? $maleMaxWithIncrease : $femaleMaxWithIncrease
-                ];
+        $sentimentMaxOverall = max($happyMax, $sadMax);
+        $sentimentMaxWithIncrease = ceil($sentimentMaxOverall * 1.1 / 100) * 100;
+        $happyMaxWithIncrease = -abs($sentimentMaxWithIncrease);
+        $sadMaxWithDecrease = abs($sentimentMaxWithIncrease);
+
+        $ageBarChartSeriesFormatted = [];
+        foreach (['Males', 'Females'] as $gender) {
+            if (!isset($ageBarChartSeries[$gender])) {
+                $ageBarChartSeries[$gender] = array_fill_keys($yAxis, 0);
             }
 
-
-            $ageSentimentBarChartSeriesFormatted = [];
-            foreach (['Happy Visitors', 'Unhappy Visitors'] as $sentiment) {
-                if (!isset($ageSentimentBarChartSeries[$sentiment])) {
-                    $ageSentimentBarChartSeries[$sentiment] = array_fill_keys($yAxis, 0);
-                }
-
-                $data = array_fill_keys($yAxis, 0);
-                foreach ($ageSentimentBarChartSeries[$sentiment] as $group => $value) {
-                    $data[$group] = $value;
-                }
-
-                $total = array_sum(array_values($data));
-                $maxWithIncrease = $sentiment === 'Happy Visitors' ? $happyMaxWithIncrease : $sadMaxWithDecrease;
-                $ageSentimentBarChartSeriesFormatted[] = [
-                    'name' => "{$sentiment} [" . abs($total) . "]",
-                    'name_ar' => $this->getArabicName($sentiment) . " [" . abs($total) . "]",
-                    'data' => array_values($data),
-                    'maxWithIncrease' => $maxWithIncrease
-                ];
+            $data = array_fill_keys($yAxis, 0);
+            foreach ($ageBarChartSeries[$gender] as $group => $value) {
+                $data[$group] = $value;
             }
 
-            return [
-                'ageBarChartSeries' => $ageBarChartSeriesFormatted,
-                'ageSentimentBarChartSeries' => $ageSentimentBarChartSeriesFormatted,
-                'yAxis' => $yAxis
+            $total = array_sum(array_values($data));
+            $ageBarChartSeriesFormatted[] = [
+                'name' => "{$gender} [" . number_format(abs($total)) . "]",
+                'name_ar' => $this->getArabicName($gender) . " [" . number_format(abs($total)) . "]",
+                'data' => array_values($data),
+                'maxWithIncrease' => $gender === 'Males' ? $maleMaxWithIncrease : $femaleMaxWithIncrease
             ];
+        }
+
+
+        $ageSentimentBarChartSeriesFormatted = [];
+        foreach (['Happy Visitors', 'Unhappy Visitors'] as $sentiment) {
+            if (!isset($ageSentimentBarChartSeries[$sentiment])) {
+                $ageSentimentBarChartSeries[$sentiment] = array_fill_keys($yAxis, 0);
+            }
+
+            $data = array_fill_keys($yAxis, 0);
+            foreach ($ageSentimentBarChartSeries[$sentiment] as $group => $value) {
+                $data[$group] = $value;
+            }
+
+            $total = array_sum(array_values($data));
+            $maxWithIncrease = $sentiment === 'Happy Visitors' ? $happyMaxWithIncrease : $sadMaxWithDecrease;
+            $ageSentimentBarChartSeriesFormatted[] = [
+                'name' => "{$sentiment} [" . number_format(abs($total)) . "]",
+                'name_ar' => $this->getArabicName($sentiment) . " [" . number_format(abs($total)) . "]",
+                'data' => array_values($data),
+                'maxWithIncrease' => $maxWithIncrease
+            ];
+        }
+
+        return [
+            'ageBarChartSeries' => $ageBarChartSeriesFormatted,
+            'ageSentimentBarChartSeries' => $ageSentimentBarChartSeriesFormatted,
+            'yAxis' => $yAxis
+        ];
     }
 
-    public function getVisitorsData(array $streamIds) {
+    public function getVisitorsData(array $streamIds)
+    {
         $today = now()->format('Y-m-d');
         $yesterday = now()->subDay()->format('Y-m-d');
 
@@ -312,38 +331,40 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->whereIn('etl.stream_id', $streamIds)
             ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
+            ->where('person_types.name', '!=', 'Staff')
             ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
+            ->orderByRaw('2')
             ->get();
 
-            $visitorsChartSeries = [];
-            $uniqueHours = [];
+        $visitorsChartSeries = [];
+        $uniqueHours = [];
 
-            foreach ($todayResults as $row) {
-                if (!isset($visitorsChartSeries[$row->name])) {
-                    $visitorsChartSeries[$row->name] = [
-                        'name' => $row->name,
-                        'name_ar' => $this->getArabicName($row->name),
-                        'data' => [],
-                        'data' => [],
-                    ];
-                }
-                $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
-                $uniqueHours[$row->hour] = true;
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
+                    'data' => [],
+                    'data' => [],
+                ];
             }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
+            $uniqueHours[$row->hour] = true;
+        }
 
-            $uniqueHours = array_keys($uniqueHours);
-            sort($uniqueHours);
-            $xAxis = array_map(function ($hour) {
-                return str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
-            }, $uniqueHours);
+        $uniqueHours = array_keys($uniqueHours);
+        sort($uniqueHours);
+        $xAxis = array_map(function ($hour) {
+            return str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
+        }, $uniqueHours);
 
-            foreach ($visitorsChartSeries as &$series) {
-                ksort($series['data']);
-                $series['data'] = array_values($series['data']);
-            }
+        foreach ($visitorsChartSeries as &$series) {
+            ksort($series['data']);
+            $series['data'] = array_values($series['data']);
+        }
 
         $firstReturnTitle = 'avgFootfall';
         $fourthReturnTitle = 'totalFootfall';
@@ -360,7 +381,8 @@ class StatisticsService
         ];
     }
 
-    public function getUniqueVisitorsData(array $streamIds) {
+    public function getUniqueVisitorsData(array $streamIds)
+    {
         $today = now()->format('Y-m-d');
         $yesterday = now()->subDay()->format('Y-m-d');
 
@@ -372,30 +394,32 @@ class StatisticsService
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->whereIn('etl.stream_id', $streamIds)
             ->where('metrics.name', 'Unique')
+            ->where('person_types.name', '!=', 'Staff')
             ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
+            ->orderByRaw('2')
             ->get();
 
-            $visitorsChartSeries = [];
+        $visitorsChartSeries = [];
 
-            foreach ($todayResults as $row) {
-                if (!isset($visitorsChartSeries[$row->name])) {
-                    $visitorsChartSeries[$row->name] = [
-                        'name' => $row->name,
-                        'name_ar' => $this->getArabicName($row->name),
-                        'data' => [],
-                    ];
-                }
-                $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
+                    'data' => [],
+                ];
             }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] = number_format($row->total_value);
+        }
 
-            foreach ($visitorsChartSeries as &$series) {
-                ksort($series['data']);
-                $series['data'] = array_values($series['data']);
-            }
+        foreach ($visitorsChartSeries as &$series) {
+            ksort($series['data']);
+            $series['data'] = array_values($series['data']);
+        }
 
         $firstReturnTitle = 'avgUniqueVisitors';
         $fourthReturnTitle = 'totalUniqueVisitors';
@@ -411,44 +435,47 @@ class StatisticsService
         ];
     }
 
-    public function getRepeatedVisitorsData(array $streamIds) {
+
+    public function getRepeatedVisitorsData(array $streamIds)
+    {
         $today = now()->format('Y-m-d');
         $yesterday = now()->subDay()->format('Y-m-d');
 
         $todayResults = DB::table('etl_data_hourly as etl')
-        ->select(
-            'streams.name',
-            DB::raw('HOUR(etl.date) as hour'),
-            DB::raw('SUM(etl.value) as total_value')
-        )
-        ->join('streams', 'etl.stream_id', '=', 'streams.id')
-        ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
-        ->whereIn('etl.stream_id', $streamIds)
-        ->where('person_types.name', 'Returning')
-        ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
-        ->groupBy('streams.id', 'hour', 'streams.name')
-        ->orderBy('hour')
-        ->get();
+            ->select(
+                'streams.name',
+                DB::raw('HOUR(etl.date) as hour'),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->where('person_types.name', 'Returning')
+            ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
+            ->where('person_types.name', '!=', 'Staff')
+            ->groupBy('streams.id', 'hour', 'streams.name')
+            ->orderByRaw('2')
+            ->get();
 
         $visitorsChartSeries = [];
 
-            foreach ($todayResults as $row) {
-                if (!isset($visitorsChartSeries[$row->name])) {
-                    $visitorsChartSeries[$row->name] = [
-                        'name' => $row->name,
-                        'name_ar' => $this->getArabicName($row->name),
-                        'data' => [],
-                    ];
-                }
-                $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
+                    'data' => [],
+                ];
             }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
+        }
 
-            foreach ($visitorsChartSeries as &$series) {
-                ksort($series['data']);
-                $series['data'] = array_values($series['data']);
-            }
+        foreach ($visitorsChartSeries as &$series) {
+            ksort($series['data']);
+            $series['data'] = array_values($series['data']);
+        }
 
-        $personType = 'returning';
+        $personType = 'Returning';
         $firstReturnTitle = 'avgRepeatedVisitors';
         $fourthReturnTitle = 'totalRepeatedVisitors';
         $calculateMetricsComparison = $this->calculateMetricsComparison($today, $yesterday, $streamIds, false, false, $personType, $firstReturnTitle, $fourthReturnTitle);
@@ -463,42 +490,45 @@ class StatisticsService
         ];
     }
 
-    public function getOccupancyVisitorsData(array $streamIds) {
+    public function getOccupancyVisitorsData(array $streamIds)
+    {
         $today = now()->format('Y-m-d');
         $yesterday = now()->subDay()->format('Y-m-d');
 
         $todayResults = DB::table('etl_data_hourly as etl')
-        ->select(
-            'streams.name',
-            DB::raw('HOUR(etl.date) as hour'),
-            DB::raw('SUM(etl.value) as total_value')
-        )
-        ->join('streams', 'etl.stream_id', '=', 'streams.id')
-        ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
-        ->whereIn('etl.stream_id', $streamIds)
-        ->where('metrics.name', 'Occupancy')
-        ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
-        ->groupBy('streams.id', 'hour', 'streams.name')
-        ->orderBy('hour')
-        ->get();
+            ->select(
+                'streams.name',
+                DB::raw('HOUR(etl.date) as hour'),
+                DB::raw('SUM(etl.value) as total_value')
+            )
+            ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
+            ->whereIn('etl.stream_id', $streamIds)
+            ->where('metrics.name', 'Occupancy')
+            ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
+            ->groupBy('streams.id', 'hour', 'streams.name')
+            ->orderByRaw('2')
+            ->get();
 
         $visitorsChartSeries = [];
 
-            foreach ($todayResults as $row) {
-                if (!isset($visitorsChartSeries[$row->name])) {
-                    $visitorsChartSeries[$row->name] = [
-                        'name' => $row->name,
-                        'name_ar' => $this->getArabicName($row->name),
-                        'data' => [],
-                    ];
-                }
-                $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
+                    'data' => [],
+                ];
             }
+            $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
+        }
 
-            foreach ($visitorsChartSeries as &$series) {
-                ksort($series['data']);
-                $series['data'] = array_values($series['data']);
-            }
+        foreach ($visitorsChartSeries as &$series) {
+            ksort($series['data']);
+            $series['data'] = array_values($series['data']);
+        }
 
 
         $firstReturnTitle = 'avgOccupancyVisitors';
@@ -515,7 +545,8 @@ class StatisticsService
         ];
     }
 
-    public function getTotalStaffDaily(array $streamIds) {
+    public function getTotalStaffDaily(array $streamIds)
+    {
         $today = now()->format('Y-m-d');
 
         $todayResults = DB::table('etl_data_hourly as etl')
@@ -527,49 +558,55 @@ class StatisticsService
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->whereIn('etl.stream_id', $streamIds)
-            ->where('person_types.name', 'staff')
-            ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
+            ->where('person_types.name', 'Staff')
+            ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"]) // Full day range
             ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
+            ->orderByRaw('2')
             ->get();
 
         $visitorsChartSeries = [];
-        $latestHourWithData = 9;
+        $earliestHourWithData = 24; // Initialize to max hour
+        $latestHourWithData = 0;
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
                     'name_ar' => $this->getArabicName($row->name),
-                    'data' => array_fill(0, 16, 0),
+                    'data' => [],
                 ];
             }
             $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
+            $earliestHourWithData = min($earliestHourWithData, $row->hour);
             $latestHourWithData = max($latestHourWithData, $row->hour);
         }
 
+        // Fill missing hours with null and sort data
         foreach ($visitorsChartSeries as &$series) {
             $filledData = [];
-            for ($hour = 9; $hour <= $latestHourWithData; $hour++) {
+            for ($hour = $earliestHourWithData; $hour <= $latestHourWithData; $hour++) {
                 $filledData[] = $series['data'][$hour] ?? null;
             }
             $series['data'] = $filledData;
         }
 
+        // Sort series by name
         usort($visitorsChartSeries, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
 
+        // Generate xAxis labels dynamically
         $xAxis = [];
-            for ($hour = 9; $hour <= $latestHourWithData + 1; $hour++) {
-                $xAxis[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
-            }
+        for ($hour = $earliestHourWithData; $hour <= $latestHourWithData + 1; $hour++) {
+            $xAxis[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
+        }
 
         return [
             'staffMultilineChartData' => $visitorsChartSeries,
             'xAxis' => $xAxis,
         ];
     }
+
 
     public function getNewReturningHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration)
     {
@@ -581,10 +618,12 @@ class StatisticsService
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('metrics', $etlDataTable . '.metric_id', '=', 'metrics.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('metrics.name', '=', 'Unique')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $returningVisitors = DB::table($etlDataTable)
@@ -594,7 +633,7 @@ class StatisticsService
             ->where('person_types.name', '=', 'Returning')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $totalNewVisitors = $uniqueVisitors->sum('total');
@@ -609,10 +648,12 @@ class StatisticsService
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
             ->join('metrics', $etlDataTable . '.metric_id', '=', 'metrics.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('metrics.name', '=', 'Unique')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $previousReturningVisitors = DB::table($etlDataTable)
@@ -622,7 +663,7 @@ class StatisticsService
             ->where('person_types.name', '=', 'Returning')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $totalPreviousNewVisitors = $previousUniqueVisitors->sum('total');
@@ -652,10 +693,10 @@ class StatisticsService
 
         $response = [
             'firstTitle' => 'New',
-            'firstGeneralNumber' => strval($totalNewVisitors),
+            'firstGeneralNumber' => strval(number_format($totalNewVisitors)),
             'firstTrendNumber' => strval($formattedNewVisitorsPercent),
             'secondTitle' => 'Returning',
-            'secondGeneralNumber' => strval($totalReturningVisitors),
+            'secondGeneralNumber' => strval(number_format($totalReturningVisitors)),
             'secondTrendNumber' => strval($formattedReturningVisitorsPercent),
             'xAxis' => $xAxis,
             'commonChartSeries' => [
@@ -675,7 +716,8 @@ class StatisticsService
         return $response;
     }
 
-    public function getGenderHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration) {
+    public function getGenderHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration)
+    {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
         $selectFields = $this->getSelectFieldsByDuration($duration);
@@ -685,10 +727,12 @@ class StatisticsService
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
             ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('genders.gender', '=', 'Male')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $femaleVisitors = DB::table($etlDataTable)
@@ -696,10 +740,12 @@ class StatisticsService
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
             ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('genders.gender', '=', 'Female')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'),  DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $totalMaleVisitors = $maleVisitors->sum('total');
@@ -715,10 +761,12 @@ class StatisticsService
             ->whereBetween('date', [$previousFromDate, $previousToDate])
             ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
             ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('genders.gender', '=', 'Male')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $previousFemaleVisitors = DB::table($etlDataTable)
@@ -726,10 +774,12 @@ class StatisticsService
             ->whereBetween('date', [$previousFromDate, $previousToDate])
             ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
             ->join('genders', 'demographics.gender_id', '=', 'genders.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('genders.gender', '=', 'Female')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
 
@@ -760,10 +810,10 @@ class StatisticsService
 
         $response = [
             'firstTitle' => 'Male',
-            'firstGeneralNumber' => strval($totalMaleVisitors),
+            'firstGeneralNumber' => strval(number_format($totalMaleVisitors)),
             'firstTrendNumber' => strval($formattedMaleVisitorsPercent),
             'secondTitle' => 'Female',
-            'secondGeneralNumber' => strval($totalFemaleVisitors),
+            'secondGeneralNumber' => strval(number_format($totalFemaleVisitors)),
             'secondTrendNumber' => strval($formattedFemaleVisitorsPercent),
             'xAxis' => $xAxis,
             'commonChartSeries' => [
@@ -783,94 +833,103 @@ class StatisticsService
         return $response;
     }
 
-    public function getSentimentsHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration) {
+    public function getSentimentsHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration)
+    {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
         $selectFields = $this->getSelectFieldsByDuration($duration);
-    
+
         $happyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
             ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('sentiments.sentiment', '=', 'Happy')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
-    
+
         $unhappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
             ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->whereIn('sentiments.sentiment', ['Sad', 'Neutral'])
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
-    
+
         $totalHappyVisitors = $happyVisitors->sum('total');
         $totalUnhappyVisitors = $unhappyVisitors->sum('total');
-    
+
         $daysRange = $this->getDateRange($fromDate, $toDate, $duration);
-    
+
         $previousFromDate = $daysRange['fromDatePrevious'];
         $previousToDate = $daysRange['toDatePrevious'];
-    
+
         $previousHappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
             ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
             ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('sentiments.sentiment', '=', 'Happy')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
-    
+
         $previousUnhappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
             ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
             ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->whereIn('sentiments.sentiment', ['Sad', 'Neutral'])
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
-    
+
         $totalPreviousHappyVisitors = $previousHappyVisitors->sum('total');
         $totalPreviousUnhappyVisitors = $previousUnhappyVisitors->sum('total');
-    
+
         $happyVisitorsPercent = $this->calculatePercentChange($totalHappyVisitors, $totalPreviousHappyVisitors);
         $formattedHappyVisitorsPercent = $happyVisitorsPercent > 0 ? "+$happyVisitorsPercent%" : "$happyVisitorsPercent%";
-    
+
         $unhappyVisitorsPercent = $this->calculatePercentChange($totalUnhappyVisitors, $totalPreviousUnhappyVisitors);
         $formattedUnhappyVisitorsPercent = $unhappyVisitorsPercent > 0 ? "+$unhappyVisitorsPercent%" : "$unhappyVisitorsPercent%";
-    
+
         $xAxis = $happyVisitors->isEmpty() ? $unhappyVisitors->pluck('period')->toArray() : $happyVisitors->pluck('period')->toArray();
         $happyData = $happyVisitors->pluck('total')->toArray();
         $unhappyData = $unhappyVisitors->pluck('total')->toArray();
-    
+
         if (count($xAxis) === 1) {
             $xAxis[] = $xAxis[0];
         }
-    
+
         if (count($happyData) === 1) {
             $happyData[] = $happyData[0];
         }
-    
+
         if (count($unhappyData) === 1) {
             $unhappyData[] = $unhappyData[0];
         }
-    
+
         $response = [
             'firstTitle' => 'Happy',
-            'firstGeneralNumber' => strval($totalHappyVisitors),
+            'firstGeneralNumber' => strval(number_format($totalHappyVisitors)),
             'firstTrendNumber' => strval($formattedHappyVisitorsPercent),
             'secondTitle' => 'Unhappy',
-            'secondGeneralNumber' => strval($totalUnhappyVisitors),
+            'secondGeneralNumber' => strval(number_format($totalUnhappyVisitors)),
             'secondTrendNumber' => strval($formattedUnhappyVisitorsPercent),
             'xAxis' => $xAxis,
             'commonChartSeries' => [
@@ -886,11 +945,12 @@ class StatisticsService
                 ]
             ]
         ];
-    
-        return $response;
-    }    
 
-    public function getMosqueSouqHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration) {
+        return $response;
+    }
+
+    public function getMosqueSouqHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration)
+    {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
         $selectFields = $this->getSelectFieldsByDuration($duration);
@@ -899,20 +959,24 @@ class StatisticsService
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('streams.name', 'like', '%Mosque%')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $souqVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('streams.name', 'like', '%Souq%')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $totalMosqueVisitors = $mosqueVisitors->sum('total');
@@ -927,20 +991,24 @@ class StatisticsService
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
             ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('streams.name', 'like', '%Mosque%')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $previousSouqVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
             ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
+            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->where('streams.name', 'like', '%Souq%')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
-            ->orderBy(DB::raw($groupByFormat))
+            ->orderByRaw('2')
             ->get();
 
         $totalPreviousMosqueVisitors = $previousMosqueVisitors->sum('total');
@@ -970,10 +1038,10 @@ class StatisticsService
 
         $response = [
             'firstTitle' => 'Mosque Visitors',
-            'firstGeneralNumber' => strval($totalMosqueVisitors),
+            'firstGeneralNumber' => strval(number_format($totalMosqueVisitors)),
             'firstTrendNumber' => strval($formattedMosqueVisitorsPercent),
             'secondTitle' => 'Souq Visitors',
-            'secondGeneralNumber' => strval($totalSouqVisitors),
+            'secondGeneralNumber' => strval(number_format($totalSouqVisitors)),
             'secondTrendNumber' => strval($formattedSouqVisitorsPercent),
             'xAxis' => $xAxis,
             'commonChartSeries' => [
@@ -993,7 +1061,8 @@ class StatisticsService
         return $response;
     }
 
-    public function getHeatMapChartData(array $streamIds, $fromDate = null, $toDate = null) {
+    public function getHeatMapChartData(array $streamIds, $fromDate = null, $toDate = null)
+    {
         $startDate = "$fromDate 00:00:00";
         $endDate = "$toDate 23:59:59";
 
@@ -1007,6 +1076,8 @@ class StatisticsService
                 DB::raw('ROUND(AVG(SUM(etl.value)) OVER (PARTITION BY streams.name, DAYOFWEEK(etl.date)), 0) as average_total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->whereIn('etl.stream_id', $streamIds)
             ->whereBetween('etl.date', [$startDate, $endDate])
             ->groupBy(
@@ -1068,13 +1139,6 @@ class StatisticsService
             }
         }
 
-        $topHourlyData = array_values($seen);
-        usort($topHourlyData, function ($a, $b) {
-            return $b['value'] - $a['value'];
-        });
-
-        $topHourlyData = array_slice($topHourlyData, 0, 4);
-
         $formattedData = [];
         foreach ($heatMapData as $dayOfWeek => $hoursData) {
             $dayName = $dayNames[$dayOfWeek];
@@ -1100,13 +1164,33 @@ class StatisticsService
             }
         }
 
+        $allHourlyValues = [];
+        foreach ($formattedData as $dayData) {
+            foreach ($dayData['data'] as $hourData) {
+                $allHourlyValues[] = [
+                    'title' => $dayData['name'] . ', ' . $this->formatHour($hourData['x']),
+                    'value' => $hourData['y'],
+                    'hour' => $hourData['x'],
+                    'day' => $dayData['name'],
+                ];
+            }
+        }
+
+        usort($allHourlyValues, function ($a, $b) {
+            return $b['value'] - $a['value'];
+        });
+
+        $topHourlyData = array_slice($allHourlyValues, 0, 4);
+
         return [
             'series' => array_reverse($formattedData),
             'topHourlyData' => $this->formatTopHourlyData($topHourlyData),
         ];
     }
 
-        private function formatHour($hour) {
+
+    private function formatHour($hour)
+    {
         if ($hour == 0) {
             return "12 AM";
         } elseif ($hour < 12) {
@@ -1118,7 +1202,8 @@ class StatisticsService
         }
     }
 
-    private function formatTopHourlyData($topHourlyData) {
+    private function formatTopHourlyData($topHourlyData)
+    {
         $formattedTopData = [];
         foreach ($topHourlyData as $data) {
             $formattedTopData[] = [
@@ -1130,7 +1215,8 @@ class StatisticsService
     }
 
 
-    public function getVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
+    public function getVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null)
+    {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
 
@@ -1144,10 +1230,12 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->whereIn('etl.stream_id', $streamIds)
             ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
+            ->orderByRaw('2')
             ->get();
 
         $visitorsChartSeries = [];
@@ -1183,7 +1271,7 @@ class StatisticsService
                 $series['data'][] = $series['data'][0];
             }
         }
-    
+
         if (count($xAxis) === 1) {
             $xAxis[] = $xAxis[0];
         }
@@ -1214,7 +1302,8 @@ class StatisticsService
         ];
     }
 
-    public function getUniqueVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
+    public function getUniqueVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null)
+    {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
 
@@ -1229,36 +1318,38 @@ class StatisticsService
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->whereIn('etl.stream_id', $streamIds)
             ->where('metrics.name', 'Unique')
             ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
+            ->orderByRaw('2')
             ->get();
 
-            $visitorsChartSeries = [];
+        $visitorsChartSeries = [];
 
-            foreach ($todayResults as $row) {
-                if (!isset($visitorsChartSeries[$row->name])) {
-                    $visitorsChartSeries[$row->name] = [
-                        'name' => $row->name,
-                        'name_ar' => $this->getArabicName($row->name),
-                        'data' => [],
-                    ];
-                }
+        foreach ($todayResults as $row) {
+            if (!isset($visitorsChartSeries[$row->name])) {
+                $visitorsChartSeries[$row->name] = [
+                    'name' => $row->name,
+                    'name_ar' => $this->getArabicName($row->name),
+                    'data' => [],
+                ];
+            }
 
-                if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
-                    $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
-                }
+            if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
+                $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
+            }
 
-                $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
+            $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
 
         foreach ($visitorsChartSeries as &$series) {
             $series['data'] = array_values($series['data']);
         }
 
-         foreach ($visitorsChartSeries as &$series) {
+        foreach ($visitorsChartSeries as &$series) {
             $series['data'] = array_values($series['data']);
             if (count($series['data']) === 1) {
                 $series['data'][] = $series['data'][0];
@@ -1290,7 +1381,8 @@ class StatisticsService
         ];
     }
 
-    public function getRepeatedVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
+    public function getRepeatedVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null)
+    {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
 
@@ -1309,10 +1401,10 @@ class StatisticsService
             ->where('person_types.name', 'Returning')
             ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
+            ->orderByRaw('2')
             ->get();
 
-            $visitorsChartSeries = [];
+        $visitorsChartSeries = [];
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
@@ -1368,7 +1460,8 @@ class StatisticsService
         ];
     }
 
-    public function getOccupancyVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
+    public function getOccupancyVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null)
+    {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
 
@@ -1383,14 +1476,16 @@ class StatisticsService
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
+            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
+            ->where('person_types.name', '!=', 'Staff')
             ->whereIn('etl.stream_id', $streamIds)
             ->where('metrics.name', 'Occupancy')
             ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
+            ->orderByRaw('2')
             ->get();
 
-            $visitorsChartSeries = [];
+        $visitorsChartSeries = [];
 
         foreach ($todayResults as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
@@ -1444,13 +1539,14 @@ class StatisticsService
         ];
     }
 
-    public function getTotalStaffDailyHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null) {
+    public function getTotalStaffDailyHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null)
+    {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
-    
+
         $startDate = "$fromDate 00:00:00";
         $endDate = "$toDate 23:59:59";
-    
+
         $results = DB::table("$etlDataTable as etl")
             ->select(
                 'streams.name',
@@ -1463,11 +1559,11 @@ class StatisticsService
             ->where('person_types.name', 'staff')
             ->whereBetween('etl.date', [$startDate, $endDate])
             ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderBy('hour')
+            ->orderByRaw('2')
             ->get();
-    
+
         $visitorsChartSeries = [];
-    
+
         foreach ($results as $row) {
             if (!isset($visitorsChartSeries[$row->name])) {
                 $visitorsChartSeries[$row->name] = [
@@ -1476,17 +1572,17 @@ class StatisticsService
                     'data' => [],
                 ];
             }
-    
+
             if (!isset($visitorsChartSeries[$row->name]['data'][$row->hour])) {
                 $visitorsChartSeries[$row->name]['data'][$row->hour] = 0;
             }
-    
+
             $visitorsChartSeries[$row->name]['data'][$row->hour] += $row->total_value;
         }
-    
+
         $staffChartSeries = [];
         $xAxis = [];
-    
+
         foreach ($visitorsChartSeries as $series) {
             $staffChartSeries[] = [
                 'name' => $series['name'],
@@ -1495,29 +1591,29 @@ class StatisticsService
             ];
             $xAxis = array_merge($xAxis, array_keys($series['data']));
         }
-    
+
         foreach ($staffChartSeries as &$series) {
             if (count($series['data']) === 1) {
                 $series['data'][] = $series['data'][0];
             }
         }
-    
+
         if (count($xAxis) === 1) {
             $xAxis[] = $xAxis[0];
         }
-    
+
         usort($staffChartSeries, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
-    
+
         $xAxis = array_values(array_unique($xAxis));
-    
+
         return [
             'staffMultilineChartData' => $staffChartSeries,
             'xAxis' => $xAxis,
         ];
     }
-    
+
     private function getEtlDataTableByDuration($duration)
     {
         return match (strtolower($duration)) {
@@ -1543,9 +1639,9 @@ class StatisticsService
     {
         return match (strtolower($duration)) {
             'daily' => 'DATE_FORMAT(date, "%b %d, %Y") as period',
-            'weekly' =>'CONCAT(DATE_FORMAT(date, "%b %Y"), " (W", WEEK(date, 4), ")") as period',
+            'weekly' => 'CONCAT(DATE_FORMAT(date, "%b %Y"), " (W", WEEK(date, 4), ")") as period',
             'monthly' => 'CONCAT(DATE_FORMAT(date, "%b %Y"), " (M", MONTH(date), ")") as period',
-            'yearly' => 'YEAR(date) AS period', 
+            'yearly' => 'YEAR(date) AS period',
             default => 'DATE_FORMAT(date, "%b %d, %Y") as period',
         };
     }
@@ -1565,7 +1661,7 @@ class StatisticsService
 
     protected function calculatePercentChange($today, $yesterday)
     {
-        return $yesterday == 0 ? ($today > 0 ? 100 : 0) : round((($today - $yesterday) / $yesterday) * 100, 2);
+        return strval($yesterday == 0 ? ($today > 0 ? 100 : 0) : round((($today - $yesterday) / $yesterday) * 100));
     }
 
     private function calculateMetricsComparison(
@@ -1577,7 +1673,7 @@ class StatisticsService
         $personType = null,
         $firstReturnTitle,
         $fourthReturnTitle,
-        $etlDataTable= 'etl_data_hourly',
+        $etlDataTable = 'etl_data_hourly',
         $duration = 'hourly',
     ) {
         if ($duration === 'hourly') {
@@ -1595,7 +1691,7 @@ class StatisticsService
 
             $query = $this->getDailyQuery($etlDataTable, $streamIds, $fromDateStart, $fromDateEnd, $toDateStart, $toDateEnd);
         } else {
-           $dateRanges = $this->getDateRange($fromDate, $toDate, $duration);
+            $dateRanges = $this->getDateRange($fromDate, $toDate, $duration);
 
             $fromDateCurrent = $dateRanges['fromDateCurrent'];
             $toDateCurrent = $dateRanges['toDateCurrent'];
@@ -1605,76 +1701,65 @@ class StatisticsService
             $query = $this->getNonDailyQuery($etlDataTable, $streamIds, $fromDateCurrent, $toDateCurrent, $fromDatePrevious, $toDatePrevious);
         }
 
+        if ($personType) {
+            $query->where('person_types.name', $personType)
+                ->whereIn('etl.stream_id', $streamIds)
+                ->first();
+        }
 
         if ($isUniqueMetric) {
             $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
-            ->where('metrics.name', 'Unique')
-            ->whereIn('etl.stream_id', $streamIds)
-            ->first();
-        } else if ($isOccupancyMetric){
+                ->where('metrics.name', 'Unique')
+                ->whereIn('etl.stream_id', $streamIds)
+                ->first();
+        } else if ($isOccupancyMetric) {
             $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
-            ->where('metrics.name', 'Occupancy')
-            ->whereIn('etl.stream_id', $streamIds)
-            ->first();
+                ->where('metrics.name', 'Occupancy')
+                ->whereIn('etl.stream_id', $streamIds)
+                ->first();
         } else {
             $results = $query->whereIn('etl.stream_id', $streamIds)
-            ->first();
-        }
-
-        if ($personType) {
-            $results->today_new_visitors = DB::table("$etlDataTable as etl")
-            ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', $personType)
-            ->whereBetween('etl.date', ["$fromDate 00:00:00", "$fromDate 23:59:59"])
-            ->whereIn('etl.stream_id', $streamIds)
-            ->sum('etl.value');
-
-            $results->yesterday_new_visitors = DB::table("$etlDataTable as etl")
-            ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', $personType)
-            ->whereBetween('etl.date', ["$toDate 00:00:00", "$toDate 23:59:59"])
-            ->whereIn('etl.stream_id', $streamIds)
-            ->sum('etl.value');
+                ->first();
         }
 
         $todayAverageFootfall = $results->current_total_value / $this->calculateDurationAverage($duration, $fromDate, $toDate);
         $yesterdayAverageFootfall = $results->previous_total_value / $this->calculateDurationAverage($duration, $fromDate, $toDate);
 
         $footfallPercentageDifference = $yesterdayAverageFootfall > 0
-        ? (($todayAverageFootfall - $yesterdayAverageFootfall) / $yesterdayAverageFootfall) * 100
-        : 0;
+            ? (($todayAverageFootfall - $yesterdayAverageFootfall) / $yesterdayAverageFootfall) * 100
+            : 0;
 
         $souqVisitorsPercentageDifference = $results->previous_souq_visitors > 0
-        ? (($results->current_souq_visitors - $results->previous_souq_visitors) / $results->previous_souq_visitors) * 100
-        : 0;
+            ? (($results->current_souq_visitors - $results->previous_souq_visitors) / $results->previous_souq_visitors) * 100
+            : 0;
 
         $totalEntriesPercentageDifference = $results->previous_total_value > 0
-        ? (($results->current_total_value - $results->previous_total_value) / $results->previous_total_value) * 100
-        : 0;
+            ? (($results->current_total_value - $results->previous_total_value) / $results->previous_total_value) * 100
+            : 0;
 
         $isSouqStreamPresent = Stream::whereIn('id', $streamIds)
             ->where('name', 'like', 'Souq%')
             ->exists();
 
         $metrics = [
-        'averageFootfall' => [
-            'title' => $firstReturnTitle,
-            'stats' => round($todayAverageFootfall),
-            'trend' => $footfallPercentageDifference < 0 ? 'negative' : 'positive',
-            'trendNumber' => round(abs($footfallPercentageDifference), 2),
-        ],
-        'totalEntries' => [
-            'title' => $fourthReturnTitle,
-            'stats' => $results->current_total_value,
-            'trend' => $totalEntriesPercentageDifference < 0 ? 'negative' : 'positive',
-            'trendNumber' => round(abs($totalEntriesPercentageDifference), 2),
-        ],
+            'averageFootfall' => [
+                'title' => $firstReturnTitle,
+                'stats' => number_format(round($todayAverageFootfall)),
+                'trend' => $footfallPercentageDifference < 0 ? 'negative' : 'positive',
+                'trendNumber' => round(abs($footfallPercentageDifference), 2),
+            ],
+            'totalEntries' => [
+                'title' => $fourthReturnTitle,
+                'stats' => number_format($results->current_total_value),
+                'trend' => $totalEntriesPercentageDifference < 0 ? 'negative' : 'positive',
+                'trendNumber' => round(abs($totalEntriesPercentageDifference), 2),
+            ],
         ];
 
         if ($isSouqStreamPresent) {
             $metrics['souqVisitors'] = [
                 'title' => 'visitorsToSouq',
-                'stats' => $results->current_souq_visitors,
+                'stats' => number_format($results->current_souq_visitors),
                 'trend' => $souqVisitorsPercentageDifference < 0 ? 'negative' : 'positive',
                 'trendNumber' => round(abs($souqVisitorsPercentageDifference), 2),
             ];
@@ -1683,7 +1768,8 @@ class StatisticsService
         return $metrics;
     }
 
-    private function getArabicName($name) {
+    private function getArabicName($name)
+    {
         $arabicNames = [
             'Souq' => 'سوق',
             'Souq Entry 1' => 'دخول السوق 1',
@@ -1803,8 +1889,6 @@ class StatisticsService
                 COUNT(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN 1 END) AS current_total_entries,
                 SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_total_value,
                 COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN 1 END) AS previous_total_entries,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_new_visitors,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_new_visitors,
                 SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_souq_visitors,
                 SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_souq_visitors
             ");
@@ -1821,11 +1905,8 @@ class StatisticsService
                 COUNT(CASE WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN 1 END) AS current_total_entries,
                 SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_total_value,
                 COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN 1 END) AS previous_total_entries,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN etl.value ELSE 0 END) AS current_new_visitors,
-                SUM(CASE WHEN person_types.name = 'New' AND etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_new_visitors,
                 SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN etl.value ELSE 0 END) AS current_souq_visitors,
                 SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_souq_visitors
             ");
     }
-
 }

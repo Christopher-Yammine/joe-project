@@ -15,7 +15,7 @@ import { Grid, Theme, Typography, useMediaQuery } from '@mui/material'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { Box } from '@mui/system'
 
-import { FC, useMemo } from 'react'
+import React, { FC, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 type HeatmapChartProps = {
@@ -30,7 +30,7 @@ type HeatmapChartProps = {
   topHourlyData: any
 }
 
-const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
+const HeatmapChart: FC<HeatmapChartProps> = React.memo(({ series, topHourlyData }) => {
   // ** Hook
   const theme = useTheme()
 
@@ -50,7 +50,20 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
     const minY = Math.min(...allYValues)
     const maxY = Math.max(...allYValues)
 
-    const rangeCount = 6
+    const valueSpread = maxY - minY
+
+    const calculateRangeCount = (spread: any) => {
+      if (spread === 0) return 1
+      const percentage = spread / maxY
+      if (percentage <= 0.1) return 2
+      if (percentage <= 0.2) return 3
+      if (percentage <= 0.4) return 4
+      if (percentage <= 0.6) return 5
+
+      return 6
+    }
+
+    const rangeCount = calculateRangeCount(valueSpread)
     const step = (maxY - minY) / rangeCount
 
     const staticColors = [
@@ -265,6 +278,6 @@ const HeatmapChart: FC<HeatmapChartProps> = ({ series, topHourlyData }) => {
       </Grid>
     )
   )
-}
+})
 
 export default HeatmapChart

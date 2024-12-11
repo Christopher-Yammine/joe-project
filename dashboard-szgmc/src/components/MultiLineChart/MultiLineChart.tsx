@@ -43,7 +43,15 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffMultilin
 
   const maxYValue = Math.max(...(staffMultilineChartData?.flatMap(series => series.data) || []))
   const adjustedMax = Math.ceil((maxYValue * 1.2) / 100) * 100
+  const calculateRangeCount = (spread: any) => {
+    if (spread === 0) return 1
+    const percentage = spread / maxYValue
+    if (percentage <= 0.33) return 1
+    if (percentage <= 0.66) return 2
 
+    return 3
+  }
+  const rangeCount = calculateRangeCount(adjustedMax)
   const options: ApexOptions = {
     colors: [theme.palette.primary.main, '#70A9A1', '#9EC1A3', '#CFE0C3'],
     chart: {
@@ -53,7 +61,7 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffMultilin
     dataLabels: { enabled: false },
     stroke: {
       width: 4,
-      curve: 'straight'
+      curve: 'smooth'
     },
     grid: {
       borderColor: theme.palette.divider,
@@ -104,13 +112,13 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffMultilin
       max: adjustedMax,
       labels: {
         padding: isRTL ? 4 : 4,
-        formatter: value => `${Math.ceil(value)}`,
+        formatter: value => `${Math.round(value / 10) * 10}`,
         style: {
           fontSize: '14px',
           colors: theme.palette.text.disabled
         }
       },
-      tickAmount: 5
+      tickAmount: rangeCount
     },
     tooltip: {
       theme: settings?.mode,

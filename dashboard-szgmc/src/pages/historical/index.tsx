@@ -11,9 +11,9 @@ import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import useStore from 'src/store/store'
 import { useSettings } from 'src/@core/hooks/useSettings'
-import SkeletonLoading from 'src/@core/layouts/components/skeleton-loading'
 import { chartData, StaffChartHistoricalData } from 'src/configs/types'
 import { config } from 'src/configs/config'
+import FallbackSpinner from 'src/@core/components/spinner'
 
 const API_URL = config.NEXT_PUBLIC_BASE_URL
 
@@ -192,7 +192,7 @@ const HistoricalPage = () => {
   }, [fromDate, toDate, durationSelect, streams, selectedStreams])
 
   return loading ? (
-    <SkeletonLoading pageType='historical' />
+    <FallbackSpinner />
   ) : (
     <Grid container spacing={4}>
       <LineChart

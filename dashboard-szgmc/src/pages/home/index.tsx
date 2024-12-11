@@ -7,8 +7,8 @@ import { StatisticBlock } from 'src/components/StatisticBlock'
 import VerseCard from 'src/components/VerseCard'
 import VisitorsChart from 'src/components/VisitorsChart/VisitorsChart'
 import useStore from 'src/store/store'
-import SkeletonLoading from 'src/@core/layouts/components/skeleton-loading'
 import { config } from 'src/configs/config'
+import FallbackSpinner from 'src/@core/components/spinner'
 
 const API_URL = config.NEXT_PUBLIC_BASE_URL
 
@@ -56,43 +56,19 @@ const Home = () => {
   const [loading, setLoading] = useState(false)
 
   const fetchStatistics = async () => {
-    console.log('fetstatistics')
     try {
       setLoading(true)
       let response
-
-      // const token = window.localStorage.getItem('token')
-
-      // if (!token) {
-      //   throw new Error('JWT token is missing. Please log in.')
-      // }
-
-      // const headers = {
-      //   Authorization: `Bearer ${token}`,
-      //   'Content-Type': 'application/json'
-      // }
 
       if (streams.length > 0 && selectedStreams.length === 0) {
         const streamIds = streams
           .flatMap(stream => (stream.options ? stream.options.map(option => option.value) : [stream.value]))
           .join(',')
 
-        response = await fetch(
-          `${API_URL}/statistics/hourly?stream_id=${streamIds}`
-          // , {
-          // method: 'GET'
-          // headers
-          // }
-        )
+        response = await fetch(`${API_URL}/statistics/hourly?stream_id=${streamIds}`)
       } else {
         const selectedStreamIds = selectedStreams.join(',')
-        response = await fetch(
-          `${API_URL}/statistics/hourly?stream_id=${selectedStreamIds}`
-          //   , {
-          //   method: 'GET'
-          //   // headers
-          // }
-        )
+        response = await fetch(`${API_URL}/statistics/hourly?stream_id=${selectedStreamIds}`)
       }
       if (!response.ok) {
         throw new Error('Network response was not ok')
@@ -202,28 +178,9 @@ const Home = () => {
   }, [streams, selectedStreams])
 
   const getAllStreams = async () => {
-    console.log('streams')
     try {
       setLoading(true)
-
-      // const token = window.localStorage.getItem('token')
-
-      // if (!token) {
-      //   throw new Error('JWT token is missing. Please log in.')
-      // }
-
-      // const headers = {
-      //   Authorization: `Bearer ${token}`,
-      //   'Content-Type': 'application/json'
-      // }
-
-      const response = await fetch(
-        `${API_URL}/streams`
-        //   , {
-        //   method: 'GET'
-        //   // headers
-        // }
-      )
+      const response = await fetch(`${API_URL}/streams`)
       if (!response.ok) {
         throw new Error('Network response was not ok')
       }
@@ -237,7 +194,7 @@ const Home = () => {
   }
 
   return loading ? (
-    <SkeletonLoading pageType='overview' />
+    <FallbackSpinner />
   ) : (
     <Grid container spacing={4}>
       <VerseCard verseCardTextKey={'verseCardTextKey'} />

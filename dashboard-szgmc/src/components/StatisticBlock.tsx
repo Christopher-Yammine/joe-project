@@ -45,7 +45,7 @@ export const StatisticBlock: React.FC<IStatisticBlock> = ({
     dataLabels: { enabled: false },
     stroke: {
       width: 4,
-      curve: 'straight'
+      curve: 'smooth'
     },
     grid: {
       show: false,

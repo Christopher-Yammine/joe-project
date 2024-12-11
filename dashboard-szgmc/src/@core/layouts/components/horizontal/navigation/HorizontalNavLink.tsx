@@ -2,7 +2,7 @@
 import { ElementType, Fragment } from 'react'
 
 // ** Next Imports
-import Link from 'next/link'
+
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
@@ -43,7 +43,7 @@ interface Props {
 }
 
 const ListItem = styled(MuiListItem)<
-  ListItemProps & { component?: ElementType; href: string; target?: '_blank' | undefined }
+  ListItemProps & { component?: ElementType; href?: string; target?: '_blank' | undefined }
 >(({ theme }) => ({
   width: 'auto',
   color: theme.palette.text.primary,
@@ -78,22 +78,23 @@ const HorizontalNavLink = (props: Props) => {
     }
   }
 
+  const handleNavigation = (e: React.MouseEvent) => {
+    if (item.path) {
+      e.preventDefault()
+      window.location.href = item.path
+    }
+  }
+
   return (
     <CanViewNavLink navLink={item}>
       <Wrapper {...(!hasParent ? { component: 'div', sx: { py: skin === 'bordered' ? 2.375 : 2.5 } } : {})}>
         <ListItem
-          component={Link}
+          component='div'
           disabled={item.disabled}
           {...(item.disabled && { tabIndex: -1 })}
           className={clsx({ active: isNavLinkActive() })}
           target={item.openInNewTab ? '_blank' : undefined}
-          href={item.path === undefined ? '/' : `${item.path}`}
-          onClick={e => {
-            if (item.path === undefined) {
-              e.preventDefault()
-              e.stopPropagation()
-            }
-          }}
+          onClick={handleNavigation}
           sx={{
             ...(item.disabled ? { pointerEvents: 'none' } : { cursor: 'pointer' }),
             ...(!hasParent

@@ -5,7 +5,6 @@ import { useState, ReactNode } from 'react'
 import Link from 'next/link'
 
 // ** MUI Components
-import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox'
 import TextField from '@mui/material/TextField'
@@ -31,7 +30,6 @@ import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
-import useBgColor, { UseBgColorType } from 'src/@core/hooks/useBgColor'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
 // ** Configs
@@ -81,11 +79,6 @@ const defaultValues = {
   email: 'admin@szgmc.gov.ae'
 }
 
-// const defaultValues = {
-//   password: '',
-//   email: ''
-// }
-
 interface FormData {
   email: string
   password: string
@@ -99,7 +92,6 @@ const LoginPage = () => {
   const auth = useAuth()
   const theme = useTheme()
   const { settings } = useSettings()
-  const bgColors: UseBgColorType = useBgColor()
   const hidden = useMediaQuery(theme.breakpoints.down('lg'))
   const { t } = useTranslation()
 
@@ -158,11 +150,6 @@ const LoginPage = () => {
             </Typography>
           </Box>
           <Typography sx={{ mb: 6, color: 'text.secondary' }}>{t('signInTitle')}</Typography>
-          {/* <Alert icon={false} sx={{ py: 3, mb: 6, ...bgColors.primaryLight, '& .MuiAlert-message': { p: 0 } }}>
-            <Typography variant='caption' sx={{ mb: 2, display: 'block', color: 'primary.main' }}>
-              Admin: <strong>admin@szgmc.gov.ae</strong> / Pass: <strong>admin</strong>
-            </Typography>
-          </Alert> */}
           <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
@@ -177,8 +164,7 @@ const LoginPage = () => {
                     onBlur={onBlur}
                     onChange={onChange}
                     error={Boolean(errors.email)}
-                    // placeholder='admin@szgmc.gov.ae'
-                    placeholder='Email'
+                    placeholder='admin@szgmc.gov.ae'
                   />
                 )}
               />

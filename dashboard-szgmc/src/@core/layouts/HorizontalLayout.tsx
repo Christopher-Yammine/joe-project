@@ -6,6 +6,7 @@ import AppBar from '@mui/material/AppBar'
 import { styled } from '@mui/material/styles'
 import Box, { BoxProps } from '@mui/material/Box'
 import MuiToolbar, { ToolbarProps } from '@mui/material/Toolbar'
+import React, { useMemo } from 'react'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -28,10 +29,6 @@ import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import CameraSelect from './components/shared-components/CameraSelect'
 import DatePickerRange from './components/shared-components/DateRangePicker'
 import { DurationSelect } from './components/shared-components/DurationSelect'
-
-// import dynamic from 'next/dynamic'
-
-// const DatePicker = dynamic(() => import('./components/shared-components/DateRangePicker'), { ssr: false })
 
 const HorizontalLayoutWrapper = styled('div')({
   height: '100%',
@@ -104,6 +101,17 @@ const HorizontalLayout = (props: LayoutProps) => {
   }
   const userAppBarProps = Object.assign({}, appBarProps)
   delete userAppBarProps.sx
+
+  const memoizedContentStyle = useMemo(
+    () => ({
+      ...(contentHeightFixed && { display: 'flex', overflow: 'hidden' }),
+      ...(contentWidth === 'boxed' && {
+        mx: 'auto',
+        '@media (min-width:1440px)': { maxWidth: 1440 },
+      })
+    }),
+    [contentHeightFixed, contentWidth]
+  )
 
   return (
     <HorizontalLayoutWrapper className='layout-wrapper'>
@@ -189,17 +197,7 @@ const HorizontalLayout = (props: LayoutProps) => {
         </AppBar>
 
         {/* Content */}
-        <ContentWrapper
-          className='layout-page-content'
-          sx={{
-            ...(contentHeightFixed && { display: 'flex', overflow: 'hidden' }),
-            ...(contentWidth === 'boxed' && {
-              mx: 'auto',
-              '@media (min-width:1440px)': { maxWidth: 1440 },
-              '@media (min-width:1200px)': { maxWidth: '100%' }
-            })
-          }}
-        >
+        <ContentWrapper className='layout-page-content' sx={memoizedContentStyle}>
           {children}
         </ContentWrapper>
 

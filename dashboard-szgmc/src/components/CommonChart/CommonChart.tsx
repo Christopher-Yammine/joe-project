@@ -59,7 +59,7 @@ const LineChart: React.FC<Props> = ({
     dataLabels: { enabled: false },
     stroke: {
       width: 4,
-      curve: 'straight'
+      curve: 'smooth'
     },
     grid: {
       borderColor: theme.palette.divider,

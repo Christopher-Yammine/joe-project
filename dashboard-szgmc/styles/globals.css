@@ -27,7 +27,37 @@ code[class*='language-'] {
   border-radius: 8px;
   background-color: #fff;
 }
+.daterangepicker td.start-date,
+.daterangepicker td.start-date.active {
+  background-color: #ae9e85;
+}
 
+/* End Date */
+.daterangepicker td.end-date,
+.daterangepicker td.end-date.active {
+  background-color: #ae9e85;
+}
+
+/* Today (Initial Color) */
+.daterangepicker td.today.active {
+  background-color: #ae9e85;
+}
+.daterangepicker .ranges li.active {
+  background-color: #ae9e85;
+}
+.daterangepicker .drp-buttons .btn {
+  background-color: #ae9e85;
+  border: none;
+}
+.daterangepicker td.off,
+.daterangepicker td.off.in-range,
+.daterangepicker td.off.start-date,
+.daterangepicker td.off.end-date {
+  color: #e2dbdb;
+}
+.daterangepicker .drp-buttons .btn {
+  color: white;
+}
 .custom-button {
   display: flex;
   align-items: center;
@@ -40,6 +70,10 @@ code[class*='language-'] {
   background-color: white;
   cursor: pointer;
   outline: none;
+  text-wrap: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .custom-button:hover {
@@ -76,7 +110,23 @@ code[class*='language-'] {
     box-sizing: border-box; /* Ensure padding and border are included in the width */
   }
 }
-
+@media (max-width: 420px) {
+  .MuiBox-root .css-qffts4 {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+.css-tis6df-option {
+  color: lightgrey !important;
+}
+.css-1we6af-option {
+  color: lightgrey !important;
+}
+/* .css-1u2figb-ValueContainer {
+  width: 100px;
+  text-overflow: ellipsis !important;
+} */
 .daterangepicker.dark-mode {
   background-color: #2b2c40;
 

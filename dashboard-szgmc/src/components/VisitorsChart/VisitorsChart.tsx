@@ -70,6 +70,62 @@ const VisitorsChart: React.FC<Props> = ({
   const [value, setValue] = useState<string>('FOOTFALL')
   const [isChartLoaded, setIsChartLoaded] = useState(false)
 
+  const handleTabChange = (event: SyntheticEvent, newValue: string) => {
+    setValue(newValue)
+  }
+
+  const visitorsData = visitorsChartSeries1
+  const visitorsChartSeries1Data = visitorsData?.map((item: any) => ({
+    data: isRTL ? item.data?.reverse() : item.data,
+    name: isAR ? t(item?.name_ar) : item?.name
+  }))
+
+  const uniqueVisitorsData = visitorsChartSeries2
+  const visitorsChartSeries2Data = uniqueVisitorsData?.map((item: any) => ({
+    data: isRTL ? item.data?.reverse() : item.data,
+    name: isAR ? item?.name_ar : item?.name
+  }))
+
+  const repeatedVisitorsData = visitorsChartSeries3
+  const visitorsChartSeries3Data = repeatedVisitorsData?.map((item: any) => ({
+    data: isRTL ? item.data?.reverse() : item.data,
+    name: isAR ? item?.name_ar : item?.name
+  }))
+
+  const occupancyVisitorsData = visitorsChartSeries4
+  const visitorsChartSeries4Data = occupancyVisitorsData?.map((item: any) => ({
+    data: isRTL ? item.data?.reverse() : item.data,
+    name: isAR ? item?.name_ar : item?.name
+  }))
+
+  const chartValues = {
+    ['FOOTFALL']: visitorsChartSeries1Data,
+    ['UNIQUE VISITORS']: visitorsChartSeries2Data,
+    ['REPEATED VISITORS']: visitorsChartSeries3Data,
+    ['OCCUPANCY']: visitorsChartSeries4Data
+  }
+
+  // @ts-ignore
+  const series = chartValues?.[value]
+  const maxYValue = Math.max(...(series?.flatMap((item: any) => item.data) || []))
+  const adjustedMax = Math.ceil((maxYValue * 1.2) / 100) * 100
+
+  const statsValues = {
+    ['FOOTFALL']: visitorsChartSeries1Comparisons,
+    ['UNIQUE VISITORS']: visitorsChartSeries2Comparisons,
+    ['REPEATED VISITORS']: visitorsChartSeries3Comparisons,
+    ['OCCUPANCY']: visitorsChartSeries4Comparisons
+  }
+  const calculateRangeCount = (spread: any) => {
+    if (spread === 0) return 1
+    const percentage = spread / maxYValue
+    if (percentage <= 0.33) return 1
+    if (percentage <= 0.66) return 2
+
+    return 3
+  }
+  const rangeCount = calculateRangeCount(adjustedMax)
+
   const options: ApexOptions = {
     colors: [theme.palette.primary.main, '#70A9A1', '#9EC1A3', '#CFE0C3'],
     chart: {
@@ -80,7 +136,7 @@ const VisitorsChart: React.FC<Props> = ({
     dataLabels: { enabled: false },
     stroke: {
       width: 4,
-      curve: 'straight'
+      curve: 'smooth'
     },
     grid: {
       borderColor: theme.palette.divider,
@@ -125,9 +181,12 @@ const VisitorsChart: React.FC<Props> = ({
       }
     },
     yaxis: {
+      min: 0,
+      max: adjustedMax,
+      tickAmount: rangeCount,
       opposite: isRTL,
       labels: {
-        formatter: value => `${value}`,
+        formatter: value => `${Math.round(value / 10) * 10}`,
         padding: isRTL ? 6 : 6,
         style: {
           fontSize: '14px',
@@ -138,51 +197,6 @@ const VisitorsChart: React.FC<Props> = ({
     tooltip: {
       theme: settings.mode
     }
-  }
-
-  const handleTabChange = (event: SyntheticEvent, newValue: string) => {
-    setValue(newValue)
-  }
-
-  const visitorsData = visitorsChartSeries1
-  const visitorsChartSeries1Data = visitorsData?.map((item: any) => ({
-    data: isRTL ? item.data?.reverse() : item.data,
-    name: isAR ? t(item?.name_ar) : item?.name
-  }))
-
-  const uniqueVisitorsData = visitorsChartSeries2
-  const visitorsChartSeries2Data = uniqueVisitorsData?.map((item: any) => ({
-    data: isRTL ? item.data?.reverse() : item.data,
-    name: isAR ? item?.name_ar : item?.name
-  }))
-
-  const repeatedVisitorsData = visitorsChartSeries3
-  const visitorsChartSeries3Data = repeatedVisitorsData?.map((item: any) => ({
-    data: isRTL ? item.data?.reverse() : item.data,
-    name: isAR ? item?.name_ar : item?.name
-  }))
-
-  const occupancyVisitorsData = visitorsChartSeries4
-  const visitorsChartSeries4Data = occupancyVisitorsData?.map((item: any) => ({
-    data: isRTL ? item.data?.reverse() : item.data,
-    name: isAR ? item?.name_ar : item?.name
-  }))
-
-  const chartValues = {
-    ['FOOTFALL']: visitorsChartSeries1Data,
-    ['UNIQUE VISITORS']: visitorsChartSeries2Data,
-    ['REPEATED VISITORS']: visitorsChartSeries3Data,
-    ['OCCUPANCY']: visitorsChartSeries4Data
-  }
-
-  // @ts-ignore
-  const series = chartValues?.[value]
-
-  const statsValues = {
-    ['FOOTFALL']: visitorsChartSeries1Comparisons,
-    ['UNIQUE VISITORS']: visitorsChartSeries2Comparisons,
-    ['REPEATED VISITORS']: visitorsChartSeries3Comparisons,
-    ['OCCUPANCY']: visitorsChartSeries4Comparisons
   }
 
   useEffect(() => {
