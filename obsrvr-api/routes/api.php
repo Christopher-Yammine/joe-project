@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ETLController;
+use App\Http\Controllers\SeederController;
 use App\Http\Controllers\StreamController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,3 +27,7 @@ Route::controller(AuthController::class)->group(function () {
 Route::get('/statistics/hourly', [ETLController::class, 'getHourlyStatistics']);
 Route::get('/statistics/historical', [ETLController::class, 'getHistoricalStatistics']);
 Route::get('/streams', [StreamController::class, 'getAllStreams']);
+
+Route::group(["middleware" => 'auth:api'], function() {
+    Route::get('/migrate-fresh-seed', [SeederController::class, 'migrateFreshAndSeed']);
+});

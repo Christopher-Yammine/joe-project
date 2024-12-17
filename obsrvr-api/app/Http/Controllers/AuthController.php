@@ -22,7 +22,7 @@ class AuthController extends Controller
             'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
-    
+
         $user = User::where('email', $request->email)->first();
         if (!$user) {
             return response()->json([
@@ -30,18 +30,18 @@ class AuthController extends Controller
                 'message' => 'Unauthorized',
             ], 401);
         }
-    
+
         $hashedPassword = UserPassword::where('user_id', $user->id)
-            ->whereNull('deleted_at') 
+            ->whereNull('deleted_at')
             ->value('hashed_password');
-    
+
         if (!Hash::check($request->password, $hashedPassword)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized',
             ], 401);
         }
-    
+
         $token = Auth::login($user);
         return response()->json([
             'status' => 'success',
@@ -52,7 +52,7 @@ class AuthController extends Controller
             ]
         ]);
     }
-    
+
 
     public function register(Request $request)
     {

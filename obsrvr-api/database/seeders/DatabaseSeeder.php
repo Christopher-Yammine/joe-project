@@ -12,15 +12,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-       
+
         $this->call([
             PersonTypeSeeder::class,
             GenderSeeder::class,
             SentimentSeeder::class,
             AgeGroupSeeder::class,
-           
-           
-            MetricsSeeder::class, 
+
+
+            MetricsSeeder::class,
             CountriesSeeder::class,
             CitiesSeeder::class,
             CompaniesSeeder::class,
@@ -28,8 +28,11 @@ class DatabaseSeeder extends Seeder
             StreamTypesSeeder::class,
             StreamSeeder::class,
             DemographicsSeeder::class,
-         
-            ETLDataSeeder::class
+
+            ETLDataSeeder::class,
+
+            UsersTableSeeder::class,
+            UserPasswordsTableSeeder::class
         ]);
     }
 }
