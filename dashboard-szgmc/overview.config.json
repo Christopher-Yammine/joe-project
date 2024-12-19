@@ -1,0 +1,74 @@
+{
+  "visualizations": [
+    {
+      "type": "statisticBlock",
+      "size": "col-4",
+      "title": "Total Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT HOUR(etl_data_hourly.date) AS hour, SUM(etl_data_hourly.value) AS total FROM etl_data_hourly JOIN person_types ON etl_data_hourly.person_type_id = person_types.id WHERE etl_data_hourly.stream_id IN (? /* $streamIds array */) AND person_types.name != '' AND etl_data_hourly.date BETWEEN ? /* $startOfToday */ AND ? /* $endOfToday */ GROUP BY HOUR(etl_data_hourly.date);"
+    },
+    {
+      "type": "statisticBlock",
+      "size": "col-4",
+      "title": "Unique Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT DATE(etl_data_hourly.date) AS day, HOUR(etl_data_hourly.date) AS hour, SUM(etl_data_hourly.value) AS total FROM etl_data_hourly JOIN metrics ON etl_data_hourly.metric_id = metrics.id JOIN person_types ON etl_data_hourly.person_type_id = person_types.id WHERE etl_data_hourly.stream_id IN (? /* $streamIds array */) AND metrics.name = 'Unique' AND person_types.name != 'Staff' AND etl_data_hourly.date BETWEEN ? /* $startOfToday */ AND ? /* $endOfToday */ GROUP BY DATE(etl_data_hourly.date), HOUR(etl_data_hourly.date);"
+    },
+    {
+      "type": "statisticBlock",
+      "size": "col-4",
+      "title": "Occupancy",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT DATE(etl_data_hourly.date) AS day, HOUR(etl_data_hourly.date) AS hour, SUM(etl_data_hourly.value) AS total FROM etl_data_hourly JOIN metrics ON etl_data_hourly.metric_id = metrics.id JOIN person_types ON etl_data_hourly.person_type_id = person_types.id WHERE etl_data_hourly.stream_id IN (? /* $streamIds array */) AND metrics.name = 'Occupancy' AND person_types.name != 'Staff' AND etl_data_hourly.date BETWEEN ? /* $startOfToday */ AND ? /* $endOfToday */ GROUP BY DATE(etl_data_hourly.date), HOUR(etl_data_hourly.date);"
+    },
+    {
+      "type": "barChart",
+      "size": "col-6",
+      "title": "Age Gender Demographics",
+      "compareToPreviousPeriod": false,
+      "sqlQuery": "SELECT genders.gender, sentiments.sentiment, age_groups.group_name, SUM(etl_data_hourly.value) AS total FROM etl_data_hourly JOIN demographics ON etl_data_hourly.demographics_id = demographics.id JOIN person_types ON etl_data_hourly.person_type_id = person_types.id JOIN age_groups ON demographics.age_group_id = age_groups.id JOIN genders ON demographics.gender_id = genders.id JOIN sentiments ON demographics.sentiment_id = sentiments.id WHERE etl_data_hourly.stream_id IN (? /* $streamIds array */) AND etl_data_hourly.date BETWEEN ? /* $startOfToday */ AND ? /* $endOfToday */ AND person_types.name != 'Staff' GROUP BY genders.gender, sentiments.sentiment, age_groups.group_name;"
+    },
+    {
+      "type": "barChart",
+      "size": "col-6",
+      "title": "Age Sentiment Demographics",
+      "compareToPreviousPeriod": false,
+      "sqlQuery": "SELECT genders.gender, sentiments.sentiment, age_groups.group_name, SUM(etl_data_hourly.value) AS total FROM etl_data_hourly JOIN demographics ON etl_data_hourly.demographics_id = demographics.id JOIN person_types ON etl_data_hourly.person_type_id = person_types.id JOIN age_groups ON demographics.age_group_id = age_groups.id JOIN genders ON demographics.gender_id = genders.id JOIN sentiments ON demographics.sentiment_id = sentiments.id WHERE etl_data_hourly.stream_id IN (? /* $streamIds array */) AND etl_data_hourly.date BETWEEN ? /* $startOfToday */ AND ? /* $endOfToday */ AND person_types.name != 'Staff' GROUP BY genders.gender, sentiments.sentiment, age_groups.group_name;"
+    },
+    {
+      "type": "multiLineChart",
+      "size": "col-12",
+      "title": "Footfall",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT streams.name, HOUR(etl.date) AS hour, SUM(etl.value) AS total_value FROM etl_data_hourly AS etl JOIN streams ON etl.stream_id = streams.id JOIN person_types ON etl.person_type_id = person_types.id WHERE etl.stream_id IN (? /* $streamIds array */) AND etl.date BETWEEN 'YYYY-MM-DD 09:00:00' AND 'YYYY-MM-DD 23:59:59' AND person_types.name != 'Staff' GROUP BY streams.id, hour, streams.name ORDER BY hour;"
+    },
+    {
+      "type": "multiLineChart",
+      "size": "col-12",
+      "title": "Unique Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT streams.name, HOUR(etl.date) AS hour, SUM(etl.value) AS total_value FROM etl_data_hourly AS etl JOIN streams ON etl.stream_id = streams.id JOIN metrics ON etl.metric_id = metrics.id JOIN person_types ON etl.person_type_id = person_types.id WHERE etl.stream_id IN (? /* $streamIds array */) AND metrics.name = 'Unique' AND person_types.name != 'Staff' AND etl.date BETWEEN 'YYYY-MM-DD 09:00:00' AND 'YYYY-MM-DD 23:59:59' GROUP BY streams.id, hour, streams.name ORDER BY hour;"
+    },
+    {
+      "type": "multiLineChart",
+      "size": "col-12",
+      "title": "Repeated Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT streams.name, HOUR(etl.date) AS hour, SUM(etl.value) AS total_value FROM etl_data_hourly AS etl JOIN streams ON etl.stream_id = streams.id JOIN person_types ON etl.person_type_id = person_types.id WHERE etl.stream_id IN (? /* $streamIds array */) AND person_types.name = 'Returning' AND person_types.name != 'Staff' AND etl.date BETWEEN 'YYYY-MM-DD 09:00:00' AND 'YYYY-MM-DD 23:59:59' GROUP BY streams.id, hour, streams.name ORDER BY hour;"
+    },
+    {
+      "type": "multiLineChart",
+      "size": "col-12",
+      "title": "Occupancy",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT streams.name, HOUR(etl.date) AS hour, SUM(etl.value) AS total_value FROM etl_data_hourly AS etl JOIN streams ON etl.stream_id = streams.id JOIN metrics ON etl.metric_id = metrics.id JOIN person_types ON etl.person_type_id = person_types.id WHERE person_types.name != 'Staff' AND etl.stream_id IN (? /* $streamIds array */) AND metrics.name = 'Occupancy' AND etl.date BETWEEN 'YYYY-MM-DD 09:00:00' AND 'YYYY-MM-DD 23:59:59' GROUP BY streams.id, hour, streams.name ORDER BY hour;"
+    },
+    {
+      "type": "multiLineChart",
+      "size": "col-12",
+      "title": "Staff Today",
+      "compareToPreviousPeriod": false,
+      "sqlQuery": "SELECT streams.name, HOUR(etl.date) AS hour, SUM(etl.value) AS total_value FROM etl_data_hourly AS etl JOIN streams ON etl.stream_id = streams.id JOIN person_types ON etl.person_type_id = person_types.id WHERE etl.stream_id IN (? /* $streamIds array */) AND person_types.name = 'Staff' AND etl.date BETWEEN 'YYYY-MM-DD 00:00:00' AND 'YYYY-MM-DD 23:59:59' GROUP BY streams.id, hour, streams.name ORDER BY hour;"
+    }
+  ]
+}
