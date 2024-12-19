@@ -1,0 +1,75 @@
+{
+  "SEO": {
+    "name": "Sheikh Zayed Grand Mosque Center",
+    "description": "An analytical platform providing insightful data visualizations through interactive charts and robust filtering options. Designed with two key pages—'Overview' and 'Historical'—it delivers a comprehensive perspective on trends and performance metrics, enabling data-driven decision-making."
+  },
+  "Meta": {
+    "title": "Analytical Dashboard",
+    "description": "Explore comprehensive data trends with interactive charts and filters across Overview and Historical pages.",
+    "image": ""
+  },
+  "Logo": {
+    "url": "",
+    "faviconUrl": ""
+  },
+  "Company": {
+    "name": "obsrvr"
+  },
+  "Weather": {
+    "location": "Abu Dhabi"
+  },
+  "Languages": [
+    "English",
+    "Arabic"
+  ],
+  "Features": {
+    "hasHijriCalendar": false,
+    "hasPrayerTimes": true,
+    "hasNightMode": true,
+    "hasNotifications": false
+  },
+  "Identifiers": {
+    "clientId": null,
+    "branchId": null
+  },
+  "Colors": {
+    "font": {
+      "dayMode": {
+        "main": "rgb(0, 0, 0)",
+        "secondary": "rgb(0, 0, 0)",
+        "tertiary": "rgb(0, 0, 0)",
+        "quaternary": "rgb(0, 0, 0)"
+      },
+      "nightMode": {
+        "main": "rgb(0, 0, 0)",
+        "secondary": "rgb(0, 0, 0)",
+        "tertiary": "rgb(0, 0, 0)",
+        "quaternary": "rgb(0, 0, 0)"
+      }
+    },
+    "button": {
+      "dayMode": {
+        "main": "rgba(0, 0, 0, 1)",
+        "secondary": "rgba(0, 0, 0, 1)"
+      },
+      "nightMode": {
+        "main": "rgba(0, 0, 0, 1)",
+        "secondary": "rgba(0, 0, 0, 1)"
+      }
+    },
+    "chart": {
+      "dayMode": {
+        "main": "rgb(0, 0, 0)",
+        "secondary": "rgb(0, 0, 0)",
+        "tertiary": "rgb(0, 0, 0)",
+        "quaternary": "rgb(0, 0, 0)"
+      },
+      "nightMode": {
+        "main": "rgb(0, 0, 0)",
+        "secondary": "rgb(0, 0, 0)",
+        "tertiary": "rgb(0, 0, 0)",
+        "quaternary": "rgb(0, 0, 0)"
+      }
+    }
+  }
+}
