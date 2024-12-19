@@ -1,0 +1,244 @@
+{
+  "visualizations": [
+    {
+      "type": "lineChart",
+      "size": "col-6",
+      "title": "New and Returning Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT SUM(etl_data_hourly.value) AS total, [etlDataTable] FROM etl_data_hourly JOIN metrics ON etl_data_hourly.metric_id = metrics.id JOIN person_types ON etl_data_hourly.person_type_id = person_types.id WHERE etl_data_hourly.stream_id IN ([streamIds]) AND etl_data_hourly.date BETWEEN [fromDate] AND [toDate] AND person_types.name != 'Staff' AND metrics.name = 'Unique' GROUP BY [groupByFormat] ORDER BY [groupByFormat];",
+      "dateGroupings": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "dateFilters": [
+        {
+          "filterType": "range",
+          "startDate": "[startOfToday]",
+          "endDate": "[endOfToday]"
+        },
+        {
+          "filterType": "specific",
+          "date": "[specificDate]"
+        }
+      ]
+    },
+    {
+      "type": "lineChart",
+      "size": "col-6",
+      "title": "Male and Female Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "$maleVisitors = DB::table([etlDataTable])->whereIn('stream_id', [streamIds])->whereBetween('date', [fromDate, toDate])->join('demographics', [etlDataTable] . '.demographics_id', '=', 'demographics.id')->join('genders', 'demographics.gender_id', '=', 'genders.id')->join('person_types', [etlDataTable] . '.person_type_id', '=', 'person_types.id')->where('person_types.name', '!=', 'Staff')->where('genders.gender', '=', 'Male')->select(DB::raw('SUM(' . [etlDataTable] . '.value) as total'), DB::raw([selectFields]))->groupBy(DB::raw([groupByFormat]))->orderBy(DB::raw([groupByFormat]))->get();",
+      "dateGroupings": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "dateFilters": [
+        {
+          "filterType": "range",
+          "startDate": "[startOfToday]",
+          "endDate": "[endOfToday]"
+        },
+        {
+          "filterType": "specific",
+          "date": "[specificDate]"
+        }
+      ]
+    },
+    {
+      "type": "lineChart",
+      "size": "col-6",
+      "title": "Mosque and Souq Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT SUM([etlDataTable].value) AS total, [selectFields] FROM [etlDataTable] JOIN demographics ON [etlDataTable].demographics_id = demographics.id JOIN genders ON demographics.gender_id = genders.id JOIN person_types ON [etlDataTable].person_type_id = person_types.id WHERE [etlDataTable].stream_id IN ([streamIds]) AND [etlDataTable].date BETWEEN [fromDate] AND [toDate] AND person_types.name != 'Staff' AND genders.gender = 'Male' GROUP BY [groupByFormat] ORDER BY [groupByFormat];",
+      "dateGroupings": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "dateFilters": [
+        {
+          "filterType": "range",
+          "startDate": "[startOfToday]",
+          "endDate": "[endOfToday]"
+        },
+        {
+          "filterType": "specific",
+          "date": "[specificDate]"
+        }
+      ]
+    },
+    {
+      "type": "lineChart",
+      "size": "col-6",
+      "title": "Happy and Unhappy Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT SUM([etlDataTable].value) AS total, [selectFields] FROM [etlDataTable] JOIN streams ON [etlDataTable].stream_id = streams.id JOIN person_types ON [etlDataTable].person_type_id = person_types.id WHERE [etlDataTable].stream_id IN ([streamIds]) AND [etlDataTable].date BETWEEN [fromDate] AND [toDate] AND person_types.name != 'Staff' AND streams.name LIKE '%Mosque%' GROUP BY [groupByFormat] ORDER BY [groupByFormat];",
+      "dateGroupings": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "dateFilters": [
+        {
+          "filterType": "range",
+          "startDate": "[startOfToday]",
+          "endDate": "[endOfToday]"
+        },
+        {
+          "filterType": "specific",
+          "date": "[specificDate]"
+        }
+      ]
+    },
+    {
+      "type": "heatMapChart",
+      "size": "col-12",
+      "title": "Average Peak Engagement",
+      "compareToPreviousPeriod": false,
+      "sqlQuery": "SELECT streams.name, WEEK(etl.date) AS week_number, DAYOFWEEK(etl.date) AS day_of_week, HOUR(etl.date) AS hour, SUM(etl.value) AS total_value, ROUND(AVG(SUM(etl.value)) OVER (PARTITION BY streams.name, DAYOFWEEK(etl.date)), 0) AS average_total_value FROM etl_data_hourly AS etl JOIN streams ON etl.stream_id = streams.id JOIN person_types ON etl.person_type_id = person_types.id WHERE person_types.name != 'Staff' AND etl.stream_id IN ([streamIds]) AND etl.date BETWEEN [startDate] AND [endDate] GROUP BY streams.name, WEEK(etl.date), DAYOFWEEK(etl.date), HOUR(etl.date) ORDER BY week_number ASC, day_of_week ASC, hour ASC;",
+      "dateGroupings": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "dateFilters": [
+        {
+          "filterType": "range",
+          "startDate": "[startOfToday]",
+          "endDate": "[endOfToday]"
+        },
+        {
+          "filterType": "specific",
+          "date": "[specificDate]"
+        }
+      ]
+    },
+    {
+      "type": "multiLineChart",
+      "size": "col-12",
+      "title": "Footfall",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT streams.name, [selectFields], SUM(etl.value) AS total_value FROM [etlDataTable] AS etl JOIN streams ON etl.stream_id = streams.id JOIN person_types ON etl.person_type_id = person_types.id WHERE person_types.name != 'Staff' AND etl.stream_id IN ([streamIds]) AND etl.date BETWEEN '[startDate] 00:00:00' AND '[endDate] 23:59:59' GROUP BY streams.id, [groupByFormat], streams.name ORDER BY [groupByFormat];",
+      "dateGroupings": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "dateFilters": [
+        {
+          "filterType": "range",
+          "startDate": "[startOfToday]",
+          "endDate": "[endOfToday]"
+        },
+        {
+          "filterType": "specific",
+          "date": "[specificDate]"
+        }
+      ]
+    },
+    {
+      "type": "multiLineChart",
+      "size": "col-12",
+      "title": "Unique Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT streams.name, [selectFields], SUM(etl.value) AS total_value FROM [etlDataTable] AS etl JOIN streams ON etl.stream_id = streams.id JOIN metrics ON etl.metric_id = metrics.id JOIN person_types ON etl.person_type_id = person_types.id WHERE person_types.name != 'Staff' AND etl.stream_id IN ([streamIds]) AND metrics.name = 'Unique' AND etl.date BETWEEN '[startDate] 00:00:00' AND '[endDate] 23:59:59' GROUP BY streams.id, [groupByFormat], streams.name ORDER BY [groupByFormat];",
+      "dateGroupings": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "dateFilters": [
+        {
+          "filterType": "range",
+          "startDate": "[startOfToday]",
+          "endDate": "[endOfToday]"
+        },
+        {
+          "filterType": "specific",
+          "date": "[specificDate]"
+        }
+      ]
+    },
+    {
+      "type": "multiLineChart",
+      "size": "col-12",
+      "title": "Repeated Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT streams.name, [selectFields], SUM(etl.value) AS total_value FROM [etlDataTable] AS etl JOIN streams ON etl.stream_id = streams.id JOIN person_types ON etl.person_type_id = person_types.id WHERE etl.stream_id IN ([streamIds]) AND person_types.name = 'Returning' AND etl.date BETWEEN '[startDate] 00:00:00' AND '[endDate] 23:59:59' GROUP BY streams.id, [groupByFormat], streams.name ORDER BY [groupByFormat];",
+      "dateGroupings": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "dateFilters": [
+        {
+          "filterType": "range",
+          "startDate": "[startOfToday]",
+          "endDate": "[endOfToday]"
+        },
+        {
+          "filterType": "specific",
+          "date": "[specificDate]"
+        }
+      ]
+    },
+    {
+      "type": "multiLineChart",
+      "size": "col-12",
+      "title": "Occupancy Visitors",
+      "compareToPreviousPeriod": true,
+      "sqlQuery": "SELECT streams.name, [selectFields], SUM(etl.value) AS total_value FROM [etlDataTable] AS etl JOIN streams ON etl.stream_id = streams.id JOIN metrics ON etl.metric_id = metrics.id JOIN person_types ON etl.person_type_id = person_types.id WHERE person_types.name != 'Staff' AND etl.stream_id IN ([streamIds]) AND metrics.name = 'Occupancy' AND etl.date BETWEEN '[startDate] 00:00:00' AND '[endDate] 23:59:59' GROUP BY streams.id, [groupByFormat], streams.name ORDER BY [groupByFormat];",
+      "dateGroupings": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "dateFilters": [
+        {
+          "filterType": "range",
+          "startDate": "[startOfToday]",
+          "endDate": "[endOfToday]"
+        },
+        {
+          "filterType": "specific",
+          "date": "[specificDate]"
+        }
+      ]
+    },
+    {
+      "type": "multiLineChart",
+      "size": "col-12",
+      "title": "Staff",
+      "compareToPreviousPeriod": false,
+      "sqlQuery": "SELECT streams.name, [selectFields], SUM(etl.value) AS total_value FROM [etlDataTable] AS etl JOIN streams ON etl.stream_id = streams.id JOIN person_types ON etl.person_type_id = person_types.id WHERE etl.stream_id IN ([streamIds]) AND person_types.name = 'staff' AND etl.date BETWEEN '[startDate]' AND '[endDate]' GROUP BY streams.id, [groupByFormat], streams.name ORDER BY [groupByFormat];",
+      "dateGroupings": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "dateFilters": [
+        {
+          "filterType": "range",
+          "startDate": "[startOfToday]",
+          "endDate": "[endOfToday]"
+        },
+        {
+          "filterType": "specific",
+          "date": "[specificDate]"
+        }
+      ]
+    }
+  ]
+}
