@@ -1,0 +1,12 @@
+# Start with the official Airflow image
+FROM apache/airflow:2.7.2
+
+# Set the Airflow home directory (optional, for clarity)
+ENV AIRFLOW_HOME=/opt/airflow
+
+# Expose the default Airflow webserver port
+EXPOSE 8080
+
+# Default command to start Airflow
+# This example starts the webserver and scheduler
+CMD ["bash", "-c", "airflow db upgrade && airflow scheduler & airflow webserver"]
