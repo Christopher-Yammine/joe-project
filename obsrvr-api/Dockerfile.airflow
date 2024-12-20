@@ -1,12 +1,49 @@
-# Start with the official Airflow image
-FROM apache/airflow:2.7.2
+FROM apache/airflow:2.10.4
 
-# Set the Airflow home directory (optional, for clarity)
+USER root
+
+# Install necessary dependencies
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends vim \
+  && apt-get autoremove -yqq --purge \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Set Airflow home
 ENV AIRFLOW_HOME=/opt/airflow
 
-# Expose the default Airflow webserver port
+# Expose Airflow Webserver port
 EXPOSE 8080
 
 # Default command to start Airflow
-# This example starts the webserver and scheduler
 CMD ["bash", "-c", "airflow db upgrade && airflow scheduler & airflow webserver"]
+
+# FROM apache/airflow:2.10.4
+
+# # Install any additional dependencies you might need
+# USER root
+# RUN apt-get update \
+#   && apt-get install -y --no-install-recommends \
+#          vim \
+#   && apt-get autoremove -yqq --purge \
+#   && apt-get clean \
+#   && rm -rf /var/lib/apt/lists/*
+
+# # Create the 'airflow' user if it doesn't exist
+# RUN useradd -m airflow
+
+# # Switch to the 'airflow' user
+# USER airflow
+
+# # Ensure Airflow is installed
+# RUN pip install apache-airflow
+
+# # Set environment variables for Airflow
+# ENV AIRFLOW_HOME=/opt/airflow
+
+# # Expose ports for the webserver
+# EXPOSE 8080
+
+# CMD ["bash", "-c", "airflow db upgrade && airflow scheduler & airflow webserver"]
+
+
