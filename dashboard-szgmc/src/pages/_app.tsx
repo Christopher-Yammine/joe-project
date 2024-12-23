@@ -120,8 +120,11 @@ const App = (props: ExtendedAppProps) => {
     <CacheProvider value={emotionCache}>
       <Head>
         <title>{`${generalConfig.Meta?.title ?? themeConfig.templateName}`}</title>
-        <meta name='description' content={`${generalConfig.Meta?.description}`} />
+        <meta name='description' content={generalConfig.Meta?.description ?? ''} />
         <meta name='viewport' content='initial-scale=1, width=device-width' />
+        <meta property='og:image' content={generalConfig.Meta?.image} />
+        <meta property='og:title' content={generalConfig.Meta?.title ?? themeConfig.templateName} />
+        <meta property='og:description' content={generalConfig.Meta?.description ?? ''} />
       </Head>
 
       <AuthProvider>

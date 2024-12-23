@@ -5,7 +5,7 @@
   },
   "Meta": {
     "title": "Sheikh Zayed Grand Mosque Center",
-    "description": "Explore comprehensive data trends with interactive charts and filters across Overview and Historical pages.",
+    "description": "An analytical platform providing insightful data visualizations through interactive charts and robust filtering options. Designed with two key pages—'Overview' and 'Historical'—it delivers a comprehensive perspective on trends and performance metrics, enabling data-driven decision-making.",
     "image": ""
   },
   "Logo": {
@@ -23,7 +23,7 @@
     "Arabic"
   ],
   "Features": {
-    "hasHijriCalendar": false,
+    "hasHijriCalendar": true,
     "hasPrayerTimes": true,
     "hasNightMode": true,
     "hasNotifications": false

@@ -9,6 +9,7 @@ import createEmotionServer from '@emotion/server/create-instance'
 
 // ** Utils Imports
 import { createEmotionCache } from 'src/@core/utils/create-emotion-cache'
+import generalConfig from '../../general.config.json'
 
 class CustomDocument extends Document {
   render() {
@@ -22,7 +23,7 @@ class CustomDocument extends Document {
             href='https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap'
           />
           <link rel='apple-touch-icon' sizes='180x180' href='/images/szgmc-apple-icon.png' />
-          <link rel='shortcut icon' href='/images/szgmc_favicon.ico' />
+          <link rel='shortcut icon' href={generalConfig.Logo?.faviconUrl ?? '/images/szgmc_favicon.ico'} />
         </Head>
         <body>
           <Main />

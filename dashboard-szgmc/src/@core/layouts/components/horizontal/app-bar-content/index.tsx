@@ -14,6 +14,7 @@ import logo from 'public/images/logo.png'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import WeatherWidget from '../../weather-widget'
+import generalConfig from '../../../../../../general.config.json'
 
 interface Props {
   hidden: LayoutProps['hidden']
@@ -68,7 +69,7 @@ const AppBarContent = (props: Props) => {
       ) : (
         <>
           <LinkStyled href='/'>
-            <img src={logo.src} alt='logo' style={{ width: 'auto', height: '100px' }} />
+            <img src={generalConfig.Logo.url ?? logo.src} alt='logo' style={{ width: 'auto', height: '100px' }} />
 
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '10px' }}>
               <Typography
@@ -96,18 +97,23 @@ const AppBarContent = (props: Props) => {
                 >
                   {t(formattedDate)}
                 </Typography>
-                <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
-                <Typography
-                  sx={{
-                    lineHeight: 1,
-                    fontWeight: 500,
-                    letterSpacing: '-0.45px',
-                    fontSize: '.75rem',
-                    color: '#ae9e85'
-                  }}
-                >
-                  {t('Shawwal 1, 1445')}
-                </Typography>
+                {generalConfig.Features?.hasHijriCalendar && (
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
+                    <Typography
+                      sx={{
+                        lineHeight: 1,
+                        fontWeight: 500,
+                        letterSpacing: '-0.45px',
+                        fontSize: '.75rem',
+                        color: '#ae9e85'
+                      }}
+                    >
+                      {t('Shawwal 1, 1445')}
+                    </Typography>
+                  </Box>
+                )}
+
                 <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
                 <Typography
                   sx={{
@@ -120,18 +126,22 @@ const AppBarContent = (props: Props) => {
                 >
                   {t(`${currentTime}`)}
                 </Typography>
-                <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
-                <Typography
-                  sx={{
-                    lineHeight: 1,
-                    fontWeight: 500,
-                    letterSpacing: '-0.45px',
-                    fontSize: '.75rem',
-                    color: '#ae9e85'
-                  }}
-                >
-                  {t('Fair prayer in 2hrs 24 mins')}
-                </Typography>
+                {generalConfig.Features?.hasPrayerTimes && (
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
+                    <Typography
+                      sx={{
+                        lineHeight: 1,
+                        fontWeight: 500,
+                        letterSpacing: '-0.45px',
+                        fontSize: '.75rem',
+                        color: '#ae9e85'
+                      }}
+                    >
+                      {t('Fair prayer in 2hrs 24 mins')}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </Box>
           </LinkStyled>
