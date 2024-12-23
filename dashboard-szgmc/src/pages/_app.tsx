@@ -18,6 +18,7 @@ import type { EmotionCache } from '@emotion/cache'
 
 import { defaultACLObj } from 'src/configs/acl'
 import themeConfig from 'src/configs/themeConfig'
+import generalConfig from '../../general.config.json'
 
 // ** Fake-DB Import
 import 'src/@fake-db'
@@ -118,8 +119,8 @@ const App = (props: ExtendedAppProps) => {
   return (
     <CacheProvider value={emotionCache}>
       <Head>
-        <title>{`${themeConfig.templateName}`}</title>
-        <meta name='description' content={`${themeConfig.templateName}`} />
+        <title>{`${generalConfig.Meta?.title ?? themeConfig.templateName}`}</title>
+        <meta name='description' content={`${generalConfig.Meta?.description}`} />
         <meta name='viewport' content='initial-scale=1, width=device-width' />
       </Head>
 

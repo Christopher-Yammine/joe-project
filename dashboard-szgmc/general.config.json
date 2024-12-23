@@ -4,12 +4,12 @@
     "description": "An analytical platform providing insightful data visualizations through interactive charts and robust filtering options. Designed with two key pages—'Overview' and 'Historical'—it delivers a comprehensive perspective on trends and performance metrics, enabling data-driven decision-making."
   },
   "Meta": {
-    "title": "Analytical Dashboard",
+    "title": "Sheikh Zayed Grand Mosque Center",
     "description": "Explore comprehensive data trends with interactive charts and filters across Overview and Historical pages.",
     "image": ""
   },
   "Logo": {
-    "url": "",
+    "url": "https://szgmc-demo.obsrvr.ai/_next/static/media/logo.71bed75e.png",
     "faviconUrl": ""
   },
   "Company": {
@@ -35,40 +35,32 @@
   "Colors": {
     "font": {
       "dayMode": {
-        "main": "rgb(0, 0, 0)",
-        "secondary": "rgb(0, 0, 0)",
-        "tertiary": "rgb(0, 0, 0)",
-        "quaternary": "rgb(0, 0, 0)"
+        "main": "rgb(174, 158, 133)",
+        "secondary": "rgba(50, 71, 92, 0.87)",
+        "tertiary": "rgb(174, 158, 133)",
+        "quaternary": "rgb(255,255,255)"
       },
       "nightMode": {
-        "main": "rgb(0, 0, 0)",
-        "secondary": "rgb(0, 0, 0)",
-        "tertiary": "rgb(0, 0, 0)",
-        "quaternary": "rgb(0, 0, 0)"
+        "main": "rgb(174, 158, 133)",
+        "secondary": "rgba(219, 219, 235, 0.87)",
+        "tertiary": "rgb(255,255,255)",
+        "quaternary": "rgb(255,255,255)"
       }
     },
     "button": {
       "dayMode": {
-        "main": "rgba(0, 0, 0, 1)",
-        "secondary": "rgba(0, 0, 0, 1)"
+        "main": "rgba(174, 158, 133, 0.16)"
       },
       "nightMode": {
-        "main": "rgba(0, 0, 0, 1)",
-        "secondary": "rgba(0, 0, 0, 1)"
+        "main": "rgb(174, 158, 133)"
       }
     },
     "chart": {
       "dayMode": {
-        "main": "rgb(0, 0, 0)",
-        "secondary": "rgb(0, 0, 0)",
-        "tertiary": "rgb(0, 0, 0)",
-        "quaternary": "rgb(0, 0, 0)"
+        "main": "rgb(255,255,255)"
       },
       "nightMode": {
-        "main": "rgb(0, 0, 0)",
-        "secondary": "rgb(0, 0, 0)",
-        "tertiary": "rgb(0, 0, 0)",
-        "quaternary": "rgb(0, 0, 0)"
+        "main": "rgb(43, 44, 64)"
       }
     }
   }

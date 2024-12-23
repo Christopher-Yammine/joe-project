@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useSettings } from 'src/@core/hooks/useSettings'
+import generalConfig from '../../../../../general.config.json'
 
 const WeatherWidget = () => {
   const { t } = useTranslation()
@@ -158,7 +159,9 @@ const WeatherWidget = () => {
       sx={{ display: 'flex', flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', textAlign: 'center' }}
     >
       <Box>
-        <Typography sx={{ fontSize: '.75rem', fontWeight: '700', lineHeight: '1' }}>{t('ABU DHABI')}</Typography>
+        <Typography sx={{ fontSize: '.75rem', fontWeight: '700', lineHeight: '1' }}>
+          {t(generalConfig.Weather?.location ?? 'ABU DHABI')}
+        </Typography>
         <Typography sx={{ fontSize: 'inherit' }}>{t('Weather')}</Typography>
       </Box>
       <Box sx={{ width: '100px', height: '61px' }}>
