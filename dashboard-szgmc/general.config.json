@@ -23,7 +23,7 @@
     "Arabic"
   ],
   "Features": {
-    "hasHijriCalendar": true,
+    "hasHijriCalendar": false,
     "hasPrayerTimes": true,
     "hasNightMode": true,
     "hasNotifications": false

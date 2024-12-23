@@ -19,6 +19,7 @@ import NotificationDropdown, {
   NotificationsType
 } from 'src/@core/layouts/components/shared-components/NotificationDropdown'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
+import generalConfig from '../../../../general.config.json'
 
 interface Props {
   hidden: boolean
@@ -75,8 +76,10 @@ const AppBarContent = (props: Props) => {
         </Box>
         <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
           <LanguageDropdown settings={settings} saveSettings={saveSettings} />
-          <NotificationDropdown settings={settings} notifications={notifications as NotificationsType[]} />
-          <ModeToggler settings={settings} saveSettings={saveSettings} />
+          {generalConfig.Features?.hasNotifications && (
+            <NotificationDropdown settings={settings} notifications={notifications as NotificationsType[]} />
+          )}
+          {generalConfig.Features?.hasNightMode && <ModeToggler settings={settings} saveSettings={saveSettings} />}
           <UserDropdown settings={settings} />
         </Box>
       </Box>
