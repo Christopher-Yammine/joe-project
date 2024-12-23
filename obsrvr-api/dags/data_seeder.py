@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import requests
 
 def call_login_and_migrate_api():
+    # login_url = "https://api.obsrvr.ai/api/login"
     login_url = "http://host.docker.internal:8000/api/login"
     payload = {
         "email": "admin@szgmc.gov.ae",
@@ -23,6 +24,7 @@ def call_login_and_migrate_api():
     else:
         raise ValueError(f"Login failed: {response.status_code}, {response.text}")
 
+    # migrate_url = "https://api.obsrvr.ai/api/migrate-fresh-seed"
     migrate_url = "http://host.docker.internal:8000/api/migrate-fresh-seed"
     headers = {
         "Authorization": f"Bearer {token}"
@@ -48,6 +50,7 @@ with DAG(
     default_args=default_args,
     description="Call login and migrate APIs in a single task every 10 minutes",
     schedule_interval="*/10 * * * *",
+    # schedule_interval="0 10,14,18,22 * * *",
     start_date=datetime(2024, 12, 20),
     catchup=False,
     tags=["api", "example"],

@@ -21,7 +21,7 @@ class StatisticsService
 
         $todayData = EtlDataHourly::join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
             ->whereIn('etl_data_hourly.stream_id', $streamIds)
-            ->where('person_types.name', '!=', '')
+            ->where('person_types.name', '!=', 'staff')
             ->whereBetween('etl_data_hourly.date', [$startOfToday, $endOfToday])
             ->select(DB::raw('HOUR(etl_data_hourly.date) as hour'), DB::raw('SUM(etl_data_hourly.value) as total'))
             ->groupBy(DB::raw('HOUR(etl_data_hourly.date)'))
