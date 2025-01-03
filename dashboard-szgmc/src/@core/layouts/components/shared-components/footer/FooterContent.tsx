@@ -9,13 +9,13 @@ import { useTranslation } from 'react-i18next'
 
 const LinkStyled = styled(Link)(({ theme }) => ({
   textDecoration: 'none',
-  color: theme.palette.primary.main
+  color: theme.palette.secondary.main
 }))
 
 const FooterContent = () => {
   const { t } = useTranslation()
 
-return (
+  return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
       <Typography sx={{ mr: 2 }}>
         {`© ${new Date().getFullYear()}, ${t('madeBy')} `}
