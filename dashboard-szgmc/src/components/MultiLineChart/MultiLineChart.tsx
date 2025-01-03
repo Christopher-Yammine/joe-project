@@ -4,7 +4,7 @@ import Card from '@mui/material/Card'
 // import { useTheme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-
+import generalConfig from 'src/configs/general.config.json'
 import { ApexOptions } from 'apexcharts'
 
 // ** Component Import
@@ -53,7 +53,20 @@ const MultiLineChart: React.FC<Props> = ({ title, isDaily = false, staffMultilin
   }
   const rangeCount = calculateRangeCount(adjustedMax)
   const options: ApexOptions = {
-    colors: [theme.palette.primary.main, '#70A9A1', '#9EC1A3', '#CFE0C3'],
+    colors: [
+      settings.mode == 'light' 
+      ? generalConfig.Colors.chart.dayMode.main 
+      : generalConfig.Colors.chart.nightMode.main,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.secondary
+        : generalConfig.Colors.chart.nightMode.secondary,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.tertiary
+        : generalConfig.Colors.chart.nightMode.tertiary,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.quaternary
+        : generalConfig.Colors.chart.nightMode.quaternary
+    ],
     chart: {
       parentHeightOffset: 0,
       toolbar: { show: false }

@@ -3,6 +3,7 @@ import Card from '@mui/material/Card'
 import { useTheme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
+import generalConfig from 'src/configs/general.config.json'
 
 // ** Third Party Imports
 import { ApexOptions } from 'apexcharts'
@@ -67,12 +68,20 @@ const HeatmapChart: FC<HeatmapChartProps> = React.memo(({ series, topHourlyData 
     const step = (maxY - minY) / rangeCount
 
     const staticColors = [
-      'rgba(174, 158, 133, 0.10)',
-      'rgba(174, 158, 133, 0.25)',
-      'rgba(174, 158, 133, 0.40)',
-      'rgba(174, 158, 133, 0.55)',
-      'rgba(174, 158, 133, 0.70)',
-      'rgba(174, 158, 133, 0.85)'
+      settings.mode == 'light' ? generalConfig.Colors.chart.dayMode.main : generalConfig.Colors.chart.nightMode.main,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.secondary
+        : generalConfig.Colors.chart.nightMode.secondary,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.tertiary
+        : generalConfig.Colors.chart.nightMode.tertiary,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.quaternary
+        : generalConfig.Colors.chart.nightMode.quaternary,
+      settings.mode == 'light' ? generalConfig.Colors.button.dayMode.main : generalConfig.Colors.button.nightMode.main,
+      settings.mode == 'light'
+        ? generalConfig.Colors.button.dayMode.secondary
+        : generalConfig.Colors.button.nightMode.secondary
     ]
 
     const dynamicRanges = []

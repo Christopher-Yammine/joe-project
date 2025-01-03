@@ -187,7 +187,7 @@ const Home = () => {
       const streams = await response.json()
       setStreams(streams)
     } catch (error) {
-      console.log(error)
+      // console.log(error)
     } finally {
       setLoading(false)
     }

@@ -14,7 +14,7 @@ import logo from 'public/images/logo.png'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import WeatherWidget from '../../weather-widget'
-import generalConfig from '../../../../../../general.config.json'
+import generalConfig from 'src/configs/general.config.json'
 
 interface Props {
   hidden: LayoutProps['hidden']
@@ -79,10 +79,10 @@ const AppBarContent = (props: Props) => {
                   fontWeight: 500,
                   letterSpacing: '-0.45px',
                   fontSize: '1.75rem !important',
-                  color: '#ae9e85'
+                  color: 'text.secondary'
                 }}
               >
-                {t('header_title')}
+                {generalConfig.Company.name ?? t('header_title')}
               </Typography>
 
               <Box sx={{ display: 'flex', gap: '15px', pb: '10px' }}>
@@ -92,55 +92,76 @@ const AppBarContent = (props: Props) => {
                     fontWeight: 500,
                     letterSpacing: '-0.45px',
                     fontSize: '.75rem',
-                    color: '#ae9e85'
+                    color: 'text.secondary'
                   }}
                 >
                   {t(formattedDate)}
                 </Typography>
-                {generalConfig.Features?.hasHijriCalendar && (
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
-                    <Typography
-                      sx={{
-                        lineHeight: 1,
-                        fontWeight: 500,
-                        letterSpacing: '-0.45px',
-                        fontSize: '.75rem',
-                        color: '#ae9e85'
-                      }}
-                    >
-                      {t('Shawwal 1, 1445')}
-                    </Typography>
-                  </Box>
-                )}
 
-                <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
+                {generalConfig.Features?.hasHijriCalendar && (
+                  <>
+                    <Box
+                      sx={{
+                        width: '1px',
+                        height: '100%',
+                        bgcolor: generalConfig.Colors.font.dayMode.main ?? '#ae9e85'
+                      }}
+                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Box sx={{ width: '1px', height: '100%' }} />
+                      <Typography
+                        sx={{
+                          lineHeight: 1,
+                          fontWeight: 500,
+                          letterSpacing: '-0.45px',
+                          fontSize: '.75rem',
+                          color: 'text.secondary'
+                        }}
+                      >
+                        {t('Shawwal 1, 1445')}
+                      </Typography>
+                    </Box>
+                  </>
+                )}
+                <Box
+                  sx={{ width: '1px', height: '100%', bgcolor: generalConfig.Colors.font.dayMode.main ?? '#ae9e85' }}
+                />
                 <Typography
                   sx={{
                     lineHeight: 1,
                     fontWeight: 500,
                     letterSpacing: '-0.45px',
                     fontSize: '.75rem',
-                    color: '#ae9e85'
+                    color: 'text.secondary'
                   }}
                 >
                   {t(`${currentTime}`)}
                 </Typography>
+
                 {generalConfig.Features?.hasPrayerTimes && (
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
-                    <Typography
+                  <>
+                    <Box
                       sx={{
-                        lineHeight: 1,
-                        fontWeight: 500,
-                        letterSpacing: '-0.45px',
-                        fontSize: '.75rem',
-                        color: '#ae9e85'
+                        width: '1px',
+                        height: '100%',
+                        bgcolor: generalConfig.Colors.font.dayMode.main ?? '#ae9e85'
                       }}
-                    >
-                      {t('Fair prayer in 2hrs 24 mins')}
-                    </Typography>
-                  </Box>
+                    />
+                    <Box sx={{ display: 'flex' }}>
+                      <Box sx={{ width: '1px', height: '100%' }} />
+                      <Typography
+                        sx={{
+                          lineHeight: 1,
+                          fontWeight: 500,
+                          letterSpacing: '-0.45px',
+                          fontSize: '.75rem',
+                          color: 'text.secondary'
+                        }}
+                      >
+                        {t('Fair prayer in 2hrs 24 mins')}
+                      </Typography>
+                    </Box>
+                  </>
                 )}
               </Box>
             </Box>

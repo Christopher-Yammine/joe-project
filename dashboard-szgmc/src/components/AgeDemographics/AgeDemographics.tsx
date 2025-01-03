@@ -3,6 +3,7 @@ import React, { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { useSettings } from 'src/@core/hooks/useSettings'
+import generalConfig from 'src/configs/general.config.json'
 
 type AgeDemographicsProps = {
   series: {
@@ -18,8 +19,6 @@ type AgeDemographicsProps = {
   yAxis?: string[]
 }
 
-const sharedColors = ['#CFE0C3', '#ae9e85']
-
 export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title, maxValue, minValue, yAxis }) => {
   const theme = useTheme()
 
@@ -28,7 +27,18 @@ export const AgeDemographics: FC<AgeDemographicsProps> = ({ series, title, maxVa
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
 
   const { settings } = useSettings()
-
+  const sharedColors = [
+    settings.mode == 'light' ? generalConfig.Colors.chart.dayMode.main : generalConfig.Colors.chart.nightMode.main,
+    settings.mode == 'light'
+      ? generalConfig.Colors.chart.dayMode.secondary
+      : generalConfig.Colors.chart.nightMode.secondary,
+    settings.mode == 'light'
+      ? generalConfig.Colors.chart.dayMode.tertiary
+      : generalConfig.Colors.chart.nightMode.tertiary,
+    settings.mode == 'light'
+      ? generalConfig.Colors.chart.dayMode.quaternary
+      : generalConfig.Colors.chart.nightMode.quaternary
+  ]
   const isRTL = settings.direction === 'rtl'
 
   const isAR = settings.language === 'ar'

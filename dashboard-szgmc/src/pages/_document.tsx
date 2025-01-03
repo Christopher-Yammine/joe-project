@@ -9,7 +9,7 @@ import createEmotionServer from '@emotion/server/create-instance'
 
 // ** Utils Imports
 import { createEmotionCache } from 'src/@core/utils/create-emotion-cache'
-import generalConfig from '../../general.config.json'
+import generalConfig from 'src/configs/general.config.json'
 
 class CustomDocument extends Document {
   render() {

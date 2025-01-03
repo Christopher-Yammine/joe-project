@@ -27,23 +27,17 @@ code[class*='language-'] {
   border-radius: 8px;
   background-color: #fff;
 }
-.daterangepicker td.start-date,
-.daterangepicker td.start-date.active {
-  background-color: #ae9e85;
-}
-
-/* End Date */
-.daterangepicker td.end-date,
-.daterangepicker td.end-date.active {
-  background-color: #ae9e85;
-}
 
 /* Today (Initial Color) */
-.daterangepicker td.today.active {
-  background-color: #ae9e85;
-}
-.daterangepicker .ranges li.active {
-  background-color: #ae9e85;
+.daterangepicker td.start-date,
+.daterangepicker td.start-date.active,
+.daterangepicker td.end-date,
+.daterangepicker td.end-date.active,
+.daterangepicker .ranges li.active,
+.daterangepicker td.today.active,
+.btn-default,
+.btn-primary {
+  background-color: #ae9e85 !important;
 }
 .daterangepicker .drp-buttons .btn {
   background-color: #ae9e85;
@@ -134,7 +128,17 @@ code[class*='language-'] {
     background-color: #2b2c40;
     border-color: #2b2c40;
   }
-
+  td.start-date,
+  td.start-date.active,
+  td.end-date,
+  td.end-date.active,
+  .ranges li.active,
+  td.today.active,
+  .in-range .available,
+  .btn-default,
+  .btn-primary {
+    background-color: #5177d7 !important;
+  }
   li {
     color: rgba(219, 219, 235, 0.87);
   }
@@ -149,15 +153,6 @@ code[class*='language-'] {
 
   .off.ends {
     background-color: rgba(219, 219, 235, 0) !important;
-  }
-
-  .in-range {
-    background-color: #91aae8 !important;
-  }
-
-  td.end-date,
-  td.end-date.active {
-    background-color: #5177d7 !important;
   }
 
   td.start-date {

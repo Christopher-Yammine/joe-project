@@ -9,6 +9,7 @@ import { useTheme } from '@mui/system'
 import { ApexOptions } from 'apexcharts'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { useEffect, useState } from 'react'
+import generalConfig from 'src/configs/general.config.json'
 
 interface Props {
   firstTitle: string
@@ -50,7 +51,20 @@ const LineChart: React.FC<Props> = ({
   const [isChartLoaded, setIsChartLoaded] = useState(false)
 
   const options: ApexOptions = {
-    colors: [theme.palette.primary.main, '#70A9A1'],
+    colors: [
+      settings.mode == 'light' 
+      ? generalConfig.Colors.chart.dayMode.main 
+      : generalConfig.Colors.chart.nightMode.main,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.secondary
+        : generalConfig.Colors.chart.nightMode.secondary,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.tertiary
+        : generalConfig.Colors.chart.nightMode.tertiary,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.quaternary
+        : generalConfig.Colors.chart.nightMode.quaternary
+    ],
     chart: {
       parentHeightOffset: 0,
       toolbar: { show: false }

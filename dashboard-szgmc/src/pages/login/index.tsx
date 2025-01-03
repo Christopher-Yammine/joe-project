@@ -34,6 +34,7 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
+import generalConfig from 'src/configs/general.config.json'
 
 // ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
@@ -126,7 +127,7 @@ const LoginPage = () => {
           <LoginIllustration
             width={700}
             alt='login-illustration'
-            src={`/images/pages/mosque-home-${theme.palette.mode}.jpg`}
+            src={generalConfig.Logo.loginImage ?? `/images/pages/mosque-home-${theme.palette.mode}.jpg`}
           />
         </Box>
       ) : null}
@@ -146,7 +147,7 @@ const LoginPage = () => {
                 fontSize: '1.75rem !important'
               }}
             >
-              {themeConfig.templateName}
+              {generalConfig.Company.name ?? themeConfig.templateName}
             </Typography>
           </Box>
           <Typography sx={{ mb: 6, color: 'text.secondary' }}>{t('signInTitle')}</Typography>

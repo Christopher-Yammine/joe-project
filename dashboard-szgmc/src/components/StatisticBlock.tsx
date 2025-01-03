@@ -4,6 +4,7 @@ import { ApexOptions } from 'apexcharts'
 import React, { useEffect, useState } from 'react'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { useSettings } from 'src/@core/hooks/useSettings'
+import generalConfig from 'src/configs/general.config.json'
 
 interface IStatisticBlock {
   number?: string
@@ -37,7 +38,18 @@ export const StatisticBlock: React.FC<IStatisticBlock> = ({
   ]
 
   const options: ApexOptions = {
-    colors: [theme.palette.primary.main, '#70A9A1', '#9EC1A3', '#CFE0C3'],
+    colors: [
+      settings.mode == 'light' ? generalConfig.Colors.chart.dayMode.main : generalConfig.Colors.chart.nightMode.main,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.secondary
+        : generalConfig.Colors.chart.nightMode.secondary,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.tertiary
+        : generalConfig.Colors.chart.nightMode.tertiary,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.quaternary
+        : generalConfig.Colors.chart.nightMode.quaternary
+    ],
     chart: {
       parentHeightOffset: 0,
       toolbar: { show: false }

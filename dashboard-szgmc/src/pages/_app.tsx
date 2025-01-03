@@ -18,7 +18,7 @@ import type { EmotionCache } from '@emotion/cache'
 
 import { defaultACLObj } from 'src/configs/acl'
 import themeConfig from 'src/configs/themeConfig'
-import generalConfig from '../../general.config.json'
+import generalConfig from 'src/configs/general.config.json'
 
 // ** Fake-DB Import
 import 'src/@fake-db'

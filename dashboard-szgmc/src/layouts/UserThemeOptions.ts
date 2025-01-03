@@ -21,14 +21,14 @@ const UserThemeOptions = (): ThemeOptions => {
   // const palette = corePalette(mode as PaletteMode, settings)
 
   return {
-    palette: {
-      primary: {
-        light: '#8082FF',
-        main: '#ae9e85',
-        dark: '#6062E8',
-        contrastText: '#FFF'
-      }
-    }
+    // palette: {
+    //   primary: {
+    //     light: '#8082FF',
+    //     main: '#00ff00',
+    //     dark: '#6062E8',
+    //     contrastText: '#FFF'
+    //   }
+    // }
 
     /*
     palette:{

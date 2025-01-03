@@ -1,15 +1,18 @@
 // ** Type Imports
 import { Palette } from '@mui/material'
 import { Settings } from 'src/@core/context/settingsContext'
+import generalConfig from 'src/configs/general.config.json'
 
 const DefaultPalette = (mode: Palette['mode'], settings: Settings): Palette => {
   // ** Vars
   const whiteColor = '#FFF'
-  const lightColor = '50, 71, 92'
-  const darkColor = '219, 219, 235'
+  const lightColor = generalConfig.Colors.font.dayMode.secondary
+  const darkColor = generalConfig.Colors.font.nightMode.secondary
+  const SecondarylightColor = generalConfig.Colors.font.dayMode.main
+  const SecondarydarkColor = generalConfig.Colors.font.nightMode.main
   const darkPaperBgColor = '#2B2C40'
   const mainColor = mode === 'light' ? lightColor : darkColor
-
+  const SecondaryMainColor = mode === 'light' ? SecondarylightColor : SecondarydarkColor
   const defaultBgColor = () => {
     if (settings.skin === 'bordered' && mode === 'light') {
       return whiteColor
@@ -35,6 +38,18 @@ const DefaultPalette = (mode: Palette['mode'], settings: Settings): Palette => {
       }
     }
   }
+  const opacity = 0.15
+  function handleColor(color: any, opacity: any) {
+    if (color.startsWith('rgb(')) {
+      return color.replace('rgb', 'rgba').replace(')', `, ${opacity})`)
+    } else if (color.startsWith('rgba(')) {
+      const rgbaPattern = /^rgba\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([^)]+))?\)$/
+
+      return color.replace(rgbaPattern, (_: any, r: any, g: any, b: any) => `rgba(${r}, ${g}, ${b}, ${opacity})`)
+    }
+
+    return color
+  }
 
   return {
     customColors: {
@@ -56,13 +71,13 @@ const DefaultPalette = (mode: Palette['mode'], settings: Settings): Palette => {
     },
     primary: {
       light: '#8082FF',
-      main: '#696CFF',
+      main: generalConfig.Colors.button.dayMode.main,
       dark: '#6062E8',
       contrastText: whiteColor
     },
     secondary: {
       light: '#97A2B1',
-      main: '#8592A3',
+      main: generalConfig.Colors.button.nightMode.main,
       dark: '#798594',
       contrastText: whiteColor
     },
@@ -81,7 +96,7 @@ const DefaultPalette = (mode: Palette['mode'], settings: Settings): Palette => {
     info: {
       light: '#29CCEF',
       main: '#03C3EC',
-      dark: '#03B1D7',
+      dark: mode == 'light' ? generalConfig.Colors.font.dayMode.tertiary : generalConfig.Colors.font.nightMode.tertiary,
       contrastText: whiteColor
     },
     success: {
@@ -107,11 +122,14 @@ const DefaultPalette = (mode: Palette['mode'], settings: Settings): Palette => {
       A700: '#616161'
     },
     text: {
-      primary: `rgba(${mainColor}, 0.87)`,
-      secondary: `rgba(${mainColor}, 0.6)`,
+      primary: `${mainColor}`,
+      secondary: `${SecondaryMainColor}`,
       disabled: `rgba(${mainColor}, 0.38)`
     },
-    divider: `rgba(${mainColor}, 0.12)`,
+    divider:
+      mode === 'light'
+        ? handleColor(generalConfig.Colors.font.dayMode.secondary, opacity)
+        : handleColor(generalConfig.Colors.font.nightMode.secondary, opacity),
     background: {
       paper: mode === 'light' ? whiteColor : darkPaperBgColor,
       default: defaultBgColor()

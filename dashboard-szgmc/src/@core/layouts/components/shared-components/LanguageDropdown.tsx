@@ -12,6 +12,7 @@ import OptionsMenu from 'src/@core/components/option-menu'
 
 // ** Type Import
 import { Settings } from 'src/@core/context/settingsContext'
+import generalConfig from 'src/configs/general.config.json'
 
 interface Props {
   settings: Settings
@@ -34,18 +35,12 @@ const LanguageDropdown = ({ settings, saveSettings }: Props) => {
     document.documentElement.setAttribute('lang', i18n.language)
   }, [i18n.language])
 
-  return (
-    <OptionsMenu
-      icon={<Icon icon='mdi:translate' />}
-      iconButtonProps={{ color: 'inherit', sx: { ...(layout === 'vertical' ? { mr: 0.75 } : { mx: 0.75 }) } }}
-      menuProps={{
-        sx: {
-          '& .MuiMenu-paper': { mt: 4, minWidth: 130 },
-          '& .MuiMenuItem-root:not(.Mui-selected)': { color: 'text.secondary' }
-        }
-      }}
-      options={[
-        {
+  const options = (
+    generalConfig?.Languages && generalConfig.Languages.length > 0 ? generalConfig.Languages : ['English', 'Arabic']
+  )
+    .map(language => {
+      if (language === 'English') {
+        return {
           text: 'English',
           menuItemProps: {
             sx: { py: 2 },
@@ -55,8 +50,9 @@ const LanguageDropdown = ({ settings, saveSettings }: Props) => {
               saveSettings({ ...settings, direction: 'ltr', language: 'en' })
             }
           }
-        },
-        {
+        }
+      } else if (language === 'Arabic') {
+        return {
           text: 'Arabic',
           menuItemProps: {
             sx: { py: 2 },
@@ -67,7 +63,23 @@ const LanguageDropdown = ({ settings, saveSettings }: Props) => {
             }
           }
         }
-      ]}
+      }
+
+      return null
+    })
+    .filter((option): option is Exclude<typeof option, null> => option !== null) // Explicit type narrowing
+
+  return (
+    <OptionsMenu
+      icon={<Icon icon='mdi:translate' />}
+      iconButtonProps={{ color: 'inherit', sx: { ...(layout === 'vertical' ? { mr: 0.75 } : { mx: 0.75 }) } }}
+      menuProps={{
+        sx: {
+          '& .MuiMenu-paper': { mt: 4, minWidth: 130 },
+          '& .MuiMenuItem-root:not(.Mui-selected)': { color: 'text.secondary' }
+        }
+      }}
+      options={options}
     />
   )
 }

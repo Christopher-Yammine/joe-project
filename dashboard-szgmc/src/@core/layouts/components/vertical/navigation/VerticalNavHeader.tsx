@@ -19,7 +19,8 @@ import { useTranslation } from 'react-i18next'
 
 // @ts-ignore
 import logo from 'public/images/logo.png'
-import generalConfig from '../../../../../../general.config.json'
+import generalConfig from 'src/configs/general.config.json'
+import { useEffect, useState } from 'react'
 
 interface Props {
   navHover: boolean
@@ -94,6 +95,13 @@ const VerticalNavHeader = (props: Props) => {
       return 8
     }
   }
+  const date = new Date()
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }
 
   const svgRotationDeg = () => {
     if (navCollapsed) {
@@ -118,6 +126,23 @@ const VerticalNavHeader = (props: Props) => {
       }
     }
   }
+  const formattedDate = date.toLocaleDateString('en-US', options)
+
+  const [currentTime, setCurrentTime] = useState('')
+
+  // Update the time every minute
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) // Exclude seconds
+      setCurrentTime(timeString)
+    }
+
+    updateTime()
+    const interval = setInterval(updateTime, 60000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <MenuHeaderWrapper className='nav-header' sx={{ pl: menuHeaderPaddingLeft() }}>
@@ -135,12 +160,11 @@ const VerticalNavHeader = (props: Props) => {
                 fontWeight: 500,
                 letterSpacing: '-0.45px',
                 fontSize: '1.25rem !important',
-                color: '#ae9e85',
                 textAlign: 'center',
                 mt: 2
               }}
             >
-              {t('header_title')}
+              {generalConfig.Company.name?? t('header_title')}
             </Typography>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', pb: '10px' }}>
@@ -150,51 +174,47 @@ const VerticalNavHeader = (props: Props) => {
                   fontWeight: 500,
                   letterSpacing: '-0.45px',
                   fontSize: '.75rem',
-                  color: '#ae9e85',
                   textAlign: 'center'
                 }}
               >
-                Wed, 10, Apr 2024
+                {t(formattedDate)}
               </Typography>
               {generalConfig.Features?.hasHijriCalendar && (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
+                  <Box sx={{ width: '1px', height: '100%' }} />
                   <Typography
                     sx={{
                       lineHeight: 1,
                       fontWeight: 500,
                       letterSpacing: '-0.45px',
-                      fontSize: '.75rem',
-                      color: '#ae9e85'
+                      fontSize: '.75rem'
                     }}
                   >
                     {t('Shawwal 1, 1445')}
                   </Typography>
                 </Box>
               )}
-              <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
+              <Box sx={{ width: '1px', height: '100%' }} />
               <Typography
                 sx={{
                   lineHeight: 1,
                   fontWeight: 500,
                   letterSpacing: '-0.45px',
                   fontSize: '.75rem',
-                  color: '#ae9e85',
                   textAlign: 'center'
                 }}
               >
-                Time: 02:23 AM
+                {t(`${currentTime}`)}
               </Typography>
               {generalConfig.Features?.hasPrayerTimes && (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Box sx={{ width: '1px', height: '100%', bgcolor: '#ae9e85' }} />
+                  <Box sx={{ width: '1px', height: '100%' }} />
                   <Typography
                     sx={{
                       lineHeight: 1,
                       fontWeight: 500,
                       letterSpacing: '-0.45px',
-                      fontSize: '.75rem',
-                      color: '#ae9e85'
+                      fontSize: '.75rem'
                     }}
                   >
                     {t('Fair prayer in 2hrs 24 mins')}

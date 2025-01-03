@@ -11,7 +11,7 @@ import NotificationDropdown, {
   NotificationsType
 } from 'src/@core/layouts/components/shared-components/NotificationDropdown'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
-import generalConfig from '../../../../general.config.json'
+import generalConfig from 'src/configs/general.config.json'
 
 const notifications: NotificationsType[] = [
   {

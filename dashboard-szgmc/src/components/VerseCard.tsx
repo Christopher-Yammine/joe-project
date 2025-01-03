@@ -45,7 +45,7 @@ const VerseCard: React.FC<Props> = ({ chapter = 4, verse = 16, verseCardTextKey 
         <CardContent sx={{ py: theme => `${theme.spacing(5)} !important` }}>
           <Grid container spacing={6}>
             <Grid item xs={12} sm={6} sx={{ textAlign: ['center', 'start'] }}>
-              <Typography variant='h5' sx={{ mb: 4, color: '#ae9e85' }}>
+              <Typography variant='h5' sx={{ mb: 4, color: 'text.secondary' }}>
                 {t('chapter')} {chapter}, {t('verse')} {verse}
               </Typography>
               <Typography maxWidth={'1000px'}>{t(verseCardTextKey)}</Typography>

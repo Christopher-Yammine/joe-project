@@ -17,6 +17,7 @@ import React, { SyntheticEvent, useState, useEffect } from 'react'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
 import { useTranslation } from 'react-i18next'
+import generalConfig from 'src/configs/general.config.json'
 
 const TabList = styled(MuiTabList)<TabListProps>(({ theme }) => ({
   minHeight: 40,
@@ -127,7 +128,20 @@ const VisitorsChart: React.FC<Props> = ({
   const rangeCount = calculateRangeCount(adjustedMax)
 
   const options: ApexOptions = {
-    colors: [theme.palette.primary.main, '#70A9A1', '#9EC1A3', '#CFE0C3'],
+    colors: [
+      settings.mode == 'light' 
+      ? generalConfig.Colors.chart.dayMode.main 
+      : generalConfig.Colors.chart.nightMode.main,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.secondary
+        : generalConfig.Colors.chart.nightMode.secondary,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.tertiary
+        : generalConfig.Colors.chart.nightMode.tertiary,
+      settings.mode == 'light'
+        ? generalConfig.Colors.chart.dayMode.quaternary
+        : generalConfig.Colors.chart.nightMode.quaternary
+    ],
     chart: {
       parentHeightOffset: 0,
       toolbar: { show: false },
@@ -222,10 +236,70 @@ const VisitorsChart: React.FC<Props> = ({
         <Box sx={{ p: 6, width: '100%', borderBottom: '1px solid #cacccf' }}>
           <TabContext value={value}>
             <TabList variant='scrollable' scrollButtons='auto' onChange={handleTabChange} aria-label='tab widget card'>
-              <Tab value='FOOTFALL' label={t('FOOTFALL')} />
-              <Tab value='UNIQUE VISITORS' label={t('UNIQUE VISITORS')} />
-              <Tab value='REPEATED VISITORS' label={t('REPEATED VISITORS')} />
-              <Tab value='OCCUPANCY' label={t('OCCUPANCY')} />
+              <Tab
+                value='FOOTFALL'
+                label={t('FOOTFALL')}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor:
+                      settings.mode === 'light'
+                        ? `${generalConfig.Colors.button.dayMode.secondary} !important`
+                        : `${generalConfig.Colors.button.nightMode.secondary} !important`,
+                    color:
+                      settings.mode === 'light'
+                        ? `${generalConfig.Colors.font.dayMode.quaternary} !important`
+                        : `${generalConfig.Colors.font.nightMode.quaternary} !important`
+                  }
+                }}
+              />
+              <Tab
+                value='UNIQUE VISITORS'
+                label={t('UNIQUE VISITORS')}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor:
+                      settings.mode === 'light'
+                        ? `${generalConfig.Colors.button.dayMode.secondary} !important`
+                        : `${generalConfig.Colors.button.nightMode.secondary} !important`,
+                    color:
+                      settings.mode === 'light'
+                        ? `${generalConfig.Colors.font.dayMode.quaternary} !important`
+                        : `${generalConfig.Colors.font.nightMode.quaternary} !important`
+                  }
+                }}
+              />
+              <Tab
+                value='REPEATED VISITORS'
+                label={t('REPEATED VISITORS')}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor:
+                      settings.mode === 'light'
+                        ? `${generalConfig.Colors.button.dayMode.secondary} !important`
+                        : `${generalConfig.Colors.button.nightMode.secondary} !important`,
+                    color:
+                      settings.mode === 'light'
+                        ? `${generalConfig.Colors.font.dayMode.quaternary} !important`
+                        : `${generalConfig.Colors.font.nightMode.quaternary} !important`
+                  }
+                }}
+              />
+              <Tab
+                value='OCCUPANCY'
+                label={t('OCCUPANCY')}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor:
+                      settings.mode === 'light'
+                        ? `${generalConfig.Colors.button.dayMode.secondary} !important`
+                        : `${generalConfig.Colors.button.nightMode.secondary} !important`,
+                    color:
+                      settings.mode === 'light'
+                        ? `${generalConfig.Colors.font.dayMode.quaternary} !important`
+                        : `${generalConfig.Colors.font.nightMode.quaternary} !important`
+                  }
+                }}
+              />
             </TabList>
           </TabContext>
         </Box>

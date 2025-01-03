@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useSettings } from 'src/@core/hooks/useSettings'
-import generalConfig from '../../../../../general.config.json'
+import generalConfig from 'src/configs/general.config.json'
 
 const WeatherWidget = () => {
   const { t } = useTranslation()
@@ -124,21 +124,42 @@ const WeatherWidget = () => {
 
   useEffect(() => {
     const fetchWeather = async () => {
+      if (!generalConfig?.Weather?.location) {
+        console.error('Location is not set in generalConfig.')
+
+        return
+      }
+
       setLoading(true)
       try {
-        const response = await fetch(
-          'https://api.open-meteo.com/v1/forecast?latitude=24.4539&longitude=54.3773&daily=temperature_2m_max,temperature_2m_min,weathercode&forecast_days=1&timezone=auto'
+        const location = generalConfig.Weather.location
+        const geoResponse = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1`
         )
-        const data = await response.json()
-        setWeatherData(data.daily)
+        const geoData = await geoResponse.json()
+
+        if (!geoData.results || geoData.results.length === 0) {
+          console.error('No results found for the location:', location)
+          setLoading(false)
+
+          return
+        }
+
+        const { latitude, longitude } = geoData.results[0]
+
+        const weatherResponse = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weathercode&forecast_days=1&timezone=auto`
+        )
+        const weatherData = await weatherResponse.json()
+        setWeatherData(weatherData.daily)
       } catch (error) {
-        console.error('Error fetching weather data:', error)
+        console.error('Error fetching data:', error)
       }
       setLoading(false)
     }
 
     fetchWeather()
-  }, [])
+  }, [generalConfig])
 
   if (loading) return <Typography>Loading...</Typography>
   if (!weatherData) return <Typography>No weather data available.</Typography>
@@ -156,10 +177,15 @@ const WeatherWidget = () => {
 
   return (
     <Box
-      sx={{ display: 'flex', flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', textAlign: 'center' }}
+      sx={{
+        display: 'flex',
+        flexDirection: isRTL ? 'row-reverse' : 'row',
+        alignItems: 'center',
+        textAlign: 'center'
+      }}
     >
       <Box>
-        <Typography sx={{ fontSize: '.75rem', fontWeight: '700', lineHeight: '1' }}>
+        <Typography sx={{ fontSize: '.75rem', fontWeight: '700', lineHeight: '1'}}>
           {t(generalConfig.Weather?.location ?? 'ABU DHABI')}
         </Typography>
         <Typography sx={{ fontSize: 'inherit' }}>{t('Weather')}</Typography>
@@ -168,7 +194,9 @@ const WeatherWidget = () => {
         <span style={{ fontSize: '2.5rem' }}>{weatherIcon}</span>
       </Box>
       <Box>
-        <Typography sx={{ fontSize: '2rem', lineHeight: '1' }}>{averageTemp}&#8451;</Typography>
+        <Typography sx={{ fontSize: '2rem', lineHeight: '1' }}>
+          {averageTemp}&#8451;
+        </Typography>
         <Typography sx={{ fontSize: '.75rem' }}>
           {t(
             todayWeatherCode === 0

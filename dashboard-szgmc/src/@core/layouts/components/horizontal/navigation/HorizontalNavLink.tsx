@@ -29,10 +29,6 @@ import UserIcon from 'src/layouts/components/UserIcon'
 import Translations from 'src/layouts/components/Translations'
 import CanViewNavLink from 'src/layouts/components/acl/CanViewNavLink'
 
-// ** Hook Import
-import useBgColor, { UseBgColorType } from 'src/@core/hooks/useBgColor'
-
-// ** Util Imports
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import { handleURLQueries } from 'src/@core/layouts/utils'
 
@@ -63,7 +59,6 @@ const HorizontalNavLink = (props: Props) => {
   // ** Hook & Vars
   const router = useRouter()
   const { skin, mode } = settings
-  const bgColors: UseBgColorType = useBgColor()
   const { navSubItemIcon, menuTextTruncate } = themeConfig
 
   const icon = item.icon ? item.icon : navSubItemIcon
@@ -101,13 +96,13 @@ const HorizontalNavLink = (props: Props) => {
               ? {
                   borderRadius: 1,
                   '&.active': {
-                    backgroundColor: mode === 'light' ? bgColors.primaryLight.backgroundColor : 'primary.main',
+                    backgroundColor: mode === 'light' ? 'primary.main' : 'secondary.main',
                     '&:focus-visible': {
                       backgroundColor: theme =>
                         mode === 'light' ? hexToRGBA(theme.palette.primary.main, 0.24) : 'primary.dark'
                     },
                     '& .MuiTypography-root': {
-                      color: mode === 'light' ? 'primary.main' : 'common.white'
+                      color: 'info.dark'
                     }
                   }
                 }
@@ -129,7 +124,7 @@ const HorizontalNavLink = (props: Props) => {
                   '& svg': { transition: 'transform .25s ease-in-out' },
                   ...(icon === navSubItemIcon && { color: 'text.disabled' }),
                   ...(isNavLinkActive() && {
-                    color: mode === 'light' ? 'primary.main' : 'white',
+                    color: 'info.dark',
                     ...(hasParent &&
                       icon === navSubItemIcon && {
                         '& svg': {
