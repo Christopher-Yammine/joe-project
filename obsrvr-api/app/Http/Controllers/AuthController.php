@@ -105,4 +105,22 @@ class AuthController extends Controller
             ]
         ]);
     }
+
+    public function validateToken()
+{
+    $user = Auth::user();
+
+    if (!$user) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Unauthorized',
+        ], 401);
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'user' => $user,
+    ]);
+}
+
 }

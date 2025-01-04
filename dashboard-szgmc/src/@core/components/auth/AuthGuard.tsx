@@ -38,7 +38,19 @@ const AuthGuard = (props: AuthGuardProps) => {
     [router.route]
   )
 
+  useEffect(() => {
+    console.log(
+      'AuthGuard Debug => User:',
+      auth.user,
+      'Loading:',
+      auth.loading,
+      'userData:',
+      window.localStorage.getItem('userData')
+    )
+  }, [auth.user, auth.loading])
+
   if (auth.loading || auth.user === null) {
+    console.log('here')
     return fallback
   }
 

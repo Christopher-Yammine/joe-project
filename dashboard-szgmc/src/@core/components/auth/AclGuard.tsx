@@ -43,7 +43,9 @@ const AclGuard = (props: AclGuardProps) => {
   let ability: AppAbility
 
   useEffect(() => {
-    if (auth.user && auth.user.role && !guestGuard && router.route === '/') {
+    // if (auth.user && auth.user.role && !guestGuard && router.route === '/') {
+    if (auth.user && !guestGuard && router.route === '/') {
+      console.log('HOME ROUTE')
       const homeRoute = getHomeRoute(auth.user.role)
       router.replace(homeRoute)
     }

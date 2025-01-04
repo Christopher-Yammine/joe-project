@@ -76,7 +76,7 @@ const schema = yup.object().shape({
 })
 
 const defaultValues = {
-  password: 'admin',
+  password: 'admins',
   email: 'admin@szgmc.gov.ae'
 }
 

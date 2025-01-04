@@ -49,6 +49,7 @@ const AuthProvider = ({ children }: Props) => {
             }
           })
           .then(async response => {
+            console.log('🚀 ~ initAuth ~ response:', response)
             setLoading(false)
             setUser({ ...response.data.userData })
           })
@@ -71,26 +72,103 @@ const AuthProvider = ({ children }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
-    axios
-      .post(authConfig.loginEndpoint, params)
-      .then(async response => {
-        params.rememberMe
-          ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
-          : null
-        const returnUrl = router.query.returnUrl
+  // useEffect(() => {
+  //   const initAuth = async (): Promise<void> => {
+  //     const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
 
-        setUser({ ...response.data.userData })
-        params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
+  //     if (storedToken) {
+  //       setLoading(true)
 
-        const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+  //       try {
+  //         const response = await fetch(authConfig.meEndpoint, {
+  //           method: 'GET',
+  //           headers: {
+  //             Authorization: `Bearer ${storedToken}`,
+  //             'Content-Type': 'application/json'
+  //           }
+  //         })
 
-        router.replace(redirectURL as string)
+  //         if (!response.ok) {
+  //           throw new Error('Unauthorized')
+  //         }
+
+  //         const responseData = await response.json()
+  //         setUser({ ...responseData.user })
+  //       } catch (error) {
+  //         localStorage.removeItem('userData')
+  //         localStorage.removeItem('refreshToken')
+  //         localStorage.removeItem('accessToken')
+  //         setUser(null)
+  //         if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
+  //           router.replace('/login')
+  //         }
+  //       } finally {
+  //         setLoading(false)
+  //       }
+  //     } else {
+  //       setLoading(false)
+  //     }
+  //   }
+
+  //   initAuth()
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
+
+  // const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
+  //   console.log('params', params)
+  //   axios
+  //     .post(authConfig.loginEndpoint, params)
+  //     .then(async response => {
+  //       params.rememberMe
+  //         ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
+  //         : null
+  //       const returnUrl = router.query.returnUrl
+
+  //       setUser({ ...response.data.userData })
+  //       params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
+
+  //       const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+  //       console.log('🚀 ~ handleLogin ~ responseData.userData:', response.data.userData)
+
+  //       router.replace(redirectURL as string)
+  //     })
+
+  //     .catch(err => {
+  //       if (errorCallback) errorCallback(err)
+  //     })
+  // }
+
+  const handleLogin = async (params: LoginParams, errorCallback?: ErrCallbackType) => {
+    try {
+      const response = await fetch(authConfig.loginEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(params)
       })
 
-      .catch(err => {
-        if (errorCallback) errorCallback(err)
-      })
+      if (!response.ok) {
+        throw new Error('Login failed')
+      }
+
+      const responseData = await response.json()
+      const returnUrl = router.query.returnUrl
+
+      const token = responseData.authorisation.token
+
+      if (params.rememberMe) {
+        window.localStorage.setItem(authConfig.storageTokenKeyName, token)
+        window.localStorage.setItem('userData', JSON.stringify(responseData.user))
+      }
+      setUser(responseData.user)
+
+      const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+      router.replace(redirectURL as string)
+    } catch (err) {
+      console.error('Login error:', err)
+      if (errorCallback) errorCallback(err as any)
+    }
   }
 
   const handleLogout = () => {
