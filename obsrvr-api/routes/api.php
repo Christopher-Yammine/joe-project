@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ETLController;
 use App\Http\Controllers\SeederController;
 use App\Http\Controllers\StreamController;
+use App\Http\Controllers\MailController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,3 +33,5 @@ Route::group(["middleware" => 'auth:api'], function() {
     Route::get('/streams', [StreamController::class, 'getAllStreams']);
     Route::get('/migrate-fresh-seed', [SeederController::class, 'migrateFreshAndSeed']);
 });
+
+Route::post('/send-test-email', [MailController::class, 'sendTestEmail']);
