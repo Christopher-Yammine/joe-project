@@ -39,8 +39,11 @@ const AuthProvider = ({ children }: Props) => {
 
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
+      console.log('authInit entered')
       const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
+      console.log('🚀 ~ initAuth ~ storedToken:', storedToken)
       if (storedToken) {
+        console.log('entered')
         setLoading(true)
         await axios
           .get(authConfig.meEndpoint, {
@@ -57,8 +60,10 @@ const AuthProvider = ({ children }: Props) => {
             localStorage.removeItem('userData')
             localStorage.removeItem('refreshToken')
             localStorage.removeItem('accessToken')
+
             setUser(null)
             setLoading(false)
+
             if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
               router.replace('/login')
             }
@@ -71,72 +76,6 @@ const AuthProvider = ({ children }: Props) => {
     initAuth()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // useEffect(() => {
-  //   const initAuth = async (): Promise<void> => {
-  //     const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
-
-  //     if (storedToken) {
-  //       setLoading(true)
-
-  //       try {
-  //         const response = await fetch(authConfig.meEndpoint, {
-  //           method: 'GET',
-  //           headers: {
-  //             Authorization: `Bearer ${storedToken}`,
-  //             'Content-Type': 'application/json'
-  //           }
-  //         })
-
-  //         if (!response.ok) {
-  //           throw new Error('Unauthorized')
-  //         }
-
-  //         const responseData = await response.json()
-  //         setUser({ ...responseData.user })
-  //       } catch (error) {
-  //         localStorage.removeItem('userData')
-  //         localStorage.removeItem('refreshToken')
-  //         localStorage.removeItem('accessToken')
-  //         setUser(null)
-  //         if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
-  //           router.replace('/login')
-  //         }
-  //       } finally {
-  //         setLoading(false)
-  //       }
-  //     } else {
-  //       setLoading(false)
-  //     }
-  //   }
-
-  //   initAuth()
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [])
-
-  // const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
-  //   console.log('params', params)
-  //   axios
-  //     .post(authConfig.loginEndpoint, params)
-  //     .then(async response => {
-  //       params.rememberMe
-  //         ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
-  //         : null
-  //       const returnUrl = router.query.returnUrl
-
-  //       setUser({ ...response.data.userData })
-  //       params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
-
-  //       const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
-  //       console.log('🚀 ~ handleLogin ~ responseData.userData:', response.data.userData)
-
-  //       router.replace(redirectURL as string)
-  //     })
-
-  //     .catch(err => {
-  //       if (errorCallback) errorCallback(err)
-  //     })
-  // }
 
   const handleLogin = async (params: LoginParams, errorCallback?: ErrCallbackType) => {
     try {
@@ -157,10 +96,9 @@ const AuthProvider = ({ children }: Props) => {
 
       const token = responseData.authorisation.token
 
-      if (params.rememberMe) {
-        window.localStorage.setItem(authConfig.storageTokenKeyName, token)
-        window.localStorage.setItem('userData', JSON.stringify(responseData.user))
-      }
+      window.localStorage.setItem(authConfig.storageTokenKeyName, token)
+      window.localStorage.setItem('userData', JSON.stringify(responseData.user))
+
       setUser(responseData.user)
 
       const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'

@@ -14,11 +14,13 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 import { chartData, StaffChartHistoricalData } from 'src/configs/types'
 import { config } from 'src/configs/config'
 import FallbackSpinner from 'src/@core/components/spinner'
+import { useAuth } from 'src/hooks/useAuth'
 
 const API_URL = config.NEXT_PUBLIC_BASE_URL
 
 const HistoricalPage = () => {
   const { t } = useTranslation()
+  const { logout } = useAuth()
   const { settings } = useSettings()
   const isAR = settings.language === 'ar'
   const streams = useStore(state => state.streams)
@@ -92,14 +94,27 @@ const HistoricalPage = () => {
   const getAllStreams = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`${API_URL}/streams`)
+      let token = localStorage.getItem('accessToken')
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+      const response = await fetch(`${API_URL}/streams`, {
+        headers
+      })
       if (!response.ok) {
-        throw new Error('Network response was not ok')
+        if (response.status === 401) {
+          console.log('Token is invalid or expired')
+          logout()
+          return
+        } else {
+          throw new Error('Network response was not ok')
+        }
       }
       const streams = await response.json()
       setStreams(streams)
     } catch (error) {
-      // console.log(error)
+      console.log(error)
     } finally {
       setLoading(false)
     }
@@ -111,6 +126,12 @@ const HistoricalPage = () => {
       let formattedFromDate
       let formattedToDate
       let response
+      let token = localStorage.getItem('accessToken')
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+
       if (fromDate) {
         formattedFromDate = formatDate(fromDate)
       }
@@ -124,16 +145,24 @@ const HistoricalPage = () => {
           .join(',')
 
         response = await fetch(
-          `${API_URL}/statistics/historical?stream_id=${streamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`
+          `${API_URL}/statistics/historical?stream_id=${streamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`,
+          { headers }
         )
       } else {
         const selectedStreamIds = selectedStreams.join(',')
         response = await fetch(
-          `${API_URL}/statistics/historical?stream_id=${selectedStreamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`
+          `${API_URL}/statistics/historical?stream_id=${selectedStreamIds}&from_date=${formattedFromDate}&to_date=${formattedToDate}&duration=${durationSelect}`,
+          { headers }
         )
       }
       if (!response.ok) {
-        throw new Error('Network response was not ok')
+        if (response.status === 401) {
+          console.log('Token is invalid or expired')
+          logout()
+          return
+        } else {
+          throw new Error('Network response was not ok')
+        }
       }
       const data = await response.json()
 

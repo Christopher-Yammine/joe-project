@@ -21,6 +21,7 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|string|email',
             'password' => 'required|string',
+            'rememberMe' => 'required|boolean'
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -41,14 +42,24 @@ class AuthController extends Controller
                 'message' => 'Unauthorized',
             ], 401);
         }
+        
+        if ($request->rememberMe) {
+            Auth::factory()->setTTL(60 * 24 * 30);
+        } else {
+            Auth::factory()->setTTL(60);
+        }
 
         $token = Auth::login($user);
         return response()->json([
             'status' => 'success',
-            'user' => $user,
+            'user' => $user->makeHidden(['created_at', 'updated_at'])->toArray() + [
+                'role' => 'admin',
+                'username' => 'admin',
+            ],
             'authorisation' => [
                 'token' => $token,
                 'type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
             ]
         ]);
     }

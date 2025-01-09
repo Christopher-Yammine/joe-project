@@ -25,10 +25,10 @@ Route::controller(AuthController::class)->group(function () {
     Route::get('me', 'validateToken');
 });
 
-Route::get('/statistics/hourly', [ETLController::class, 'getHourlyStatistics']);
-Route::get('/statistics/historical', [ETLController::class, 'getHistoricalStatistics']);
-Route::get('/streams', [StreamController::class, 'getAllStreams']);
 
 Route::group(["middleware" => 'auth:api'], function() {
+    Route::get('/statistics/hourly', [ETLController::class, 'getHourlyStatistics']);
+    Route::get('/statistics/historical', [ETLController::class, 'getHistoricalStatistics']);
+    Route::get('/streams', [StreamController::class, 'getAllStreams']);
     Route::get('/migrate-fresh-seed', [SeederController::class, 'migrateFreshAndSeed']);
 });

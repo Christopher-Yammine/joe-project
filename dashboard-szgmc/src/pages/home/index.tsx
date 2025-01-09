@@ -9,11 +9,13 @@ import VisitorsChart from 'src/components/VisitorsChart/VisitorsChart'
 import useStore from 'src/store/store'
 import { config } from 'src/configs/config'
 import FallbackSpinner from 'src/@core/components/spinner'
+import { useAuth } from 'src/hooks/useAuth'
 
 const API_URL = config.NEXT_PUBLIC_BASE_URL
 
 const Home = () => {
   const { t } = useTranslation()
+  const { logout } = useAuth()
   const streams = useStore(state => state.streams)
   const setStreams = useStore(state => state.setStreams)
   const selectedStreams = useStore(state => state.selectedStreams)
@@ -59,20 +61,35 @@ const Home = () => {
     try {
       setLoading(true)
       let response
+      let token = localStorage.getItem('accessToken')
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
 
       if (streams.length > 0 && selectedStreams.length === 0) {
         const streamIds = streams
           .flatMap(stream => (stream.options ? stream.options.map(option => option.value) : [stream.value]))
           .join(',')
 
-        response = await fetch(`${API_URL}/statistics/hourly?stream_id=${streamIds}`)
+        response = await fetch(`${API_URL}/statistics/hourly?stream_id=${streamIds}`, {
+          headers
+        })
       } else {
         const selectedStreamIds = selectedStreams.join(',')
-        response = await fetch(`${API_URL}/statistics/hourly?stream_id=${selectedStreamIds}`)
+        response = await fetch(`${API_URL}/statistics/hourly?stream_id=${selectedStreamIds}`, { headers })
       }
+
       if (!response.ok) {
-        throw new Error('Network response was not ok')
+        if (response.status === 401) {
+          console.log('Token is invalid or expired')
+          logout()
+          return
+        } else {
+          throw new Error('Network response was not ok')
+        }
       }
+
       const data = await response.json()
       const visitorsData = data.totalVisitorsCard
       const uniqueVisitors = data.totalUniqueVisitorsCard
@@ -180,14 +197,25 @@ const Home = () => {
   const getAllStreams = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`${API_URL}/streams`)
+      let token = localStorage.getItem('accessToken')
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+      const response = await fetch(`${API_URL}/streams`, { headers })
       if (!response.ok) {
-        throw new Error('Network response was not ok')
+        if (response.status === 401) {
+          console.log('Token is invalid or expired')
+          logout()
+          return
+        } else {
+          throw new Error('Network response was not ok')
+        }
       }
       const streams = await response.json()
       setStreams(streams)
     } catch (error) {
-      // console.log(error)
+      console.log(error)
     } finally {
       setLoading(false)
     }
