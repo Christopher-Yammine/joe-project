@@ -155,6 +155,7 @@
   "savePassword": "Save Password",
   "enterPassword": "Enter your new password",
   "resetPasswordTitle": "Enter your email and we will send you instructions to reset your password",
+  "linkSent": "Reset link sent",
   "totalFootfall": "Total footfall",
   "avgFootfall": "Avg. footfall per hour",
   "newVisitors": "New visitors",

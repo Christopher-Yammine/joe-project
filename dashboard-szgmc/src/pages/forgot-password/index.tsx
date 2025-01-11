@@ -1,5 +1,5 @@
 // ** React Imports
-import { ReactNode } from 'react'
+import { ReactNode, useState } from 'react'
 
 // ** Next Import
 import Link from 'next/link'
@@ -24,6 +24,12 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 // ** Hooks
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { useTranslation } from 'react-i18next'
+import { FormControl } from '@mui/material'
+import { Controller, SubmitHandler, useForm } from 'react-hook-form'
+
+type FormData = {
+  email: string
+}
 
 // Styled Components
 const ForgotPasswordIllustration = styled('img')({
@@ -67,6 +73,41 @@ const ForgotPassword = () => {
   // ** Var
   const { skin } = settings
 
+  const baseURL = process.env.NEXT_PUBLIC_BASE_URL
+  const {
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<FormData>()
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+
+  const handleSendResetLink: SubmitHandler<FormData> = async data => {
+    try {
+      setIsSubmitting(true)
+      const response = await fetch(`${baseURL}/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: data.email })
+      })
+
+      const result = await response.json()
+      if (response.ok) {
+        setIsSuccess(true)
+      } else {
+        setIsSuccess(false)
+      }
+    } catch (error) {
+      setIsSuccess(false)
+      console.error(error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <Box className='content-right'>
       {!hidden ? (
@@ -101,10 +142,43 @@ const ForgotPassword = () => {
             {t('forgotPassword')} 🔒
           </Typography>
           <Typography sx={{ mb: 6, color: 'text.secondary' }}>{t('resetPasswordTitle')} </Typography>
-          <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <TextField autoFocus type='email' label={t('Email')} sx={{ display: 'flex', mb: 6 }} />
-            <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 4 }}>
-              {t('sendResetLink')}
+
+          <form onSubmit={handleSubmit(handleSendResetLink)} noValidate autoComplete='off'>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='email'
+                control={control}
+                rules={{
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+                    message: 'Invalid email address'
+                  }
+                }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={field.value || ''}
+                    autoFocus
+                    label={t('Email')}
+                    error={Boolean(errors.email)}
+                    helperText={errors.email?.message}
+                    sx={{ display: 'flex', mb: 6 }}
+                  />
+                )}
+              />
+            </FormControl>
+
+            <Button
+              fullWidth
+              size='large'
+              type='submit'
+              variant='contained'
+              sx={{ mb: 4 }}
+              disabled={isSubmitting || isSuccess}
+            >
+              {isSubmitting ? t('sending') : isSuccess ? t('linkSent') : t('sendResetLink')}
             </Button>
             <Typography variant='body2' sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <LinkStyled href='/login'>

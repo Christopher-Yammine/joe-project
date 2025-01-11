@@ -7,13 +7,17 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\UserPassword;
+use App\Models\PasswordReset;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
 
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'requestReset', 'changePassword']]);
     }
 
     public function login(Request $request)
@@ -134,4 +138,92 @@ class AuthController extends Controller
     ]);
 }
 
+    public function requestReset(Request $request) {
+        $request->validate([
+            'email' => 'required|string|email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found',
+            ], 404);
+        }
+
+        $token = Str::random(60);
+
+        PasswordReset::where('user_id', $user->id)->delete();
+
+        PasswordReset::create([
+            'user_id' => $user->id,
+            'token' => $token,
+            'expires_at' => Carbon::now()->addMinutes(30),
+        ]);
+
+        $resetUrl = env('RESET_PASSWORD_URL') . "?token=$token&email=" . urlencode($user->email);
+
+        Mail::send('emails.reset-password', ['user' => $user, 'resetUrl' => $resetUrl], function ($message) use ($user) {
+            $message->to($user->email)
+                    ->subject('Password Reset Request');
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Reset token sent.',
+        ]);
+    }
+
+    public function changePassword(Request $request) {
+        $request->validate([
+            'token' => 'required|string',
+            'email' => 'required|string|email',
+            'password' => 'required|string|min:6',
+        ]);
+
+        $passwordReset = PasswordReset::where('token', $request->token)
+            ->where('expires_at', '>', Carbon::now())
+            ->first();
+            
+        if (!$passwordReset) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid or expired token',
+            ], 400);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found',
+            ], 404);
+        }
+
+        $userPassword = UserPassword::where('user_id', $user->id)
+            ->whereNull('deleted_at')
+            ->latest()
+            ->first();
+
+        if ($userPassword) {
+            $userPassword->update([
+                'deleted_at' => now(),
+            ]);
+        }
+
+        UserPassword::create([
+            'user_id' => $user->id,
+            'hashed_password' => Hash::make($request->password),
+            'created_at' => now(),
+            'deleted_at' => null
+        ]);
+
+        $passwordReset->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Password changed successfully',
+        ]);
+    }
+    
 }
