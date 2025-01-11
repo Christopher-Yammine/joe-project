@@ -76,8 +76,8 @@ const schema = yup.object().shape({
 })
 
 const defaultValues = {
-  password: 'admins',
-  email: 'admin@szgmc.gov.ae'
+  password: '',
+  email: ''
 }
 
 interface FormData {
@@ -165,7 +165,7 @@ const LoginPage = () => {
                     onBlur={onBlur}
                     onChange={onChange}
                     error={Boolean(errors.email)}
-                    placeholder='admin@szgmc.gov.ae'
+                    placeholder=''
                   />
                 )}
               />
