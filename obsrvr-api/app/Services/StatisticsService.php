@@ -19,17 +19,15 @@ class StatisticsService
         $endOfYesterday = now()->subDay()->endOfDay();
 
 
-        $todayData = EtlDataHourly::join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
-            ->whereIn('etl_data_hourly.stream_id', $streamIds)
-            ->where('person_types.name', '!=', 'staff')
-            ->whereBetween('etl_data_hourly.date', [$startOfToday, $endOfToday])
-            ->select(DB::raw('HOUR(etl_data_hourly.date) as hour'), DB::raw('SUM(etl_data_hourly.value) as total'))
-            ->groupBy(DB::raw('HOUR(etl_data_hourly.date)'))
-            ->get();
+        $todayData = EtlDataHourly::whereIn('etl_data_hourly.stream_id', $streamIds)
+        ->where('etl_data_hourly.person_type', '!=', 'staff')
+        ->whereBetween('etl_data_hourly.date', [$startOfToday, $endOfToday])
+        ->select(DB::raw('HOUR(etl_data_hourly.date) as hour'), DB::raw('SUM(etl_data_hourly.value) as total'))
+        ->groupBy(DB::raw('HOUR(etl_data_hourly.date)'))
+        ->get();
 
-        $yesterdayData = EtlDataHourly::join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
-            ->whereIn('etl_data_hourly.stream_id', $streamIds)
-            ->where('person_types.name', '!=', 'Staff')
+        $yesterdayData = EtlDataHourly::whereIn('etl_data_hourly.stream_id', $streamIds)
+            ->where('etl_data_hourly.person_type', '!=', 'staff')
             ->whereBetween('etl_data_hourly.date', [$startOfYesterday, $endOfYesterday])
             ->select(DB::raw('HOUR(etl_data_hourly.date) as hour'), DB::raw('SUM(etl_data_hourly.value) as total'))
             ->groupBy(DB::raw('HOUR(etl_data_hourly.date)'))
@@ -67,7 +65,6 @@ class StatisticsService
             'xAxis' => $xAxisCategories,
         ];
     }
-
 
     public function getTotalUniqueVisitorsCard(array $streamIds)
     {
@@ -76,25 +73,21 @@ class StatisticsService
         $startOfYesterday = now()->subDay()->startOfDay();
         $endOfYesterday = now()->subDay()->endOfDay();
 
-        $todayData = EtlDataHourly::join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-            ->join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
-            ->whereIn('etl_data_hourly.stream_id', $streamIds)
-            ->where('metrics.name', 'Unique')
-            ->where('person_types.name', '!=', 'Staff')
-            ->whereBetween('etl_data_hourly.date', [$startOfToday, $endOfToday])
-            ->select(
-                DB::raw('DATE(etl_data_hourly.date) as day'),
-                DB::raw('HOUR(etl_data_hourly.date) as hour'),
-                DB::raw('SUM(etl_data_hourly.value) as total')
-            )
-            ->groupBy(DB::raw('DATE(etl_data_hourly.date)'), DB::raw('HOUR(etl_data_hourly.date)'))
-            ->get();
+        $todayData = EtlDataHourly::whereIn('etl_data_hourly.stream_id', $streamIds)
+        ->where('etl_data_hourly.metric', 'Unique') 
+        ->where('etl_data_hourly.person_type', '!=', 'Staff')
+        ->whereBetween('etl_data_hourly.date', [$startOfToday, $endOfToday])
+        ->select(
+            DB::raw('DATE(etl_data_hourly.date) as day'),
+            DB::raw('HOUR(etl_data_hourly.date) as hour'),
+            DB::raw('SUM(etl_data_hourly.value) as total')
+        )
+        ->groupBy(DB::raw('DATE(etl_data_hourly.date)'), DB::raw('HOUR(etl_data_hourly.date)'))
+        ->get();
 
-        $yesterdayData = EtlDataHourly::join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-            ->join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
-            ->whereIn('etl_data_hourly.stream_id', $streamIds)
-            ->where('metrics.name', 'Unique')
-            ->where('person_types.name', '!=', 'Staff')
+        $yesterdayData = EtlDataHourly::whereIn('etl_data_hourly.stream_id', $streamIds)
+            ->where('etl_data_hourly.metric', 'Unique')
+            ->where('etl_data_hourly.person_type', '!=', 'Staff')
             ->whereBetween('etl_data_hourly.date', [$startOfYesterday, $endOfYesterday])
             ->select(
                 DB::raw('DATE(etl_data_hourly.date) as day'),
@@ -137,7 +130,6 @@ class StatisticsService
         ];
     }
 
-
     public function getTotalOccupancyCard(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
@@ -145,25 +137,21 @@ class StatisticsService
         $startOfYesterday = now()->subDay()->startOfDay();
         $endOfYesterday = now()->subDay()->endOfDay();
 
-        $todayData = EtlDataHourly::join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-            ->join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
-            ->whereIn('etl_data_hourly.stream_id', $streamIds)
-            ->where('metrics.name', 'Occupancy')
-            ->where('person_types.name', '!=', 'Staff')
-            ->whereBetween('etl_data_hourly.date', [$startOfToday, $endOfToday])
-            ->select(
-                DB::raw('DATE(etl_data_hourly.date) as day'),
-                DB::raw('HOUR(etl_data_hourly.date) as hour'),
-                DB::raw('SUM(etl_data_hourly.value) as total')
-            )
-            ->groupBy(DB::raw('DATE(etl_data_hourly.date)'), DB::raw('HOUR(etl_data_hourly.date)'))
-            ->get();
+        $todayData = EtlDataHourly::whereIn('etl_data_hourly.stream_id', $streamIds)
+        ->where('etl_data_hourly.metric', 'Occupancy')
+        ->where('etl_data_hourly.person_type', '!=', 'Staff')
+        ->whereBetween('etl_data_hourly.date', [$startOfToday, $endOfToday])
+        ->select(
+            DB::raw('DATE(etl_data_hourly.date) as day'),
+            DB::raw('HOUR(etl_data_hourly.date) as hour'),
+            DB::raw('SUM(etl_data_hourly.value) as total')
+        )
+        ->groupBy(DB::raw('DATE(etl_data_hourly.date)'), DB::raw('HOUR(etl_data_hourly.date)'))
+        ->get();
 
-        $yesterdayData = EtlDataHourly::join('metrics', 'etl_data_hourly.metric_id', '=', 'metrics.id')
-            ->join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
-            ->whereIn('etl_data_hourly.stream_id', $streamIds)
-            ->where('metrics.name', 'Occupancy')
-            ->where('person_types.name', '!=', 'Staff')
+        $yesterdayData = EtlDataHourly::whereIn('etl_data_hourly.stream_id', $streamIds)
+            ->where('etl_data_hourly.metric', 'Occupancy')
+            ->where('etl_data_hourly.person_type', '!=', 'Staff')
             ->whereBetween('etl_data_hourly.date', [$startOfYesterday, $endOfYesterday])
             ->select(
                 DB::raw('DATE(etl_data_hourly.date) as day'),
@@ -203,28 +191,21 @@ class StatisticsService
         ];
     }
 
-
-
     public function getAgeGenderSentimentBarChartData(array $streamIds)
     {
         $startOfToday = now()->startOfDay();
         $endOfToday = now()->endOfDay();
 
-        $todayData = EtlDataHourly::whereIn('stream_id', $streamIds)
-            ->whereBetween('date', [$startOfToday, $endOfToday])
-            ->join('demographics', 'etl_data_hourly.demographics_id', '=', 'demographics.id')
-            ->join('person_types', 'etl_data_hourly.person_type_id', '=', 'person_types.id')
-            ->join('age_groups', 'demographics.age_group_id', '=', 'age_groups.id')
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
-            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
-            ->where('person_types.name', '!=', 'Staff')
+        $todayData = EtlDataHourly::whereBetween('date', [$startOfToday, $endOfToday])
+            ->where('person_type', '!=', 'Staff')
+            ->whereIn('stream_id', $streamIds)
             ->select(
-                'genders.gender',
-                'sentiments.sentiment',
-                'age_groups.group_name',
-                DB::raw('SUM(etl_data_hourly.value) as total')
+                'gender',
+                'sentiment',
+                'age_group',
+                DB::raw('SUM(value) as total')
             )
-            ->groupBy('genders.gender', 'sentiments.sentiment', 'age_groups.group_name')
+            ->groupBy('gender', 'sentiment', 'age_group')
             ->get();
 
         $ageBarChartSeries = [];
@@ -234,7 +215,7 @@ class StatisticsService
         $happyMax = 0;
         $sadMax = 0;
 
-        $ageGroups = $todayData->pluck('group_name')->unique()->sort()->toArray();
+        $ageGroups = $todayData->pluck('age_group')->unique()->sort()->toArray();
         $yAxis = array_reverse(array_values($ageGroups));
 
         foreach ($todayData as $entry) {
@@ -325,19 +306,19 @@ class StatisticsService
         $yesterday = now()->subDay()->format('Y-m-d');
 
         $todayResults = DB::table('etl_data_hourly as etl')
-            ->select(
-                'streams.name',
-                DB::raw('HOUR(etl.date) as hour'),
-                DB::raw('SUM(etl.value) as total_value')
-            )
-            ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->whereIn('etl.stream_id', $streamIds)
-            ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
-            ->where('person_types.name', '!=', 'Staff')
-            ->groupBy('streams.id', 'hour', 'streams.name')
-            ->orderByRaw('2')
-            ->get();
+        ->select(
+            'streams.name',
+            DB::raw('HOUR(etl.date) as hour'),
+            DB::raw('SUM(etl.value) as total_value'),
+            
+        )
+        ->join('streams', 'etl.stream_id', '=', 'streams.id')
+        ->whereIn('etl.stream_id', $streamIds)  
+        ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
+        ->where('etl.person_type', '!=', 'Staff')
+        ->groupBy('streams.id', 'hour', 'streams.name')
+        ->orderByRaw('2')
+        ->get();
 
         $visitorsChartSeries = [];
         $uniqueHours = [];
@@ -347,9 +328,7 @@ class StatisticsService
                 $visitorsChartSeries[$row->name] = [
                     'name' => $row->name,
                     'name_ar' => $this->getArabicName($row->name),
-                    'data' => [],
-                    'data' => [],
-                ];
+                    'data' => [],                ];
             }
             $visitorsChartSeries[$row->name]['data'][$row->hour] = $row->total_value;
             $uniqueHours[$row->hour] = true;
@@ -393,11 +372,9 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->whereIn('etl.stream_id', $streamIds)
-            ->where('metrics.name', 'Unique')
-            ->where('person_types.name', '!=', 'Staff')
+            ->where('etl.metric', 'Unique')
+            ->where('etl.person_type', '!=', 'Staff') 
             ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderByRaw('2')
@@ -435,7 +412,6 @@ class StatisticsService
         ];
     }
 
-
     public function getRepeatedVisitorsData(array $streamIds)
     {
         $today = now()->format('Y-m-d');
@@ -448,11 +424,10 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->whereIn('etl.stream_id', $streamIds)
-            ->where('person_types.name', 'Returning')
+            ->where('etl.person_type', 'Returning')
             ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
-            ->where('person_types.name', '!=', 'Staff')
+            ->where('etl.person_type', '!=', 'Staff')
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderByRaw('2')
             ->get();
@@ -489,7 +464,6 @@ class StatisticsService
             'visitorsChartSeries3Dailycomparisons' => array_values($calculateMetricsComparison),
         ];
     }
-
     public function getOccupancyVisitorsData(array $streamIds)
     {
         $today = now()->format('Y-m-d');
@@ -502,11 +476,9 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
+            ->where('etl.person_type', '!=', 'Staff')
             ->whereIn('etl.stream_id', $streamIds)
-            ->where('metrics.name', 'Occupancy')
+            ->where('etl.metric', 'Occupancy')
             ->whereBetween('etl.date', ["$today 09:00:00", "$today 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderByRaw('2')
@@ -544,7 +516,6 @@ class StatisticsService
             'visitorsChartSeries4Dailycomparisons' => array_values($calculateMetricsComparison),
         ];
     }
-
     public function getTotalStaffDaily(array $streamIds)
     {
         $today = now()->format('Y-m-d');
@@ -556,16 +527,15 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->whereIn('etl.stream_id', $streamIds)
-            ->where('person_types.name', 'Staff')
-            ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"]) // Full day range
+            ->where('etl.person_type', 'Staff')
+            ->whereBetween('etl.date', ["$today 00:00:00", "$today 23:59:59"])
             ->groupBy('streams.id', 'hour', 'streams.name')
             ->orderByRaw('2')
             ->get();
 
         $visitorsChartSeries = [];
-        $earliestHourWithData = 24; // Initialize to max hour
+        $earliestHourWithData = 24;
         $latestHourWithData = 0;
 
         foreach ($todayResults as $row) {
@@ -581,7 +551,6 @@ class StatisticsService
             $latestHourWithData = max($latestHourWithData, $row->hour);
         }
 
-        // Fill missing hours with null and sort data
         foreach ($visitorsChartSeries as &$series) {
             $filledData = [];
             for ($hour = $earliestHourWithData; $hour <= $latestHourWithData; $hour++) {
@@ -590,12 +559,10 @@ class StatisticsService
             $series['data'] = $filledData;
         }
 
-        // Sort series by name
         usort($visitorsChartSeries, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
 
-        // Generate xAxis labels dynamically
         $xAxis = [];
         for ($hour = $earliestHourWithData; $hour <= $latestHourWithData + 1; $hour++) {
             $xAxis[] = str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
@@ -607,7 +574,6 @@ class StatisticsService
         ];
     }
 
-
     public function getNewReturningHistoricalVisitors(array $streamIds, $fromDate, $toDate, $duration)
     {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
@@ -617,10 +583,8 @@ class StatisticsService
         $uniqueVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
-            ->join('metrics', $etlDataTable . '.metric_id', '=', 'metrics.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
-            ->where('metrics.name', '=', 'Unique')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
+            ->where("$etlDataTable.metric", '=', 'Unique')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -630,8 +594,7 @@ class StatisticsService
         $returningVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '=', 'Returning')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -648,10 +611,8 @@ class StatisticsService
         $previousUniqueVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
-            ->join('metrics', $etlDataTable . '.metric_id', '=', 'metrics.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
-            ->where('metrics.name', '=', 'Unique')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
+            ->where("$etlDataTable.metric", '=', 'Unique')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -660,8 +621,7 @@ class StatisticsService
         $previousReturningVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '=', 'Returning')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -726,11 +686,8 @@ class StatisticsService
         $maleVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
-            ->where('genders.gender', '=', 'Male')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
+            ->where("$etlDataTable.gender", '=', 'Male')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -739,11 +696,8 @@ class StatisticsService
         $femaleVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
-            ->where('genders.gender', '=', 'Female')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
+            ->where("$etlDataTable.gender", '=', 'Female')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'),  DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -760,11 +714,8 @@ class StatisticsService
         $previousMaleVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
-            ->where('genders.gender', '=', 'Male')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
+            ->where("$etlDataTable.gender", '=', 'Male')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -773,11 +724,8 @@ class StatisticsService
         $previousFemaleVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('genders', 'demographics.gender_id', '=', 'genders.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
-            ->where('genders.gender', '=', 'Female')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
+            ->where("$etlDataTable.gender", '=', 'Female')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -843,11 +791,8 @@ class StatisticsService
         $happyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
-            ->where('sentiments.sentiment', '=', 'Happy')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
+            ->where("$etlDataTable.sentiment", '=', 'Happy')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -856,11 +801,8 @@ class StatisticsService
         $unhappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
-            ->whereIn('sentiments.sentiment', ['Sad', 'Neutral'])
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
+            ->whereIn("$etlDataTable.sentiment", ['Sad', 'Neutral'])
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -877,11 +819,8 @@ class StatisticsService
         $previousHappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
-            ->where('sentiments.sentiment', '=', 'Happy')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
+            ->where("$etlDataTable.sentiment", '=', 'Happy')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -890,11 +829,8 @@ class StatisticsService
         $previousUnhappyVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
-            ->join('demographics', $etlDataTable . '.demographics_id', '=', 'demographics.id')
-            ->join('sentiments', 'demographics.sentiment_id', '=', 'sentiments.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
-            ->whereIn('sentiments.sentiment', ['Sad', 'Neutral'])
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
+            ->whereIn("$etlDataTable.sentiment", ['Sad', 'Neutral'])
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
             ->orderBy(DB::raw($groupByFormat))
@@ -960,8 +896,7 @@ class StatisticsService
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
             ->where('streams.name', 'like', '%Mosque%')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
@@ -972,8 +907,7 @@ class StatisticsService
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
             ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
             ->where('streams.name', 'like', '%Souq%')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
@@ -992,8 +926,7 @@ class StatisticsService
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
             ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
             ->where('streams.name', 'like', '%Mosque%')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
@@ -1004,8 +937,7 @@ class StatisticsService
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$previousFromDate, $previousToDate])
             ->join('streams', $etlDataTable . '.stream_id', '=', 'streams.id')
-            ->join('person_types', $etlDataTable . '.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
+            ->where("$etlDataTable.person_type", '!=', 'Staff')
             ->where('streams.name', 'like', '%Souq%')
             ->select(DB::raw('SUM(' . $etlDataTable . '.value) as total'), DB::raw($selectFields))
             ->groupBy(DB::raw($groupByFormat))
@@ -1077,8 +1009,7 @@ class StatisticsService
                 DB::raw('ROUND(AVG(SUM(etl.value)) OVER (PARTITION BY streams.name, DAYOFWEEK(etl.date)), 0) as average_total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
+            ->where("etl.person_type", '!=', 'Staff')
             ->whereIn('etl.stream_id', $streamIds)
             ->whereBetween('etl.date', [$startDate, $endDate])
             ->groupBy(
@@ -1189,7 +1120,6 @@ class StatisticsService
         ];
     }
 
-
     private function formatHour($hour)
     {
         if ($hour == 0) {
@@ -1215,7 +1145,6 @@ class StatisticsService
         return $formattedTopData;
     }
 
-
     public function getVisitorsDataHistorical(array $streamIds, $fromDate = null, $toDate = null, $duration = null)
     {
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
@@ -1231,8 +1160,7 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
+            ->where('etl.person_type', '!=', 'Staff')
             ->whereIn('etl.stream_id', $streamIds)
             ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
             ->groupBy('streams.id', DB::raw($groupByFormat), 'streams.name')
@@ -1318,11 +1246,9 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
+            ->where('etl.person_type', '!=', 'Staff')
             ->whereIn('etl.stream_id', $streamIds)
-            ->where('metrics.name', 'Unique')
+            ->where('etl.metric', 'Unique')
             ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
             ->groupBy('streams.id', DB::raw($groupByFormat), 'streams.name')
             ->orderBy(DB::raw($groupByFormat))
@@ -1397,9 +1323,8 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->whereIn('etl.stream_id', $streamIds)
-            ->where('person_types.name', 'Returning')
+            ->where('etl.person_type', 'Returning')
             ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
             ->groupBy('streams.id', DB::raw($groupByFormat), 'streams.name')
             ->orderBy(DB::raw($groupByFormat))
@@ -1476,11 +1401,9 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('metrics', 'etl.metric_id', '=', 'metrics.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->where('person_types.name', '!=', 'Staff')
+            ->where('etl.person_type', '!=', 'Staff')
             ->whereIn('etl.stream_id', $streamIds)
-            ->where('metrics.name', 'Occupancy')
+            ->where('etl.metric', 'Occupancy')
             ->whereBetween('etl.date', ["$startDate 00:00:00", "$endDate 23:59:59"])
             ->groupBy('streams.id', DB::raw($groupByFormat), 'streams.name')
             ->orderBy(DB::raw($groupByFormat))
@@ -1555,9 +1478,8 @@ class StatisticsService
                 DB::raw('SUM(etl.value) as total_value')
             )
             ->join('streams', 'etl.stream_id', '=', 'streams.id')
-            ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->whereIn('etl.stream_id', $streamIds)
-            ->where('person_types.name', 'staff')
+            ->where('etl.person_type', 'staff')
             ->whereBetween('etl.date', [$startDate, $endDate])
             ->groupBy('streams.id', DB::raw($groupByFormat), 'streams.name')
             ->orderBy(DB::raw($groupByFormat))
@@ -1705,19 +1627,17 @@ class StatisticsService
         }
 
         if ($personType) {
-            $query->where('person_types.name', $personType)
+            $query->where('etl.person_type', $personType)
                 ->whereIn('etl.stream_id', $streamIds)
                 ->first();
         }
 
         if ($isUniqueMetric) {
-            $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
-                ->where('metrics.name', 'Unique')
+            $results = $query->where('etl.metric', 'Unique')
                 ->whereIn('etl.stream_id', $streamIds)
                 ->first();
         } else if ($isOccupancyMetric) {
-            $results = $query->leftJoin('metrics', 'etl.metric_id', '=', 'metrics.id')
-                ->where('metrics.name', 'Occupancy')
+            $results = $query->where('etl.metric', 'Occupancy') 
                 ->whereIn('etl.stream_id', $streamIds)
                 ->first();
         } else {
@@ -1882,34 +1802,34 @@ class StatisticsService
     }
 
     private function getDailyQuery($etlDataTable, $streamIds, $fromDateStart, $fromDateEnd, $toDateStart, $toDateEnd)
-    {
-        return DB::table("$etlDataTable as etl")
-            ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
-            ->whereIn('etl.stream_id', $streamIds)
-            ->selectRaw("
-                SUM(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_total_value,
-                COUNT(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN 1 END) AS current_total_entries,
-                SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_total_value,
-                COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN 1 END) AS previous_total_entries,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_souq_visitors,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_souq_visitors
-            ");
-    }
+{
+    return DB::table("$etlDataTable as etl")
+        ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
+        ->whereIn('etl.stream_id', $streamIds)
+        ->selectRaw("
+            SUM(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_total_value,
+            COUNT(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN 1 END) AS current_total_entries,
+            SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_total_value,
+            COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN 1 END) AS previous_total_entries,
+            SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_souq_visitors,
+            SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_souq_visitors
+        ");
+}
 
-    private function getNonDailyQuery($etlDataTable, $streamIds, $fromDateCurrent, $toDateCurrent, $toDateStart, $toDatePrevious)
-    {
-        return DB::table("$etlDataTable as etl")
-            ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
-            ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
-            ->whereIn('etl.stream_id', $streamIds)
-            ->selectRaw("
-                SUM(CASE WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN etl.value ELSE 0 END) AS current_total_value,
-                COUNT(CASE WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN 1 END) AS current_total_entries,
-                SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_total_value,
-                COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN 1 END) AS previous_total_entries,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN etl.value ELSE 0 END) AS current_souq_visitors,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_souq_visitors
-            ");
-    }
+
+private function getNonDailyQuery($etlDataTable, $streamIds, $fromDateCurrent, $toDateCurrent, $toDateStart, $toDatePrevious)
+{
+    return DB::table("$etlDataTable as etl")
+        ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
+        ->whereIn('etl.stream_id', $streamIds)
+        ->selectRaw("
+            SUM(CASE WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN etl.value ELSE 0 END) AS current_total_value,
+            COUNT(CASE WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN 1 END) AS current_total_entries,
+            SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_total_value,
+            COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN 1 END) AS previous_total_entries,
+            SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN etl.value ELSE 0 END) AS current_souq_visitors,
+            SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_souq_visitors
+        ");
+}
+
 }

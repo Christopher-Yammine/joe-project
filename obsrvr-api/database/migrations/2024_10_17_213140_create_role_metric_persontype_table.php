@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('role_metric_persontype', function (Blueprint $table) {
             $table->id();
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
-            $table->foreignId('metric_id')->constrained('metrics')->onDelete('cascade');
-            $table->foreignId('person_type_id')->constrained('person_types')->onDelete('cascade');
+            // $table->foreignId('metric_id')->constrained('metrics')->onDelete('cascade');
+            // $table->foreignId('person_type_id')->constrained('person_types')->onDelete('cascade');
             $table->timestamps();
         });
     }

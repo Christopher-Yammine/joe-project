@@ -13,10 +13,13 @@ return new class extends Migration
     {
         Schema::create('etl_data_quarterly', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('metric_id')->constrained('metrics')->onDelete('cascade');
-            $table->foreignId('person_type_id')->constrained('person_types')->onDelete('cascade');
             $table->dateTime('date');
             $table->float('value');
+            $table->string('person_type');
+            $table->string('metric');
+            $table->string('gender');
+            $table->string('sentiment');
+            $table->string('age_group');
             $table->timestamps();
         });
     }

@@ -14,20 +14,12 @@ class DatabaseSeeder extends Seeder
     {
 
         $this->call([
-            PersonTypeSeeder::class,
-            GenderSeeder::class,
-            SentimentSeeder::class,
-            AgeGroupSeeder::class,
-
-
-            MetricsSeeder::class,
             CountriesSeeder::class,
             CitiesSeeder::class,
             CompaniesSeeder::class,
             BranchesSeeder::class,
             StreamTypesSeeder::class,
             StreamSeeder::class,
-            DemographicsSeeder::class,
 
             ETLDataSeeder::class,
 

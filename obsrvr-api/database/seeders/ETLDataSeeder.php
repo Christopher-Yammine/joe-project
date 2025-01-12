@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Footfall;
 use App\Models\Metric;
-use App\Models\Demographic;
 use App\Models\ETLDataHourly;
 use App\Models\ETLDataDaily;
 use App\Models\ETLDataWeekly;
@@ -20,10 +19,12 @@ class ETLDataSeeder extends Seeder
 {
     public function run()
     {
-        $footfalls = PersonType::all()->pluck('id')->toArray();
-        $metrics = Metric::all()->pluck('id')->toArray();
-        $demographics = Demographic::all()->take(30)->pluck('id')->toArray();
         $streams = Stream::all()->pluck('id')->toArray();
+        $genders = ['Male', 'Female'];
+        $ageGroups = ['70+', '50-69', '35-49', '25-34', '19-24'];
+        $metrics = ['Current', 'Unique', 'Occupancy'];
+        $personTypes = ['New', 'Returning', 'Staff'];
+        $sentiments = ['Happy', 'Neutral', 'Sad'];
 
         $startDateHourly = Carbon::now()->subDays(15)->setTime(0, 0, 0);
         $endDateHourly = Carbon::now()->endOfDay()->addDays(5);
@@ -43,15 +44,15 @@ class ETLDataSeeder extends Seeder
         $startDateYearly = Carbon::now()->startOfYear()->subYears(10);
         $endDateYearly = Carbon::now()->endOfYear();
 
-        $this->seedData(ETLDataHourly::class, $footfalls, $demographics, $metrics, $startDateHourly, $endDateHourly, $streams, 'hour');
-        $this->seedData(ETLDataDaily::class, $footfalls, $demographics, $metrics, $startDateDaily, $endDateDaily, $streams, 'day');
-        $this->seedData(ETLDataWeekly::class, $footfalls, $demographics, $metrics, $startDateWeekly, $endDateWeekly, $streams, 'week');
-        $this->seedData(ETLDataMonthly::class, $footfalls, $demographics, $metrics, $startDateMonthly, $endDateMonthly, $streams, 'month');
-        $this->seedData(ETLDataQuarterly::class, $footfalls, $demographics, $metrics, $startDateQuarterly, $endDateQuarterly, $streams, 'quarter');
-        $this->seedData(ETLDataYearly::class, $footfalls, $demographics, $metrics, $startDateYearly, $endDateYearly, $streams, 'year');
+        $this->seedData(ETLDataHourly::class, $personTypes, $metrics, $startDateHourly, $endDateHourly, $streams, 'hour', $genders, $ageGroups, $sentiments);
+        $this->seedData(ETLDataDaily::class, $personTypes, $metrics, $startDateDaily, $endDateDaily, $streams, 'day', $genders, $ageGroups, $sentiments);
+        $this->seedData(ETLDataWeekly::class, $personTypes, $metrics, $startDateWeekly, $endDateWeekly, $streams, 'week', $genders, $ageGroups, $sentiments);
+        $this->seedData(ETLDataMonthly::class, $personTypes, $metrics, $startDateMonthly, $endDateMonthly, $streams, 'month', $genders, $ageGroups, $sentiments);
+        $this->seedData(ETLDataQuarterly::class, $personTypes, $metrics, $startDateQuarterly, $endDateQuarterly, $streams, 'quarter', $genders, $ageGroups, $sentiments);
+        $this->seedData(ETLDataYearly::class, $personTypes, $metrics, $startDateYearly, $endDateYearly, $streams, 'year', $genders, $ageGroups, $sentiments);
     }
 
-    protected function seedData($model, $footfalls, $demographics, $metrics, $startDate, $endDate, $streams, $interval)
+    protected function seedData($model, $personTypes, $metrics, $startDate, $endDate, $streams, $interval, $genders, $ageGroups, $sentiments)
     {
         $data = [];
         $date = $startDate->copy();
@@ -67,42 +68,45 @@ class ETLDataSeeder extends Seeder
                 }
             }
 
-            foreach ($footfalls as $footfall) {
-                foreach ($demographics as $demographic) {
-                    foreach ($streams as $stream) {
-                        foreach ($metrics as $metric) {
-                            
-                            $baseValue = match ($interval) {
-                                'hour' => rand(1, 5),
-                                'day' => rand(10, 50),
-                                'week' => rand(100, 300),
-                                'month' => rand(500, 1500),
-                                'quarter' => rand(2000, 5000),
-                                'year' => rand(5000, 20000),
-                                default => rand(0, 10),
-                            };
+            foreach ($personTypes as $personType) {
+                foreach ($streams as $stream) {
+                    foreach ($metrics as $metric) {
+                        foreach ($genders as $gender) {
+                            foreach ($ageGroups as $ageGroup) {
+                                foreach($sentiments as $sentiment)
+                                $baseValue = match ($interval) {
+                                    'hour' => rand(1, 5),
+                                    'day' => rand(10, 50),
+                                    'week' => rand(100, 300),
+                                    'month' => rand(500, 1500),
+                                    'quarter' => rand(2000, 5000),
+                                    'year' => rand(5000, 20000),
+                                    default => rand(0, 10),
+                                };
 
-                            $variation = rand(-2, 2);
-                            $finalValue = max(0, $baseValue + $variation);
+                                $variation = rand(-2, 2);
+                                $finalValue = max(0, $baseValue + $variation);
 
-                            $data[] = [
-                                'stream_id' => $stream,
-                                'person_type_id' => $footfall,
-                                'demographics_id' => $demographic,
-                                'metric_id' => $metric,
-                                'date' => $date->format('Y-m-d H:i:s'),
-                                'value' => $finalValue,
-                            ];
+                                $data[] = [
+                                    'stream_id' => $stream,
+                                    'person_type' => $personType,
+                                    'metric' => $metric,
+                                    'gender' => $gender,
+                                    'age_group' => $ageGroup,
+                                    'sentiment' => $sentiment,
+                                    'date' => $date->format('Y-m-d H:i:s'),
+                                    'value' => $finalValue,
+                                ];
 
-                            if (count($data) >= 1000) {
-                                $model::insert($data);
-                                $data = [];
+                                if (count($data) >= 1000) {
+                                    $model::insert($data);
+                                    $data = [];
+                                }
                             }
                         }
                     }
                 }
             }
-
 
             $this->incrementDate($date, $interval);
         }
@@ -114,25 +118,13 @@ class ETLDataSeeder extends Seeder
 
     protected function incrementDate(&$date, $interval)
     {
-        switch ($interval) {
-            case 'hour':
-                $date->addHour();
-                break;
-            case 'day':
-                $date->addDay();
-                break;
-            case 'week':
-                $date->addWeek();
-                break;
-            case 'month':
-                $date->addMonth();
-                break;
-            case 'quarter':
-                $date->addQuarter();
-                break;
-            case 'year':
-                $date->addYear();
-                break;
-        }
+        match ($interval) {
+            'hour' => $date->addHour(),
+            'day' => $date->addDay(),
+            'week' => $date->addWeek(),
+            'month' => $date->addMonth(),
+            'quarter' => $date->addQuarter(),
+            'year' => $date->addYear(),
+        };
     }
 }
