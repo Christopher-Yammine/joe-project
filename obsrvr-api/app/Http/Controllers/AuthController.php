@@ -132,9 +132,16 @@ class AuthController extends Controller
         ], 401);
     }
 
+    $userData = $user instanceof \Illuminate\Database\Eloquent\Model
+        ? $user->toArray()
+        : ['id' => $user->getAuthIdentifier()];
+
     return response()->json([
         'status' => 'success',
-        'user' => $user,
+        'userData' => array_merge($userData, [
+            'role' => 'admin',
+            'username' => 'admin',
+        ]),
     ]);
 }
 

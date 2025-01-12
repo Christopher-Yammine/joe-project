@@ -41,22 +41,20 @@ const AuthProvider = ({ children }: Props) => {
     const initAuth = async (): Promise<void> => {
       console.log('authInit entered')
       const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
-      console.log('🚀 ~ initAuth ~ storedToken:', storedToken)
       if (storedToken) {
-        console.log('entered')
         setLoading(true)
         await axios
           .get(authConfig.meEndpoint, {
             headers: {
-              Authorization: storedToken
+              Authorization: `Bearer ${storedToken}`
             }
           })
           .then(async response => {
-            console.log('🚀 ~ initAuth ~ response:', response)
             setLoading(false)
             setUser({ ...response.data.userData })
           })
-          .catch(() => {
+          .catch(error => {
+            console.log('🚀 ~ initAuth ~ error:', error)
             localStorage.removeItem('userData')
             localStorage.removeItem('refreshToken')
             localStorage.removeItem('accessToken')
