@@ -17,6 +17,7 @@ import Icon from 'src/@core/components/icon'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
+import generalConfig from 'src/configs/general.config.json'
 
 // ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
@@ -115,7 +116,7 @@ const ForgotPassword = () => {
           <ForgotPasswordIllustration
             width={700}
             alt='forgot-password-illustration'
-            src={`/images/pages/mosque-home-${theme.palette.mode}.jpg`}
+            src={generalConfig.Logo.loginImage ?? `/images/pages/mosque-home-${theme.palette.mode}.jpg`}
           />
         </Box>
       ) : null}
