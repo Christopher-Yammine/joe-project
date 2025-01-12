@@ -722,7 +722,6 @@ class StatisticsService
         $etlDataTable = $this->getEtlDataTableByDuration($duration);
         $groupByFormat = $this->getGroupByFormat($duration);
         $selectFields = $this->getSelectFieldsByDuration($duration);
-
         $maleVisitors = DB::table($etlDataTable)
             ->whereIn('stream_id', $streamIds)
             ->whereBetween('date', [$fromDate, $toDate])
@@ -1064,32 +1063,42 @@ class StatisticsService
 
     public function getHeatMapChartData(array $streamIds, $fromDate = null, $toDate = null)
     {
-        $startDate = "$fromDate 00:00:00";
-        $endDate = "$toDate 23:59:59";
+        $minHour = 8;
+        $maxHour = 24;
 
-        $results = DB::table('etl_data_hourly as etl')
+        $startDate = "{$fromDate} 00:00:00";
+        $endDate   = "{$toDate} 23:59:59";
+
+        $subQuery = DB::table('etl_data_hourly as etl')
             ->select(
-                'streams.name',
-                DB::raw('WEEK(etl.date) as week_number'),
+                DB::raw('DATE(etl.date) as the_date'),
                 DB::raw('DAYOFWEEK(etl.date) as day_of_week'),
                 DB::raw('HOUR(etl.date) as hour'),
-                DB::raw('SUM(etl.value) as total_value'),
-                DB::raw('ROUND(AVG(SUM(etl.value)) OVER (PARTITION BY streams.name, DAYOFWEEK(etl.date)), 0) as average_total_value')
+                DB::raw('SUM(etl.value) as daily_total_value')
             )
-            ->join('streams', 'etl.stream_id', '=', 'streams.id')
             ->join('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->where('person_types.name', '!=', 'Staff')
             ->whereIn('etl.stream_id', $streamIds)
             ->whereBetween('etl.date', [$startDate, $endDate])
             ->groupBy(
-                'streams.name',
-                DB::raw('WEEK(etl.date)'),
+                DB::raw('DATE(etl.date)'),
                 DB::raw('DAYOFWEEK(etl.date)'),
                 DB::raw('HOUR(etl.date)')
+            );
+
+        $subSql = $subQuery->toSql();
+
+        $results = DB::table(DB::raw("({$subSql}) as sub"))
+            ->mergeBindings($subQuery)
+            ->select(
+                'day_of_week',
+                'hour',
+                DB::raw('ROUND(AVG(daily_total_value), 0) as average_total_value'),
+                DB::raw('SUM(daily_total_value) as total_value')
             )
-            ->orderBy('week_number', 'asc')
-            ->orderBy('day_of_week', 'asc')
-            ->orderBy('hour', 'asc')
+            ->groupBy('day_of_week', 'hour')
+            ->orderBy('day_of_week')
+            ->orderBy('hour')
             ->get();
 
         $dayNamesAr = [
@@ -1112,52 +1121,48 @@ class StatisticsService
             7 => 'Saturday',
         ];
 
-        $heatMapData = [];
-        $seen = [];
+        $daysFound = [];
+        foreach ($results as $row) {
+            $dow = (int) $row->day_of_week;
+            $hr  = (int) $row->hour;
+            $val = (float) $row->average_total_value;
 
-        foreach (range(1, 7) as $dayOfWeek) {
-            $heatMapData[$dayOfWeek] = [];
-        }
-
-        foreach ($results as $result) {
-            $dayOfWeek = $result->day_of_week;
-            $hour = $result->hour;
-            $totalValue = $result->total_value;
-            $averageTotalValue = $result->average_total_value;
-
-            if ($averageTotalValue > 0) {
-                $heatMapData[$dayOfWeek][$hour] = $averageTotalValue;
+            if ($hr === 0) {
+                $hr = 24;
             }
 
-            $key = "{$dayOfWeek}_{$hour}";
-            if (!isset($seen[$key]) || $seen[$key]['value'] < $totalValue) {
-                $seen[$key] = [
-                    'day_of_week' => $dayOfWeek,
-                    'hour' => $hour,
-                    'value' => $totalValue,
-                    'title' => "{$dayNames[$dayOfWeek]}, " . $this->formatHour($hour),
-                ];
+            if ($hr < $minHour || $hr > $maxHour) {
+                continue;
             }
+
+            $daysFound[$dow][$hr] = $val;
         }
+
+        foreach ($daysFound as $dow => &$hourArr) {
+            ksort($hourArr, SORT_NUMERIC);
+        }
+        unset($hourArr);
 
         $formattedData = [];
-        foreach ($heatMapData as $dayOfWeek => $hoursData) {
-            $dayName = $dayNames[$dayOfWeek];
-            $dayNameAr = $dayNamesAr[$dayOfWeek];
-
+        foreach ($daysFound as $dow => $hoursArr) {
+            if (!isset($dayNames[$dow])) {
+                continue;
+            }
             $dayData = [
-                'name' => $dayName,
-                'name_ar' => $dayNameAr,
-                'data' => [],
+                'name'    => $dayNames[$dow],
+                'name_ar' => $dayNamesAr[$dow],
+                'data'    => [],
             ];
 
-            foreach (range(0, 23) as $hour) {
-                if (isset($hoursData[$hour]) && $hoursData[$hour] > 0) {
-                    $dayData['data'][] = [
-                        'x' => (string) $hour,
-                        'y' => $hoursData[$hour],
-                    ];
+            for ($hr = $minHour; $hr <= $maxHour; $hr++) {
+                if (!array_key_exists($hr, $hoursArr)) {
+                    continue;
                 }
+
+                $dayData['data'][] = [
+                    'x' => (string) $hr,
+                    'y' => $hoursArr[$hr],
+                ];
             }
 
             if (!empty($dayData['data'])) {
@@ -1168,19 +1173,18 @@ class StatisticsService
         $allHourlyValues = [];
         foreach ($formattedData as $dayData) {
             foreach ($dayData['data'] as $hourData) {
-                $allHourlyValues[] = [
-                    'title' => $dayData['name'] . ', ' . $this->formatHour($hourData['x']),
-                    'value' => $hourData['y'],
-                    'hour' => $hourData['x'],
-                    'day' => $dayData['name'],
-                ];
+                if (!is_null($hourData['y']) && $hourData['y'] > 0) {
+                    $allHourlyValues[] = [
+                        'title' => $dayData['name'] . ', ' . $this->formatHour($hourData['x']),
+                        'value' => $hourData['y'],
+                        'hour'  => $hourData['x'],
+                        'day'   => $dayData['name'],
+                    ];
+                }
             }
         }
 
-        usort($allHourlyValues, function ($a, $b) {
-            return $b['value'] - $a['value'];
-        });
-
+        usort($allHourlyValues, fn($a, $b) => $b['value'] <=> $a['value']);
         $topHourlyData = array_slice($allHourlyValues, 0, 4);
 
         return [
@@ -1681,9 +1685,9 @@ class StatisticsService
     ) {
         if ($duration === 'hourly') {
             $lastHourWithData = DB::table("$etlDataTable")
-            ->where('date', '>=', "$fromDate 00:00:00")
-            ->where('date', '<=', "$fromDate 23:59:59")
-            ->max(DB::raw('HOUR(date)'));
+                ->where('date', '>=', "$fromDate 00:00:00")
+                ->where('date', '<=', "$fromDate 23:59:59")
+                ->max(DB::raw('HOUR(date)'));
 
             $currentHour = $lastHourWithData !== null ? $lastHourWithData : date('G');
 
@@ -1724,10 +1728,12 @@ class StatisticsService
             $results = $query->whereIn('etl.stream_id', $streamIds)
                 ->first();
         }
-
-        $todayAverageFootfall = $results->current_total_value / $this->calculateDurationAverage($duration, $fromDate, $toDate);
-        $yesterdayAverageFootfall = $results->previous_total_value / $this->calculateDurationAverage($duration, $fromDate, $toDate);
-
+        $todayHoursWithData = $query->first()->current_hours_with_data ?? 0;
+        $yesterdayHoursWithData = $query->first()->previous_hours_with_data ?? 0;
+        
+        $todayAverageFootfall = $todayHoursWithData > 0 ? $results->current_total_value / $todayHoursWithData : 0;
+        $yesterdayAverageFootfall = $yesterdayHoursWithData > 0 ? $results->previous_total_value / $yesterdayHoursWithData : 0;
+        
         $footfallPercentageDifference = $yesterdayAverageFootfall > 0
             ? (($todayAverageFootfall - $yesterdayAverageFootfall) / $yesterdayAverageFootfall) * 100
             : 0;
@@ -1791,6 +1797,7 @@ class StatisticsService
 
     function calculateDurationAverage($duration, $fromDate, $toDate)
     {
+
         $duration = $duration ?? 'hourly';
         $from = Carbon::parse($fromDate);
         $to = Carbon::parse($toDate);
@@ -1881,35 +1888,112 @@ class StatisticsService
         ];
     }
 
-    private function getDailyQuery($etlDataTable, $streamIds, $fromDateStart, $fromDateEnd, $toDateStart, $toDateEnd)
-    {
-        return DB::table("$etlDataTable as etl")
+    private function getDailyQuery(
+        $etlDataTable,
+        $streamIds,
+        $fromDateStart,
+        $fromDateEnd,
+        $toDateStart,
+        $toDateEnd
+    ) {
+        
+        return DB::table("etl_data_hourly as etl")
             ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
             ->whereIn('etl.stream_id', $streamIds)
+            ->where('person_types.name', '!=', 'staff')
             ->selectRaw("
-                SUM(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_total_value,
-                COUNT(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN 1 END) AS current_total_entries,
-                SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_total_value,
-                COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN 1 END) AS previous_total_entries,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' THEN etl.value ELSE 0 END) AS current_souq_visitors,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' THEN etl.value ELSE 0 END) AS previous_souq_visitors
+              
+                SUM(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' 
+                         THEN etl.value ELSE 0 END) AS current_total_value,
+                COUNT(CASE WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' 
+                           THEN 1 END) AS current_total_entries,
+    
+                SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' 
+                         THEN etl.value ELSE 0 END) AS previous_total_value,
+                COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' 
+                           THEN 1 END) AS previous_total_entries,
+    
+                
+                COUNT(
+                  DISTINCT CASE 
+                    WHEN etl.date >= '$fromDateStart' AND etl.date <= '$fromDateEnd' AND etl.value <> 0 
+                    THEN DATE_FORMAT(etl.date, '%Y-%m-%d %H')
+                    
+                  END
+                ) AS current_hours_with_data,
+    
+               
+                COUNT(
+                  DISTINCT CASE 
+                    WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDateEnd' 
+                    THEN DATE_FORMAT(etl.date, '%Y-%m-%d %H') AND etl.value <> 0 
+                  END
+                ) AS previous_hours_with_data,
+    
+
+                SUM(CASE WHEN streams.name = 'Souq Entry 1' 
+                          AND etl.date >= '$fromDateStart' 
+                          AND etl.date <= '$fromDateEnd' 
+                         THEN etl.value ELSE 0 END) AS current_souq_visitors,
+                SUM(CASE WHEN streams.name = 'Souq Entry 1' 
+                          AND etl.date >= '$toDateStart' 
+                          AND etl.date <= '$toDateEnd' 
+                         THEN etl.value ELSE 0 END) AS previous_souq_visitors
             ");
     }
 
-    private function getNonDailyQuery($etlDataTable, $streamIds, $fromDateCurrent, $toDateCurrent, $toDateStart, $toDatePrevious)
-    {
-        return DB::table("$etlDataTable as etl")
+
+    private function getNonDailyQuery(
+        $etlDataTable,
+        $streamIds,
+        $fromDateCurrent,
+        $toDateCurrent,
+        $toDateStart,
+        $toDatePrevious
+    ) {
+        return DB::table("etl_data_hourly as etl")
             ->leftJoin('person_types', 'etl.person_type_id', '=', 'person_types.id')
             ->leftJoin('streams', 'etl.stream_id', '=', 'streams.id')
+            ->where('person_types.name', '!=', 'staff')
             ->whereIn('etl.stream_id', $streamIds)
             ->selectRaw("
-                SUM(CASE WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN etl.value ELSE 0 END) AS current_total_value,
-                COUNT(CASE WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN 1 END) AS current_total_entries,
-                SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_total_value,
-                COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN 1 END) AS previous_total_entries,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' THEN etl.value ELSE 0 END) AS current_souq_visitors,
-                SUM(CASE WHEN streams.name = 'Souq Entry 1' AND etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' THEN etl.value ELSE 0 END) AS previous_souq_visitors
+                -- Existing total footfall counts
+                SUM(CASE WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' 
+                         THEN etl.value ELSE 0 END) AS current_total_value,
+                COUNT(CASE WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' 
+                           THEN 1 END) AS current_total_entries,
+    
+                SUM(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' 
+                         THEN etl.value ELSE 0 END) AS previous_total_value,
+                COUNT(CASE WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' 
+                           THEN 1 END) AS previous_total_entries,
+    
+                -- New: distinct hour counting (current)
+                COUNT(
+                  DISTINCT CASE 
+                    WHEN etl.date >= '$fromDateCurrent' AND etl.date <= '$toDateCurrent' AND etl.value <> 0 
+                    THEN DATE_FORMAT(etl.date, '%Y-%m-%d %H')
+                  END
+                ) AS current_hours_with_data,
+    
+                -- New: distinct hour counting (previous)
+                COUNT(
+                  DISTINCT CASE 
+                    WHEN etl.date >= '$toDateStart' AND etl.date <= '$toDatePrevious' AND etl.value <> 0 
+                    THEN DATE_FORMAT(etl.date, '%Y-%m-%d %H')
+                  END
+                ) AS previous_hours_with_data,
+    
+                -- Souq visitors
+                SUM(CASE WHEN streams.name = 'Souq Entry 1' 
+                          AND etl.date >= '$fromDateCurrent' 
+                          AND etl.date <= '$toDateCurrent' 
+                         THEN etl.value ELSE 0 END) AS current_souq_visitors,
+                SUM(CASE WHEN streams.name = 'Souq Entry 1' 
+                          AND etl.date >= '$toDateStart' 
+                          AND etl.date <= '$toDatePrevious' 
+                         THEN etl.value ELSE 0 END) AS previous_souq_visitors
             ");
     }
 }
